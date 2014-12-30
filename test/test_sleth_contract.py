@@ -9,45 +9,51 @@ class TestSlethContract(object):
         self.s = tester.state()
         self.c = self.s.contract(self.CONTRACT)
 
-    def _storage(self, idx):
-        return self.s.block.account_to_dict(self.c)['storage'].get(idx)
+    def _spin(self, bet):
+        return self.s.send(tester.k0, self.c, 0, funid=0, abi=[bet])
+
+    def _claim(self, round):
+        return self.s.send(tester.k0, self.c, 0, funid=1, abi=[round])
+
+    def _deposit(self, amount):
+        return self.s.send(tester.k0, self.c, amount, funid=2, abi=[])
+
+    def _withdraw(self, amount):
+        return self.s.send(tester.k0, self.c, 0, funid=3, abi=[amount])
+
+    def _get_round(self, round):
+        return self.s.send(tester.k0, self.c, 0, funid=4, abi=[round])
+
+    def _get_current_player(self):
+        return self.s.send(tester.k0, self.c, 0, funid=5, abi=[])
 
     def test_spin_bet_out_of_range(self):
-        o1 = self.s.send(tester.k0, self.c, 0, funid=0, abi=[0])
-        assert o1 == [0]
-
-        o2 = self.s.send(tester.k0, self.c, 0, funid=0, abi=[6])
-        assert o2 == [0]
+        assert self._spin(0) == [0]
+        assert self._spin(6) == [0]
 
     def test_spin_invalid_funds(self):
-        o1 = self.s.send(tester.k0, self.c, 0, funid=0, abi=[5])
-        assert o1 == [0]
+        assert self._spin(5) == [0]
 
     def test_spin_deposit(self):
-        o1 = self.s.send(tester.k0, self.c, 5, funid=2, abi=[])
-        assert o1 == [1]
-
-        # TODO assert storage
+        assert self._deposit(5) == [1]
+        assert self._get_current_player() == [0, 5]
 
     def test_spin_withdraw_too_much(self):
-        o1 = self.s.send(tester.k0, self.c, 0, funid=3, abi=[5])
-        assert o1 == [0]
+        assert self._withdraw(5) == [0]
 
     def test_spin_withdraw_valid(self):
-        o1 = self.s.send(tester.k0, self.c, 5, funid=2, abi=[])
-        assert o1 == [1]
+        assert self._deposit(5) == [1]
 
         balance_before = self.s.block.get_balance(tester.a0)
-
-        o2 = self.s.send(tester.k0, self.c, 0, funid=3, abi=[5])
-        assert o2 == [1]
+        assert self._withdraw(5) == [1]
 
         balance_after = self.s.block.get_balance(tester.a0)
         assert balance_after - balance_before == 5
 
-    def test_spin_valid_bet(self):
-        o1 = self.s.send(tester.k0, self.c, 0, funid=2, abi=[])
-        assert o1 == [1]
+        assert self._get_current_player() == [0, 0]
 
-        o2 = self.s.send(tester.k0, self.c, 0, funid=0, abi=[5])
-        assert o2 == [0]
+    def test_spin_valid_bet(self):
+        assert self._deposit(5) == [1]
+        assert self._spin(5) == [1]
+
+        # TODO

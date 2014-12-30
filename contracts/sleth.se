@@ -15,6 +15,7 @@ def shared():
     MIN_BET = 1
     MAX_BET = 5
 
+# funid=0
 def spin(bet):
     if bet < MIN_BET or bet > MAX_BET:
         return(0) // bet out of range
@@ -34,6 +35,7 @@ def spin(bet):
     self.current_round = current_round + 1
     return(1)
 
+# funid=1
 def claim(round):
     if block.number > self.last_processed_block:
         round = self.last_processed_round
@@ -48,10 +50,12 @@ def claim(round):
     else:
         return(0)
 
+# funid=2
 def deposit():
     self.players[msg.sender].balance += msg.value
     return(1)
 
+# funid=3
 def withdraw(amount):
     if amount <= self.players[msg.sender].balance:
         self.players[msg.sender].balance -= amount
@@ -59,8 +63,10 @@ def withdraw(amount):
         return(1)
     return(0)
 
+# funid=4
 def get_round(round):
     return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].status], 7)
 
+# funid=5
 def get_current_player():
     return([self.players[msg.sender].last_round, self.players[msg.sender].balance], 2)
