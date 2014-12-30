@@ -1,0 +1,66 @@
+data current_round
+data last_processed_block
+data last_processed_round
+
+data rounds[2^160](player, block, timestamp, bet, result, entropy, status)
+data players[2^160](last_round, balance)
+
+# status:
+# 0 = new
+# 1 = spinning
+# 2 = done
+
+def shared():
+    MIN_CONFIRMATIONS = 2
+    MIN_BET = 1
+    MAX_BET = 5
+
+def spin(bet):
+    if bet < MIN_BET or bet > MAX_BET:
+        return(0) // bet out of range
+
+    if bet > self.players[msg.sender].balance:
+        return(0) // insufficient funds
+
+    self.players[msg.sender].balance -= bet
+
+    current_round = self.current_round
+    self.rounds[current_round].player = msg.sender
+    self.rounds[current_round].block = block.number
+    self.rounds[current_round].timestamp = block.timestamp
+    self.rounds[current_round].bet = bet
+    self.rounds[current_round].status = 1
+    self.players[msg.sender].last_round = current_round
+    self.current_round = current_round + 1
+    return(1)
+
+def claim(round):
+    if block.number > self.last_processed_block:
+        round = self.last_processed_round
+        current_round = self.current_round
+        while round < current_round:
+            # TODO stuff
+            round += 1
+
+        self.last_processed_block = block.number
+        self.last_processed_round = round
+        return(1)
+    else:
+        return(0)
+
+def deposit():
+    self.players[msg.sender].balance += msg.value
+    return(1)
+
+def withdraw(amount):
+    if amount <= self.players[msg.sender].balance:
+        self.players[msg.sender].balance -= amount
+        send(msg.sender, amount)
+        return(1)
+    return(0)
+
+def get_round(round):
+    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].status], 7)
+
+def get_current_player():
+    return([self.players[msg.sender].last_round, self.players[msg.sender].balance], 2)
