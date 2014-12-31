@@ -10,13 +10,11 @@ data players[2^160](last_round, balance)
 # 1 = spinning
 # 2 = done
 
-def shared():
-    MIN_CONFIRMATIONS = 2
+# funid=0
+def spin(bet):
     MIN_BET = 1
     MAX_BET = 5
 
-# funid=0
-def spin(bet):
     if bet < MIN_BET or bet > MAX_BET:
         return(0) // bet out of range
 
