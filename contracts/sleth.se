@@ -16,6 +16,7 @@ def shared():
 
     REEL_COUNT = 3
     REEL_POSITIONS = 32
+    ROW_COUNT = 3
 
 # funid=0
 def spin(bet):
@@ -74,7 +75,7 @@ def get_round(round):
 def get_current_player():
     return([self.players[msg.sender].last_round, self.players[msg.sender].balance], 2)
 
-def calc_lines(s1, s2, s3):
+def calc_line(s1, s2, s3):
     match_payout = array(11)
     match_payout[7] = 4 // 3Down
     match_payout[6] = 6 // 2Down
@@ -160,12 +161,36 @@ def get_stops(rnd):
         i += 1
     return(stops, REEL_COUNT)
 
-def calc_reward(rnd):
+def calc_reward(rnd, playing_lines):
+    result_0 = array(ROW_COUNT)
+    result_1 = array(ROW_COUNT)
+    result_2 = array(ROW_COUNT)
+
     reel_0 = [2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4]
     reel_1 = [6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4]
     reel_2 = [1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3]
 
-    return(self.get_stops(rnd, outsz=REEL_COUNT), REEL_COUNT)
+    stops = self.get_stops(rnd, outsz=REEL_COUNT)
+    i = 0
+    while i < ROW_COUNT:
+        result_0[i] = reel_0[(stops[0] + i)]
+        result_1[i] = reel_1[(stops[1] + i)]
+        result_2[i] = reel_2[(stops[2] + i)]
+        i += 1
 
-# TODO debug array passing
+    # line 1
+    payout = self.calc_line(result_0[1], result_1[1], result_2[1])
 
+    if playing_lines > 1:
+        # line 2
+        payout += self.calc_line(result_0[0], result_1[0], result_2[0])
+        # line 3
+        payout += self.calc_line(result_0[2], result_1[2], result_2[2])
+
+        if playing_lines > 3:
+            # line 4
+            payout += self.calc_line(result_0[0], result_1[1], result_2[2])
+            # line 5
+            payout += self.calc_line(result_0[2], result_1[1], result_2[0])
+
+    return(payout)

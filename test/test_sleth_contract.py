@@ -36,8 +36,8 @@ class TestSlethContract(object):
     def _get_stops(self, rnd):
         return self.s.send(tester.k0, self.c, 0, funid=7, abi=[rnd])
 
-    def _calc_reward(self, rnd):
-        return self.s.send(tester.k0, self.c, 0, funid=8, abi=[rnd])
+    def _calc_reward(self, rnd, lines):
+        return self.s.send(tester.k0, self.c, 0, funid=8, abi=[rnd, lines])
 
     def test_spin_bet_out_of_range(self):
         assert self._spin(0) == [0]
@@ -132,4 +132,6 @@ class TestSlethContract(object):
         assert self._get_stops(0) == [0, 0, 0]
 
     def test_calc_reward(self):
-        assert self._calc_reward(23888) == [3, 2, 4]
+        assert self._calc_reward(23888, 1) == [6]
+        assert self._calc_reward(23888, 3) == [26]
+        assert self._calc_reward(23888, 5) == [32]
