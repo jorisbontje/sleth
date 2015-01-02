@@ -5,9 +5,13 @@ class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
 
+    def setup_class(cls):
+        cls.s = tester.state()
+        cls.c = cls.s.contract(cls.CONTRACT)
+        cls.snapshot = cls.s.snapshot()
+
     def setup_method(self, method):
-        self.s = tester.state()
-        self.c = self.s.contract(self.CONTRACT)
+        self.s.revert(self.snapshot)
 
     def _spin(self, bet):
         return self.s.send(tester.k0, self.c, 0, funid=0, abi=[bet])
