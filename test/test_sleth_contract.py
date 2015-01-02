@@ -1,4 +1,3 @@
-from eth_tools import Contract, address
 from pyethereum import tester
 
 class TestSlethContract(object):
@@ -33,6 +32,12 @@ class TestSlethContract(object):
 
     def _calc_lines(self, s1, s2, s3):
         return self.s.send(tester.k0, self.c, 0, funid=6, abi=[s1, s2, s3])
+
+    def _get_stops(self, rnd):
+        return self.s.send(tester.k0, self.c, 0, funid=7, abi=[rnd])
+
+    def _calc_reward(self, rnd):
+        return self.s.send(tester.k0, self.c, 0, funid=8, abi=[rnd])
 
     def test_spin_bet_out_of_range(self):
         assert self._spin(0) == [0]
@@ -119,3 +124,12 @@ class TestSlethContract(object):
 
     def test_calc_lines_nothing(self):
         assert self._calc_lines(0, 1, 2) == [0]
+
+    def test_get_stops(self):
+        assert self._get_stops(23888) == [16, 10, 23]
+        assert self._get_stops(1606) == [6, 18, 1]
+        assert self._get_stops(30464) == [0, 24, 29]
+        assert self._get_stops(0) == [0, 0, 0]
+
+    def test_calc_reward(self):
+        assert self._calc_reward(23888) == [3, 2, 4]

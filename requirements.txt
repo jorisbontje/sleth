@@ -1,4 +1,4 @@
-ethereum-serpent==1.7.7
+ethereum-serpent==1.7.8
 flake8==2.2.5
 -e ../pyethereum
 pytest==2.6.4
