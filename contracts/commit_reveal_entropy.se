@@ -1,0 +1,53 @@
+data round_count
+data rounds[2^80](owner, status, deadline, commit_count, reveal_count, contribs[2^50](sender, hash, value))
+
+# round deadline
+# round deadline + REVEAL_WINDOW
+
+# tickets are part of a round
+# random value for each ticket are a hashchain based on the random seed for a block
+
+
+# commits are per block
+# reveal required to get deposit back
+
+def shared():
+    REVEAL_WINDOW = 6
+    DEPOSIT = 2000
+
+# should we allow entropy to be requested if there is are no commits yet?
+# always request for target = current block + 1
+def request_entropy():
+    # 
+    # returns round_id + eta
+
+def get_entropy(round_id):
+    if msg.sender != self.rounds[round_id].owner:
+        return([3, 0], 2)
+
+    status = self.rounds[round_id].status
+    if status == 0:
+        # check expired
+
+    # returns: status, entropy
+    # status = 0 pending
+    # status = 1 ready
+    # status = 2 expired
+    # status = 3 not yours
+
+# XXX how many blocks in the future could you be allowed to commit to?
+def commit(block, hash):
+    if msg.value < DEPOSIT:
+        return(0)
+
+    if block <= block.number:
+        return(0)
+
+    # store hash on list
+
+def reveal(block, value):
+    # check hash(value) matches hash
+    # store value
+    # return deposit
+
+    # if reveal_count == commit_count: calculate entropy
