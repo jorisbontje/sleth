@@ -101,23 +101,26 @@ def reveal(target, commit_idx, value):
             return(0)  # already have a seed
 
         # calculate the random seed
-        # H(v_0 || v_1 || .. || v_n)
+        # H(c_0 || r_0 || c_1 || r_1 || .. || c_n || r_n)
         # TODO review and improve hash chain function!
+        values = array(commit_count * 2)
+
         c = 0
-        values = array(commit_count)
         while c < commit_count:
-            values[c] = self.blocks[target].commits[c].value
+            values[2 * c] = self.blocks[target].commits[c].hash
+            values[2 * c + 1] = self.blocks[target].commits[c].value
             c += 1
 
-        seed = sha3(values, commit_count)
+        seed = sha3(values, commit_count * 2)
         self.blocks[target].seed = seed
 
         # calculate randomness for individual tickets
         # R_0 = seed; R_n = H(R_n-1)
         # TODO review and improve hash chain function!
         ticket_count = self.blocks[target].ticket_count
-        c = 0
         random = seed
+
+        c = 0
         while c < ticket_count:
             random = sha3(random)
             ticket_id = self.blocks[target].tickets[c]
