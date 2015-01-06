@@ -1,51 +1,70 @@
-data round_count
-data rounds[2^80](owner, status, deadline, commit_count, reveal_count, contribs[2^50](sender, hash, value))
-
-# round deadline
-# round deadline + REVEAL_WINDOW
-
-# tickets are part of a round
+data ticket_count
+data tickets[2^50](owner, status, target, random)
 # random value for each ticket are a hashchain based on the random seed for a block
 
-
+data blocks[2^50](status, seed, commit_count, reveal_count, commits[2^50](owner, hash, value), ticket_count, tickets[2^50](ticket_id))
 # commits are per block
 # reveal required to get deposit back
 
 def shared():
-    REVEAL_WINDOW = 6
+    REVEAL_WINDOW = 2
     DEPOSIT = 2000
 
-# should we allow entropy to be requested if there is are no commits yet?
-# always request for target = current block + 1
+# returns: ticket_id, block eta
 def request_entropy():
-    # 
-    # returns round_id + eta
+    target = block.number + 1
 
-def get_entropy(round_id):
-    if msg.sender != self.rounds[round_id].owner:
-        return([3, 0], 2)
+    # initialize ticket
+    ticket_id = self.ticket_count
+    self.tickets[ticket_id].owner = msg.sender
+    self.tickets[ticket_id].target = target
+    self.ticket_count = ticket_id + 1
 
-    status = self.rounds[round_id].status
-    if status == 0:
-        # check expired
+    # add ticket to target block
+    ticket_idx = self.blocks[target].ticket_count
+    self.blocks[target].tickets[ticket_idx] = ticket_id
+    self.blocks[target].ticket_count = ticket_idx + 1
 
-    # returns: status, entropy
-    # status = 0 pending
-    # status = 1 ready
-    # status = 2 expired
-    # status = 3 not yours
+    # return ticket_id and eta
+    return([ticket_id, eta], 2)
+
+# returns: status, entropy
+# status = 0 pending
+# status = 1 ready
+# status = 2 expired
+# status = 3 not yours / not found
+def get_entropy(ticket_id):
+    if msg.sender != self.tickets[ticket_id].owner:
+        return([3, 0], 2)  # not yours / not found
+
+    status = self.tickets[ticket_id].status
+    if status == 1:
+        return([1, self.tickets[ticket_id].random], 2)  # ready
+    else:
+        if block.number > self.tickets[ticket_id].target + REVEAL_WINDOW:
+            return([2, 0], 2)  # expired
+        else:
+            return([0, 0], 2)  # pending
+
 
 # XXX how many blocks in the future could you be allowed to commit to?
-def commit(block, hash):
+def commit(target, hash):
     if msg.value < DEPOSIT:
-        return(0)
+        return(0)  # insufficient deposit
 
-    if block <= block.number:
-        return(0)
+    if target <= block.number:
+        return(0)  # block no longer available
 
     # store hash on list
+    commit_idx = self.blocks[target].commit_count
+    self.blocks[target].commits[commit_idx].sender = msg.sender
+    self.blocks[target].commits[commit_idx].hash = hash
+    self.blocks[target].commit_count = commit_idx + 1
 
-def reveal(block, value):
+    return(1)
+
+# XXX how to address subindex?
+def reveal(target, value):
     # check hash(value) matches hash
     # store value
     # return deposit
