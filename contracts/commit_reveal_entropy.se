@@ -2,7 +2,7 @@ data ticket_count
 data tickets[2^50](owner, status, target, random)
 # random value for each ticket are a hashchain based on the random seed for a block
 
-data blocks[2^50](seed, commit_count, reveal_count, commits[2^50](owner, hash, value), ticket_count, tickets[2^50](ticket_id))
+data blocks[2^50](seed, commit_count, reveal_count, ticket_count, commits[2^50](sender, hash, value), tickets[2^50])
 # commits are per block
 # reveal required to get deposit back
 
@@ -73,8 +73,8 @@ def reveal(target, commit_idx, value):
     if block.number > target + QUIET_WINDOW + REVEAL_WINDOW:
         return(0)  # reveal window expired
 
-    owner = self.blocks[target].commits[commit_idx].owner
-    if msg.sender != owner:
+    sender = self.blocks[target].commits[commit_idx].sender
+    if msg.sender != sender:
         return(0)  # not your commit
 
     hash = self.blocks[target].commits[commit_idx].hash
