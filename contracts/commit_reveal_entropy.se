@@ -5,6 +5,7 @@
 # third party contracts (ie games).  entropy provides can commit a random
 # value, which they have to reveal in a number of blocks (otherwise they lose
 # their deposit)
+#
 
 data ticket_count
 data tickets[2^50](owner, status, target, random)
@@ -19,7 +20,11 @@ def shared():
     QUIET_WINDOW = 1
     DEPOSIT = 2000
 
-# returns: ticket_id, block eta
+# Request a future piece of entropy
+#
+# Returns:
+# ticket_id - the ID of your entropy ticket, used for future reference
+# block_eta - the block number after which your entropy will be available
 def request_entropy():
     target = block.number + 1
 
@@ -39,11 +44,14 @@ def request_entropy():
     # return ticket_id and eta
     return([ticket_id, eta], 2)
 
-# returns: status, entropy
-# status = 0 pending
-# status = 1 ready
-# status = 2 expired
-# status = 3 not yours / not found
+# Get your entropy
+#
+# Parameter:
+# ticket_id - the ID of your entropy ticket
+#
+# Returns:
+# status - 0 = pending | 1 = ready | 2 = expired | 3 = not yours / not found
+# entropy - your random number
 def get_entropy(ticket_id):
     if msg.sender != self.tickets[ticket_id].owner:
         return([3, 0], 2)  # not yours / not found
@@ -57,7 +65,16 @@ def get_entropy(ticket_id):
         else:
             return([0, 0], 2)  # pending
 
-
+# Commit your random contribution to a future block
+#
+# Parameters:
+# target - the block number that you want to contribute entropy towards
+# hash - the SHA3 hash of your entropy
+#
+# Returns:
+# 0 on error
+# 1 on success
+#
 # XXX how many blocks in the future could you be allowed to commit to?
 def commit(target, hash):
     if msg.value < DEPOSIT:
@@ -74,6 +91,17 @@ def commit(target, hash):
 
     return(1)
 
+# Reveal your entropy
+#
+# Parameters:
+# target - the block number that you previously commited entropy towards
+# commit_idx - the index of your commit
+# value - the value belonging to the previously commited hash
+#
+# Returns:
+# 0 on error
+# 1 on success
+#
 # XXX how to address subindex? use msg.sender as key?
 def reveal(target, commit_idx, value):
 
