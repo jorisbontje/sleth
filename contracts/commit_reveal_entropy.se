@@ -9,16 +9,17 @@
 
 data ticket_count
 data tickets[2^50](owner, status, target, random)
-# random value for each ticket are a hashchain based on the random seed for a block
+# requested entropy is tied to tickets. there can be multiple tickets per
+# block. random value for each ticket are generated from a hashchain based on
+# the random seed of the block
 
-data blocks[2^50](seed, commit_count, reveal_count, ticket_count, commits[2^50](sender, hash, value), tickets[2^50])
-# commits are per block
-# reveal required to get deposit back
+data blocks[2^50](seed, commit_count, reveal_count, ticket_count, commits[2^20](sender, hash, value), tickets[2^20])
+# commits are made per block. reveal required to get deposit back.
 
 def shared():
-    REVEAL_WINDOW = 2
-    QUIET_WINDOW = 1
-    DEPOSIT = 2000
+    REVEAL_WINDOW = 2  # time in which reveals are accepted
+    QUIET_WINDOW = 1  # time between last commit and first reveal
+    DEPOSIT = 10**18  # how much ETH it will cost to deposit
 
 # Request a future piece of entropy
 #
