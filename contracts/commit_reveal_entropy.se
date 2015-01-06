@@ -1,3 +1,11 @@
+#
+# Commit / Reveal Entropy Contract
+#
+# this contract allows for a stream of random numbers to be made available to
+# third party contracts (ie games).  entropy provides can commit a random
+# value, which they have to reveal in a number of blocks (otherwise they lose
+# their deposit)
+
 data ticket_count
 data tickets[2^50](owner, status, target, random)
 # random value for each ticket are a hashchain based on the random seed for a block
@@ -25,6 +33,8 @@ def request_entropy():
     ticket_idx = self.blocks[target].ticket_count
     self.blocks[target].tickets[ticket_idx] = ticket_id
     self.blocks[target].ticket_count = ticket_idx + 1
+
+    eta = target + QUIET_WINDOW + REVEAL_WINDOW
 
     # return ticket_id and eta
     return([ticket_id, eta], 2)
