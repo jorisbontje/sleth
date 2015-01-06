@@ -2,12 +2,13 @@ data ticket_count
 data tickets[2^50](owner, status, target, random)
 # random value for each ticket are a hashchain based on the random seed for a block
 
-data blocks[2^50](status, seed, commit_count, reveal_count, commits[2^50](owner, hash, value), ticket_count, tickets[2^50](ticket_id))
+data blocks[2^50](seed, commit_count, reveal_count, commits[2^50](owner, hash, value), ticket_count, tickets[2^50](ticket_id))
 # commits are per block
 # reveal required to get deposit back
 
 def shared():
     REVEAL_WINDOW = 2
+    QUIET_WINDOW = 1
     DEPOSIT = 2000
 
 # returns: ticket_id, block eta
@@ -63,10 +64,66 @@ def commit(target, hash):
 
     return(1)
 
-# XXX how to address subindex?
-def reveal(target, value):
-    # check hash(value) matches hash
-    # store value
-    # return deposit
+# XXX how to address subindex? use msg.sender as key?
+def reveal(target, commit_idx, value):
 
-    # if reveal_count == commit_count: calculate entropy
+    if target + QUIET_WINDOW > block.number:
+        return(0)  # not yet allowed to reveal
+
+    if block.number > target + QUIET_WINDOW + REVEAL_WINDOW:
+        return(0)  # reveal window expired
+
+    owner = self.blocks[target].commits[commit_idx].owner
+    if msg.sender != owner:
+        return(0)  # not your commit
+
+    hash = self.blocks[target].commits[commit_idx].hash
+    if hash == 0:
+        return(0)  # commit doesn't exist
+
+    value = self.blocks[target].commits[commit_idx].value
+    if value != 0:
+        return(0)  # already revealed
+
+    if sha3(value) != hash:
+        return(0)  # hash mismatch
+
+    # all is good
+    self.blocks[target].commits[commit_idx].value = value
+    self.blocks[target].reveal_count += 1
+    send(msg.sender, DEPOSIT)  # return deposit
+
+    commit_count = self.blocks[target].commit_count
+    if commit_count == self.blocks[target].reveal_count:
+        # all reveals are in!
+        #
+        if self.blocks[target].seed != 0:
+            return(0)  # already have a seed
+
+        # calculate the random seed
+        # H(v_0 || v_1 || .. || v_n)
+        # TODO review and improve hash chain function!
+        c = 0
+        values = array(commit_count)
+        while c < commit_count:
+            values[c] = self.blocks[target].commits[c].value
+            c += 1
+
+        seed = sha3(values, commit_count)
+        self.blocks[target].seed = seed
+
+        # calculate randomness for individual tickets
+        # R_0 = seed; R_n = H(R_n-1)
+        # TODO review and improve hash chain function!
+        ticket_count = self.blocks[target].ticket_count
+        c = 0
+        random = seed
+        while c < ticket_count:
+            random = sha3(random)
+            ticket_id = self.blocks[target].tickets[c]
+            self.tickets[ticket_id].random = random
+            c += 1
+
+    return(1)
+
+
