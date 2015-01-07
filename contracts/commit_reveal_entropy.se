@@ -7,6 +7,12 @@
 # their deposit)
 #
 
+# TODO
+# - use msg.sender for commit subindex
+# - charge for entropy requests, payout to committers
+# - test coverage
+# - review algorithms for random seed and hash chain
+
 data ticket_count
 data tickets[2^50](owner, status, target, random)
 # requested entropy is tied to tickets. there can be multiple tickets per
@@ -104,6 +110,7 @@ def commit(target, hash):
 # 1 on success
 #
 # XXX how to address subindex? use msg.sender as key?
+# TODO use with set of msg.sender (2^160)
 def reveal(target, commit_idx, value):
 
     if target + QUIET_WINDOW > block.number:
