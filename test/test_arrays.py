@@ -9,6 +9,13 @@ def arr3():
 
 def pass(rnd):
     return(self.arr3(outsz=3), 3)
+
+def test():
+    arr = self.ta()
+    return(arr[1])  # how to get 4 to be returned?
+
+def ta():
+    return([3,4,5]:a)
 """
 
     def setup_class(cls):
@@ -27,3 +34,6 @@ def pass(rnd):
 
     def test_arr3_pass(self):
         assert self._call(1) == [1, 2, 3]
+
+    def test_test_ta(self):
+        assert self._call(2) == [4]
