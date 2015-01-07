@@ -1,9 +1,14 @@
 from pyethereum import tester
 from pyethereum import utils
 
+def hash_value(value):
+    return utils.big_endian_to_int(utils.sha3(utils.zpad(value, 32)))
+
+
 class TestCommitRevealEntropyContract(object):
 
     CONTRACT = 'contracts/commit_reveal_entropy.se'
+    COW_HASH = hash_value('cow')
 
     def setup_class(cls):
         cls.s = tester.state()
@@ -22,8 +27,8 @@ class TestCommitRevealEntropyContract(object):
     def _get_entropy_ticket(self, ticket_id):
         return self.s.send(tester.k0, self.c, 0, funid=2, abi=[ticket_id])
 
-    def _commit(self, target, hash, cost=10**18):
-        return self.s.send(tester.k0, self.c, cost, funid=3, abi=[target, hash])
+    def _commit(self, target, hash, deposit=10**18):
+        return self.s.send(tester.k0, self.c, deposit, funid=3, abi=[target, hash])
 
     def _reveal(self, target, value):
         return self.s.send(tester.k0, self.c, 0, funid=4, abi=[target, value])
@@ -34,13 +39,11 @@ class TestCommitRevealEntropyContract(object):
     def _call_hash(self, value):
         return self.s.send(tester.k0, self.c, 0, funid=6, abi=[utils.big_endian_to_int(value)])
 
-    def _hash_value(self, value):
-        return utils.big_endian_to_int(utils.sha3(utils.zpad(value, 32)))
-
     def test_request_entropy(self):
         assert self._request_entropy() == [0, 4]
         assert self._get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
         assert self._get_entropy(0) == [0, 0]  # pending
+        assert self._get_block(self.s.block.number + 1) == [0, 0, 0, 1]
 
     def test_request_entropy_insufficient_fee(self):
         assert self._request_entropy(cost=0) == [0]
@@ -55,6 +58,8 @@ class TestCommitRevealEntropyContract(object):
         assert self._get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
         assert self._get_entropy_ticket(1) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
         assert self._get_entropy_ticket(2) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
+
+        assert self._get_block(self.s.block.number + 1) == [0, 0, 0, 3]
 
     def test_request_entropy_target_depends_on_block_number(self):
         self.s.mine()
@@ -75,4 +80,27 @@ class TestCommitRevealEntropyContract(object):
 
     def test_hash_sha3(self):
         value = 'cow'
-        assert self._call_hash(value) == [self._hash_value(value)]
+        assert self._call_hash(value) == [hash_value(value)]
+
+    def test_commit(self):
+        assert self._commit(4, self.COW_HASH) == [1]
+        assert self._get_block(4) == [0, 1, 0, 0]
+
+    def test_commit_insufficient_deposit(self):
+        assert self._commit(4, self.COW_HASH, deposit=0) == [0]
+        assert self._get_block(4) == [0, 0, 0, 0]
+
+    def test_commit_invalid_target(self):
+        assert self._commit(0, self.COW_HASH) == [0]
+        assert self._get_block(0) == [0, 0, 0, 0]
+
+        self.s.mine(4)
+        assert self._commit(4, self.COW_HASH) == [0]
+        assert self._get_block(4) == [0, 0, 0, 0]
+
+    def test_commit_twice(self):
+        assert self._commit(4, self.COW_HASH) == [1]
+        assert self._get_block(4) == [0, 1, 0, 0]
+
+        assert self._commit(4, self.COW_HASH) == [0]
+        assert self._get_block(4) == [0, 1, 0, 0]

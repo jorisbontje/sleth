@@ -104,7 +104,7 @@ def commit(target, hash):
     if target <= block.number:
         return(0)  # block no longer available
 
-    if self.blocks[target].committers[msg.sender]:
+    if self.blocks[target].committers[msg.sender] != 0:
         return(0)  # you have already committed
 
     # store hash on list
@@ -114,7 +114,7 @@ def commit(target, hash):
     self.blocks[target].commit_count = commit_idx + 1
 
     # store committer mapping
-    self.blocks[target].committers[msg.sender] = commit_idx
+    self.blocks[target].committers[msg.sender] = commit_idx + 1  # add 1 to differentiate from non existing committer
 
     return(1)
 
@@ -140,6 +140,7 @@ def reveal(target, value):
     commit_idx = self.blocks[target].committers[msg.sender]
     if commit_idx == 0:
         return(0)  # you don't have committed anything
+    commit_idx -= 1  # compensate for 0 is non existing committer
 
     sender = self.blocks[target].commits[commit_idx].sender
     if msg.sender != sender:
