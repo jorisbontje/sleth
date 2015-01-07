@@ -1,4 +1,5 @@
 from pyethereum import tester
+from pyethereum import utils
 
 class TestCommitRevealEntropyContract(object):
 
@@ -20,6 +21,21 @@ class TestCommitRevealEntropyContract(object):
 
     def _get_entropy_ticket(self, ticket_id):
         return self.s.send(tester.k0, self.c, 0, funid=2, abi=[ticket_id])
+
+    def _commit(self, target, hash, cost=10**18):
+        return self.s.send(tester.k0, self.c, cost, funid=3, abi=[target, hash])
+
+    def _reveal(self, target, value):
+        return self.s.send(tester.k0, self.c, 0, funid=4, abi=[target, value])
+
+    def _get_block(self, target):
+        return self.s.send(tester.k0, self.c, 0, funid=5, abi=[target])
+
+    def _call_hash(self, value):
+        return self.s.send(tester.k0, self.c, 0, funid=6, abi=[utils.big_endian_to_int(value)])
+
+    def _hash_value(self, value):
+        return utils.big_endian_to_int(utils.sha3(utils.zpad(value, 32)))
 
     def test_request_entropy(self):
         assert self._request_entropy() == [0, 4]
@@ -56,3 +72,7 @@ class TestCommitRevealEntropyContract(object):
         self.s.mine(4)
         assert self.s.block.number == 4
         assert self._get_entropy(0) == [2, 0]  # expired
+
+    def test_hash_sha3(self):
+        value = 'cow'
+        assert self._call_hash(value) == [self._hash_value(value)]

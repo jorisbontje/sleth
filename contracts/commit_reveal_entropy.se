@@ -200,3 +200,14 @@ def reveal(target, value):
             c += 1
 
     return(1)
+
+# Returns block data as-is
+#
+# Parameter:
+# target - the target block number
+def get_block(target):
+    return([self.blocks[target].seed, self.blocks[target].commit_count, self.blocks[target].reveal_count, self.blocks[target].ticket_count], 4)
+
+# Calculate sha3 hash on the value, for testing purposes
+def hash(value):
+    return(sha3(value))
