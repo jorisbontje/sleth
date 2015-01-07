@@ -8,7 +8,6 @@
 #
 
 # TODO
-# - use msg.sender for commit subindex
 # - charge for entropy requests, payout to committers
 # - test coverage
 # - review algorithms for random seed and hash chain
@@ -19,7 +18,7 @@ data tickets[2^50](owner, status, target, random)
 # block. random value for each ticket are generated from a hashchain based on
 # the random seed of the block
 
-data blocks[2^50](seed, commit_count, reveal_count, ticket_count, commits[2^20](sender, hash, value), tickets[2^20])
+data blocks[2^50](seed, commit_count, reveal_count, ticket_count, commits[2^20](sender, hash, value), committers[2^160], tickets[2^20])
 # commits are made per block. reveal required to get deposit back.
 
 def shared():
@@ -90,11 +89,17 @@ def commit(target, hash):
     if target <= block.number:
         return(0)  # block no longer available
 
+    if self.blocks[target].committers[msg.sender]:
+        return(0)  # you have already committed
+
     # store hash on list
     commit_idx = self.blocks[target].commit_count
     self.blocks[target].commits[commit_idx].sender = msg.sender
     self.blocks[target].commits[commit_idx].hash = hash
     self.blocks[target].commit_count = commit_idx + 1
+
+    # store committer mapping
+    self.blocks[target].committers[msg.sender] = commit_idx
 
     return(1)
 
@@ -102,22 +107,22 @@ def commit(target, hash):
 #
 # Parameters:
 # target - the block number that you previously commited entropy towards
-# commit_idx - the index of your commit
 # value - the value belonging to the previously commited hash
 #
 # Returns:
 # 0 on error
 # 1 on success
-#
-# XXX how to address subindex? use msg.sender as key?
-# TODO use with set of msg.sender (2^160)
-def reveal(target, commit_idx, value):
+def reveal(target, value):
 
     if target + QUIET_WINDOW > block.number:
         return(0)  # not yet allowed to reveal
 
     if block.number > target + QUIET_WINDOW + REVEAL_WINDOW:
         return(0)  # reveal window expired
+
+    commit_idx = self.blocks[target].committers[msg.sender]
+    if commit_idx == 0:
+        return(0)  # you don't have committed anything
 
     sender = self.blocks[target].commits[commit_idx].sender
     if msg.sender != sender:
