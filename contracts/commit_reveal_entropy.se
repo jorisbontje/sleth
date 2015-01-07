@@ -36,7 +36,7 @@ def shared():
 # or 0 if the required cost wasn't met.
 def request_entropy():
     if msg.value < ENTROPY_COST:
-        return(0)  # insufficient deposit
+        return(0)  # insufficient fee
 
     target = block.number + 1
 
@@ -76,6 +76,13 @@ def get_entropy(ticket_id):
             return([2, 0], 2)  # expired
         else:
             return([0, 0], 2)  # pending
+
+# Returns entropy ticket as-is
+#
+# Parameter:
+# ticket_id - the ID of your entropy ticket
+def get_entropy_ticket(ticket_id):
+    return([self.tickets[ticket_id].owner, self.tickets[ticket_id].status, self.tickets[ticket_id].target, self.tickets[ticket_id].random], 4)
 
 # Commit your random contribution to a future block
 # There is a deposit cost associated with this, which will be returned upon
