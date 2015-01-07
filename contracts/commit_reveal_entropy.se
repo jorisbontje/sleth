@@ -8,7 +8,6 @@
 #
 
 # TODO
-# - charge for entropy requests, payout to committers
 # - test coverage
 # - review algorithms for random seed and hash chain
 
@@ -24,14 +23,21 @@ data blocks[2^50](seed, commit_count, reveal_count, ticket_count, commits[2^20](
 def shared():
     REVEAL_WINDOW = 2  # time in which reveals are accepted
     QUIET_WINDOW = 1  # time between last commit and first reveal
-    DEPOSIT = 10**18  # how much ETH it will cost to deposit
+    ENTROPY_COST = 10 ** 15  # cost of one piece of entropy
+    DEPOSIT_COST = 10 ** 18  # how much ETH it will cost to deposit
 
-# Request a future piece of entropy
+# Request a future piece of entropy.
+# There is a cost associated with this, which will be distributed among the
+# committers.
 #
 # Returns:
 # ticket_id - the ID of your entropy ticket, used for future reference
 # block_eta - the block number after which your entropy will be available
+# or 0 if the required cost wasn't met.
 def request_entropy():
+    if msg.value < ENTROPY_COST:
+        return(0)  # insufficient deposit
+
     target = block.number + 1
 
     # initialize ticket
@@ -72,6 +78,8 @@ def get_entropy(ticket_id):
             return([0, 0], 2)  # pending
 
 # Commit your random contribution to a future block
+# There is a deposit cost associated with this, which will be returned upon
+# successful revealing.
 #
 # Parameters:
 # target - the block number that you want to contribute entropy towards
@@ -83,7 +91,7 @@ def get_entropy(ticket_id):
 #
 # XXX how many blocks in the future could you be allowed to commit to?
 def commit(target, hash):
-    if msg.value < DEPOSIT:
+    if msg.value < DEPOSIT_COST:
         return(0)  # insufficient deposit
 
     if target <= block.number:
@@ -112,6 +120,8 @@ def commit(target, hash):
 # Returns:
 # 0 on error
 # 1 on success
+#
+# XXX cost of last reveal is substantially higher
 def reveal(target, value):
 
     if target + QUIET_WINDOW > block.number:
@@ -151,7 +161,10 @@ def reveal(target, value):
         if self.blocks[target].seed != 0:
             return(0)  # already have a seed
 
-        # calculate the random seed
+        # each committer gets their share of the total collected entropy cost for this block
+        committer_payout = self.blocks[target].ticket_count * ENTROPY_COST / commit_count
+
+        # calculate the random seed and do payouts to the committers
         # H(c_0 || r_0 || c_1 || r_1 || .. || c_n || r_n)
         # TODO review and improve hash chain function!
         values = array(commit_count * 2)
@@ -160,6 +173,7 @@ def reveal(target, value):
         while c < commit_count:
             values[2 * c] = self.blocks[target].commits[c].hash
             values[2 * c + 1] = self.blocks[target].commits[c].value
+            send(self.blocks[target].commits[c].sender, committer_payout)
             c += 1
 
         seed = sha3(values, commit_count * 2)
@@ -179,5 +193,3 @@ def reveal(target, value):
             c += 1
 
     return(1)
-
-
