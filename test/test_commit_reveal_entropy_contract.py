@@ -45,6 +45,8 @@ class TestCommitRevealEntropyContract(object):
         assert self._get_entropy(0) == [0, 0]  # pending
         assert self._get_block(self.s.block.number + 1) == [0, 0, 0, 1]
 
+        assert self.s.block.get_balance(tester.a0) == 10 ** 24 - 10 ** 15
+
     def test_request_entropy_insufficient_fee(self):
         assert self._request_entropy(cost=0) == [0]
         assert self._get_entropy_ticket(0) == [0, 0, 0, 0]
@@ -95,6 +97,8 @@ class TestCommitRevealEntropyContract(object):
         assert self._commit(1, self.COW_HASH) == [1]
         assert self._get_block(1) == [0, 1, 0, 0]
 
+        assert self.s.block.get_balance(tester.a0) == 10 ** 24 - 10 ** 18
+
     def test_commit_insufficient_deposit(self):
         assert self._commit(4, self.COW_HASH, deposit=0) == [0]
         assert self._get_block(4) == [0, 0, 0, 0]
@@ -127,8 +131,10 @@ class TestCommitRevealEntropyContract(object):
         self.test_commit()
         self.s.mine(2)
 
+        balance = self.s.block.get_balance(tester.a0)
         assert self._reveal(1, 'cow') == [1]
         assert self._get_block(1) == [0x6d8d9b450dd77c907e2bc2b6612699789c3464ea8757c2c154621057582287a3, 1, 1, 0]
+        assert self.s.block.get_balance(tester.a0) - balance == 10 ** 18  # deposit return
 
     def test_reveal_not_yet_allowed(self):
         self.test_commit()

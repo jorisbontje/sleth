@@ -155,7 +155,7 @@ def reveal(target, value):
     # all is good
     self.blocks[target].commits[commit_idx].value = value
     self.blocks[target].reveal_count += 1
-    send(msg.sender, DEPOSIT)  # return deposit
+    send(msg.sender, DEPOSIT_COST)  # return deposit
 
     commit_count = self.blocks[target].commit_count
     if commit_count == self.blocks[target].reveal_count:
