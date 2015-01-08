@@ -18,20 +18,20 @@ class TestCommitRevealEntropyContract(object):
     def setup_method(self, method):
         self.s.revert(self.snapshot)
 
-    def _request_entropy(self, cost=10**15):
-        return self.s.send(tester.k0, self.c, cost, funid=0, abi=[])
+    def _request_entropy(self, cost=10**15, sender=tester.k0):
+        return self.s.send(sender, self.c, cost, funid=0, abi=[])
 
-    def _get_entropy(self, ticket_id):
-        return self.s.send(tester.k0, self.c, 0, funid=1, abi=[ticket_id])
+    def _get_entropy(self, ticket_id, sender=tester.k0):
+        return self.s.send(sender, self.c, 0, funid=1, abi=[ticket_id])
 
     def _get_entropy_ticket(self, ticket_id):
         return self.s.send(tester.k0, self.c, 0, funid=2, abi=[ticket_id])
 
-    def _commit(self, target, hash, deposit=10**18):
-        return self.s.send(tester.k0, self.c, deposit, funid=3, abi=[target, hash])
+    def _commit(self, target, hash, deposit=10**18, sender=tester.k0):
+        return self.s.send(sender, self.c, deposit, funid=3, abi=[target, hash])
 
-    def _reveal(self, target, value):
-        return self.s.send(tester.k0, self.c, 0, funid=4, abi=[target, value])
+    def _reveal(self, target, value, sender=tester.k0):
+        return self.s.send(sender, self.c, 0, funid=4, abi=[target, utils.big_endian_to_int(value)])
 
     def _get_block(self, target):
         return self.s.send(tester.k0, self.c, 0, funid=5, abi=[target])
@@ -61,6 +61,15 @@ class TestCommitRevealEntropyContract(object):
 
         assert self._get_block(self.s.block.number + 1) == [0, 0, 0, 3]
 
+    def test_request_multiple_entropy_tickets_different_senders(self):
+        assert self._request_entropy() == [0, 4]
+        assert self._request_entropy(sender=tester.k1) == [1, 4]
+
+        assert self._get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
+        assert self._get_entropy_ticket(1) == [int(tester.a1, 16), 0, self.s.block.number + 1, 0]
+
+        assert self._get_block(self.s.block.number + 1) == [0, 0, 0, 2]
+
     def test_request_entropy_target_depends_on_block_number(self):
         self.s.mine()
         assert self._request_entropy() == [0, 5]
@@ -83,8 +92,8 @@ class TestCommitRevealEntropyContract(object):
         assert self._call_hash(value) == [hash_value(value)]
 
     def test_commit(self):
-        assert self._commit(4, self.COW_HASH) == [1]
-        assert self._get_block(4) == [0, 1, 0, 0]
+        assert self._commit(1, self.COW_HASH) == [1]
+        assert self._get_block(1) == [0, 1, 0, 0]
 
     def test_commit_insufficient_deposit(self):
         assert self._commit(4, self.COW_HASH, deposit=0) == [0]
@@ -104,3 +113,48 @@ class TestCommitRevealEntropyContract(object):
 
         assert self._commit(4, self.COW_HASH) == [0]
         assert self._get_block(4) == [0, 1, 0, 0]
+
+    def test_commit_twice_different_senders(self):
+        assert self._commit(4, self.COW_HASH) == [1]
+        assert self._commit(4, self.COW_HASH, sender=tester.k1) == [1]
+        assert self._get_block(4) == [0, 2, 0, 0]
+
+    def test_commit_invalid_hash(self):
+        assert self._commit(1, 0) == [0]
+        assert self._get_block(0) == [0, 0, 0, 0]
+
+    def test_reveal(self):
+        self.test_commit()
+        self.s.mine(2)
+
+        assert self._reveal(1, 'cow') == [1]
+        assert self._get_block(1) == [0x6d8d9b450dd77c907e2bc2b6612699789c3464ea8757c2c154621057582287a3, 1, 1, 0]
+
+    def test_reveal_not_yet_allowed(self):
+        self.test_commit()
+
+        assert self._reveal(1, 'cow') == [90]
+
+    def test_reveal_window_expired(self):
+        self.test_commit()
+        self.s.mine(5)
+
+        assert self._reveal(1, 'cow') == [91]
+
+    def test_reveal_not_committed(self):
+        self.s.mine(2)
+
+        assert self._reveal(1, 'cow') == [92]
+
+    def test_reveal_already_revealed(self):
+        self.test_commit()
+        self.s.mine(2)
+
+        assert self._reveal(1, 'cow') == [1]
+        assert self._reveal(1, 'cow') == [93]
+
+    def test_reveal_hash_mismatch(self):
+        self.test_commit()
+        self.s.mine(2)
+
+        assert self._reveal(1, 'monkey') == [94]

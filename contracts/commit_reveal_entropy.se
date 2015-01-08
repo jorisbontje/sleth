@@ -104,6 +104,9 @@ def commit(target, hash):
     if target <= block.number:
         return(0)  # block no longer available
 
+    if hash == 0:
+        return(0)  # invalid hash
+
     if self.blocks[target].committers[msg.sender] != 0:
         return(0)  # you have already committed
 
@@ -125,37 +128,29 @@ def commit(target, hash):
 # value - the value belonging to the previously commited hash
 #
 # Returns:
-# 0 on error
 # 1 on success
+# 9x on error
 #
 # XXX cost of last reveal is substantially higher
 def reveal(target, value):
 
     if target + QUIET_WINDOW > block.number:
-        return(0)  # not yet allowed to reveal
+        return(90)  # not yet allowed to reveal
 
     if block.number > target + QUIET_WINDOW + REVEAL_WINDOW:
-        return(0)  # reveal window expired
+        return(91)  # reveal window expired
 
     commit_idx = self.blocks[target].committers[msg.sender]
     if commit_idx == 0:
-        return(0)  # you don't have committed anything
+        return(92)  # you don't have committed anything
     commit_idx -= 1  # compensate for 0 is non existing committer
 
-    sender = self.blocks[target].commits[commit_idx].sender
-    if msg.sender != sender:
-        return(0)  # not your commit
+    if self.blocks[target].commits[commit_idx].value != 0:
+        return(93)  # already revealed
 
     hash = self.blocks[target].commits[commit_idx].hash
-    if hash == 0:
-        return(0)  # commit doesn't exist
-
-    value = self.blocks[target].commits[commit_idx].value
-    if value != 0:
-        return(0)  # already revealed
-
     if sha3(value) != hash:
-        return(0)  # hash mismatch
+        return(94)  # hash mismatch
 
     # all is good
     self.blocks[target].commits[commit_idx].value = value
@@ -167,7 +162,7 @@ def reveal(target, value):
         # all reveals are in!
         #
         if self.blocks[target].seed != 0:
-            return(0)  # already have a seed
+            return(97)  # already have a seed
 
         # each committer gets their share of the total collected entropy cost for this block
         committer_payout = self.blocks[target].ticket_count * ENTROPY_COST / commit_count
