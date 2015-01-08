@@ -164,3 +164,31 @@ class TestCommitRevealEntropyContract(object):
         self.s.mine(2)
 
         assert self._reveal(1, 'monkey') == [94]
+
+    def test_reveal_calculates_seed_when_all_reveals_are_in(self):
+        assert self._commit(1, self.COW_HASH) == [1]
+        assert self._commit(1, self.COW_HASH, sender=tester.k1) == [1]
+        self.s.mine(2)
+
+        assert self._reveal(1, 'cow') == [1]
+        assert self._get_block(1) == [0, 2, 1, 0]
+        assert self._reveal(1, 'cow', sender=tester.k1) == [1]
+        assert self._get_block(1) == [0x2c996eb68c74cec2b2acd81abe0f75fe67b2b941702b8dc25e96a106800eb922, 2, 2, 0]
+
+    def test_reveal_returns_entropy(self):
+        assert self._commit(1, self.COW_HASH) == [1]
+        assert self._request_entropy() == [0, 4]
+        assert self._get_block(self.s.block.number + 1) == [0, 1, 0, 1]
+
+        self.s.mine(2)
+
+        SEED = 0x6d8d9b450dd77c907e2bc2b6612699789c3464ea8757c2c154621057582287a3
+        HASH_1 = -0x217015341621a8359cbcae58c0498f47cf0b55befbe600d6ae74ae4b45478191
+        assert self._reveal(1, 'cow') == [1]
+        assert self._get_block(1) == [SEED, 1, 1, 1]
+        assert self._get_entropy_ticket(0) == [int(tester.a0, 16), 1, 1, HASH_1]
+        assert self._get_entropy(0) == [1, HASH_1]  # ready
+
+        hash_2 = utils.big_endian_to_int(utils.sha3(utils.int_to_big_endian(SEED)))
+        # signed vs unsigned as introduced by tester.send
+        assert hash_2 == 2**256 + HASH_1
