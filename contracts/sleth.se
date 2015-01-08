@@ -22,10 +22,10 @@ def shared():
 def spin(bet):
 
     if bet < MIN_BET or bet > MAX_BET:
-        return(0) // bet out of range
+        return(0)  # bet out of range
 
     if bet > self.players[msg.sender].balance:
-        return(0) // insufficient funds
+        return(0)  # insufficient funds
 
     self.players[msg.sender].balance -= bet
 
@@ -77,43 +77,43 @@ def get_current_player():
 
 def calc_line(s1, s2, s3):
     match_payout = array(11)
-    match_payout[7] = 4 // 3Down
-    match_payout[6] = 6 // 2Down
-    match_payout[5] = 8 // 1Down
-    match_payout[1] = 10 // 1Up
-    match_payout[2] = 15 // 2Up
-    match_payout[3] = 20 // 3Up
-    match_payout[4] = 25 // OrangeRed
-    match_payout[0] = 50 // AlienHead
-    match_payout[9] = 75 // Bacon
-    match_payout[10] = 100 // Narwhal
-    match_payout[8] = 250 // CakeDay
+    match_payout[7] = 4  # 3Down
+    match_payout[6] = 6  # 2Down
+    match_payout[5] = 8  # 1Down
+    match_payout[1] = 10  # 1Up
+    match_payout[2] = 15  # 2Up
+    match_payout[3] = 20  # 3Up
+    match_payout[4] = 25  # OrangeRed
+    match_payout[0] = 50  # AlienHead
+    match_payout[9] = 75  # Bacon
+    match_payout[10] = 100  # Narwhal
+    match_payout[8] = 250  # CakeDay
 
-    payout_ups = 6 // Any 3 Ups
-    payout_downs = 2 // Any 3 Downs
+    payout_ups = 6  # Any 3 Ups
+    payout_downs = 2  # Any 3 Downs
 
-    // perfect match
+    # perfect match
     if (s1 == s2 && s2 == s3):
         return(match_payout[s1])
 
-    // special case #1: triple ups
+    # special case #1: triple ups
     if ((s1 == 1 || s1 == 2 || s1 == 3) && (s2 == 1 || s2 == 2 || s2 == 3) && (s3 == 1 || s3 == 2 || s3 == 3)):
         return payout_ups
 
-    // special case #2: triple down
+    # special case #2: triple down
     if ((s1 == 5 || s1 == 6 || s1 == 7) && (s2 == 5 || s2 == 6 || s2 == 7) && (s3 == 5 || s3 == 6 || s3 == 7)):
         return payout_downs
 
-    // special case #3: bacon goes with everything
+    # special case #3: bacon goes with everything
     if (s1 == 9):
         if (s2 == s3):
             return match_payout[s2]
 
-        // wildcard trip ups
+        # wildcard trip ups
         if ((s2 == 1 || s2 == 2 || s2 == 3) && (s3 == 1 || s3 == 2 || s3 == 3)):
             return payout_ups
 
-        // wildcard trip downs
+        # wildcard trip downs
         if ((s2 == 5 || s2 == 6 || s2 == 7) && (s3 == 5 || s3 == 6 || s3 == 7)):
             return payout_downs
 
@@ -121,11 +121,11 @@ def calc_line(s1, s2, s3):
         if (s1 == s3):
             return match_payout[s1]
 
-        // wildcard trip ups
+        # wildcard trip ups
         if ((s1 == 1 || s1 == 2 || s1 == 3) && (s3 == 1 || s3 == 2 || s3 == 3)):
             return payout_ups
 
-        // wildcard trip downs
+        # wildcard trip downs
         if ((s1 == 5 || s1 == 6 || s1 == 7) && (s3 == 5 || s3 == 6 || s3 == 7)):
             return payout_downs
 
@@ -133,15 +133,15 @@ def calc_line(s1, s2, s3):
         if (s1 == s2):
             return match_payout[s1]
 
-        // wildcard trip ups
+        # wildcard trip ups
         if ((s1 == 1 || s1 == 2 || s1 == 3) && (s2 == 1 || s2 == 2 || s2 == 3)):
             return payout_ups
 
-        // wildcard trip downs
+        # wildcard trip downs
         if ((s1 == 5 || s1 == 6 || s1 == 7) && (s2 == 5 || s2 == 6 || s2 == 7)):
             return payout_downs
 
-    // check double-bacon
+    # check double-bacon
     if (s2 == 9 && s3 == 9):
         return match_payout[s1]
     if (s1 == 9 && s3 == 9):
@@ -149,7 +149,7 @@ def calc_line(s1, s2, s3):
     if (s1 == 9 && s2 == 9):
         return match_payout[s3]
 
-    // no reward
+    # no reward
     return(0)
 
 def get_stops(rnd):
