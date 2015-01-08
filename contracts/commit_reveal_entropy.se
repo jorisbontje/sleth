@@ -8,7 +8,6 @@
 #
 
 # TODO
-# - test coverage
 # - review algorithms for random seed and hash chain
 
 data ticket_count
