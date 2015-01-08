@@ -12,23 +12,23 @@ class TestSlethContract(object):
     def setup_method(self, method):
         self.s.revert(self.snapshot)
 
-    def _spin(self, bet):
-        return self.s.send(tester.k0, self.c, 0, funid=0, abi=[bet])
+    def _spin(self, bet, sender=tester.k0):
+        return self.s.send(sender, self.c, 0, funid=0, abi=[bet])
 
-    def _claim(self, round):
-        return self.s.send(tester.k0, self.c, 0, funid=1, abi=[round])
+    def _claim(self, round, entropy, sender=tester.k0):
+        return self.s.send(sender, self.c, 0, funid=1, abi=[round, entropy])
 
-    def _deposit(self, amount):
-        return self.s.send(tester.k0, self.c, amount, funid=2, abi=[])
+    def _deposit(self, amount, sender=tester.k0):
+        return self.s.send(sender, self.c, amount, funid=2, abi=[])
 
-    def _withdraw(self, amount):
-        return self.s.send(tester.k0, self.c, 0, funid=3, abi=[amount])
+    def _withdraw(self, amount, sender=tester.k0):
+        return self.s.send(sender, self.c, 0, funid=3, abi=[amount])
 
     def _get_round(self, round):
         return self.s.send(tester.k0, self.c, 0, funid=4, abi=[round])
 
-    def _get_current_player(self):
-        return self.s.send(tester.k0, self.c, 0, funid=5, abi=[])
+    def _get_current_player(self, sender=tester.k0):
+        return self.s.send(sender, self.c, 0, funid=5, abi=[])
 
     def _calc_lines(self, s1, s2, s3):
         return self.s.send(tester.k0, self.c, 0, funid=6, abi=[s1, s2, s3])
@@ -69,7 +69,7 @@ class TestSlethContract(object):
         assert self._spin(5) == [1]
 
         current_round, balance = self._get_current_player()
-        assert current_round == 0
+        assert current_round == 1
         assert balance == 0
 
         player, block, timestamp, bet, result, entropy, status = self._get_round(current_round)
@@ -135,3 +135,52 @@ class TestSlethContract(object):
         assert self._calc_reward(23888, 1) == [6]
         assert self._calc_reward(23888, 3) == [26]
         assert self._calc_reward(23888, 5) == [32]
+
+    def test_claim_winning(self):
+        assert self._deposit(5) == [1]
+        assert self._spin(5) == [1]
+
+        assert self._claim(1, 23888) == [1]
+
+        player, block, timestamp, bet, result, entropy, status = self._get_round(1)
+        assert player == int(tester.a0, 16)
+        assert bet == 5
+        assert result == 32
+        assert entropy == 23888
+        assert status == 2  # done
+
+        current_round, balance = self._get_current_player()
+        assert current_round == 1
+        assert balance == 32
+
+    def test_claim_losing(self):
+        assert self._deposit(5) == [1]
+        assert self._spin(5) == [1]
+
+        assert self._claim(1, 1606) == [1]
+
+        player, block, timestamp, bet, result, entropy, status = self._get_round(1)
+        assert player == int(tester.a0, 16)
+        assert bet == 5
+        assert result == 0
+        assert entropy == 1606
+        assert status == 2  # done
+
+        current_round, balance = self._get_current_player()
+        assert current_round == 1
+        assert balance == 0
+
+    def test_claim_invalid_round(self):
+        assert self._claim(1, 1606) == [90]
+
+    def test_claim_invalid_round(self):
+        assert self._deposit(5) == [1]
+        assert self._spin(5) == [1]
+
+        assert self._claim(1, 1606, sender=tester.k1) == [91]
+
+    def test_claim_invalid_entropy(self):
+        assert self._deposit(5) == [1]
+        assert self._spin(5) == [1]
+
+        assert self._claim(1, 0) == [92]

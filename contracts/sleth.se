@@ -1,6 +1,4 @@
 data current_round
-data last_processed_block
-data last_processed_round
 
 data rounds[2^160](player, block, timestamp, bet, result, entropy, status)
 data players[2^160](last_round, balance)
@@ -9,6 +7,9 @@ data players[2^160](last_round, balance)
 # 0 = new
 # 1 = spinning
 # 2 = done
+
+def init():
+    self.current_round = 1  # we'll start with 1 so we can use 0 for indicating a non-existing round
 
 def shared():
     MIN_BET = 1
@@ -20,9 +21,11 @@ def shared():
 
 # funid=0
 def spin(bet):
-
     if bet < MIN_BET or bet > MAX_BET:
         return(0)  # bet out of range
+
+    if bet != 1 and bet != 3 and bet != 5:
+        return(0)  # invalid number of lines
 
     if bet > self.players[msg.sender].balance:
         return(0)  # insufficient funds
@@ -37,22 +40,36 @@ def spin(bet):
     self.rounds[current_round].status = 1
     self.players[msg.sender].last_round = current_round
     self.current_round = current_round + 1
+
     return(1)
 
 # funid=1
-def claim(round):
-    if block.number > self.last_processed_block:
-        round = self.last_processed_round
-        current_round = self.current_round
-        while round < current_round:
-            # TODO stuff
-            round += 1
+def claim(round, entropy):
+    # XXX for testing purposes the entropy is provided to function call, instead it should be returned from the entropy contract
 
-        self.last_processed_block = block.number
-        self.last_processed_round = round
-        return(1)
-    else:
-        return(0)
+    if self.rounds[round].status != 1:
+        return(90)  # invalid status
+
+    if self.rounds[round].player != msg.sender:
+        return(91)  # you can only claim your own rounds
+
+    if entropy == 0:
+        return(92) # invalid entropy
+
+    # set entropy
+    # XXX to be replaced with actual entropy contract call
+    self.rounds[round].entropy = entropy
+    rnd = mod(entropy, REEL_POSITIONS * REEL_POSITIONS * REEL_POSITIONS)
+    playing_lines = self.rounds[round].bet
+
+    result = self.calc_reward(rnd, playing_lines)
+    self.rounds[round].result = result
+    self.rounds[round].status = 2
+
+    if result > 0:
+        self.players[msg.sender].balance += result
+
+    return(1)
 
 # funid=2
 def deposit():
