@@ -192,6 +192,7 @@ def reveal(target, value):
         while c < ticket_count:
             random = sha3(random)
             ticket_id = self.blocks[target].tickets[c]
+            self.tickets[ticket_id].status = 1
             self.tickets[ticket_id].random = random
             c += 1
 
