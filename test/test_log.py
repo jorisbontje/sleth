@@ -9,6 +9,9 @@ def test_log0():
     log0(ref(a), 32)
 """
 
+    def _last_logs(self):
+        return [log.to_dict() for log in self.s.last_tx.logs]
+
     def setup_class(cls):
         cls.s = tester.state()
         cls.c = cls.s.contract(cls.CONTRACT)
@@ -22,4 +25,4 @@ def test_log0():
 
     def test_log0(self):
         assert self._call(0) == []
-        assert self.s.last_tx.logs[0].to_dict() == dict(address=self.c, topics=[], data='0x' + tester.u.zpad(tester.u.encode_int(42), 32).encode('hex'))
+        assert self._last_logs() == [dict(address=self.c, topics=[], data='0x' + tester.u.zpad(tester.u.encode_int(42), 32).encode('hex'))]
