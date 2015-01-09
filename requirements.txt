@@ -1,5 +1,6 @@
 ethereum-serpent==1.7.8
-flake8==2.2.5
 -e ../pyethereum
+pyepm==0.8.0
+flake8==2.2.5
 pytest==2.6.4
 pytest-xdist==1.11
