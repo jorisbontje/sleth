@@ -3,10 +3,14 @@ from pyethereum import tester
 class TestLog(object):
 
     CONTRACT = """
-def test_log0():
-    a = array(0)
-    a[0] = 42
-    log0(ref(a), 32)
+def test_log_topics():
+    log(1)
+    log(1, 2)
+    log(1, 2, 3)
+    log(1, 2, 3, 4)
+
+def test_log_data():
+    log(data=[1,2,3])
 """
 
     def _last_logs(self):
@@ -23,6 +27,14 @@ def test_log0():
     def _call(self, funid=0):
         return self.s.send(tester.k0, self.c, 0, funid=funid, abi=[])
 
-    def test_log0(self):
+    def test_log_topics(self):
         assert self._call(0) == []
-        assert self._last_logs() == [dict(address=self.c, topics=[], data='0x' + tester.u.zpad(tester.u.encode_int(42), 32).encode('hex'))]
+        assert self._last_logs() == [
+            dict(address=self.c, topics=['0000000000000000000000000000000000000000000000000000000000000001'], data=''),
+            dict(address=self.c, topics=['0000000000000000000000000000000000000000000000000000000000000001'], data=''),
+            dict(address=self.c, topics=['0000000000000000000000000000000000000000000000000000000000000001'], data=''),
+            dict(address=self.c, topics=['0000000000000000000000000000000000000000000000000000000000000001'], data='')]
+
+    def test_log_data(self):
+        assert self._call(1) == []
+        assert self._last_logs() == [dict(address=self.c, topics=[], data='0x010203')]
