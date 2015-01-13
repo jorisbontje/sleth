@@ -10,6 +10,8 @@ from serpent import compile
 CONTRACT_FILE = "contracts/sleth.se"
 CONTRACT_GAS = 51000
 
+ETHER = 10 ** 18
+
 def cmd_test(args):
     instance = api.Api()
 
@@ -42,7 +44,7 @@ def cmd_claim(args):
 
 def cmd_deposit(args):
     instance = api.Api()
-    instance.transact(args.contract, funid=2, data=[], value=int(args.amount))
+    instance.transact(args.contract, funid=2, data=[], value=int(args.amount) * ETHER)
 
 def cmd_withdraw(args):
     instance = api.Api()
@@ -97,7 +99,7 @@ def cmd_status(args):
 def cmd_transact(args):
     instance = api.Api()
 
-    instance.transact(args.dest, value=args.value * 10 ** 18)
+    instance.transact(args.dest, value=args.value * ETHER)
     if args.wait:
         instance.wait_for_next_block(verbose=True)
 

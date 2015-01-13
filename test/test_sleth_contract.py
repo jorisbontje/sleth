@@ -5,6 +5,8 @@ class TestSlethContract(object):
     CONTRACT = 'contracts/sleth.se'
     CONTRACT_GAS = 51000
 
+    ETHER = 10 ** 18
+
     def setup_class(cls):
         cls.s = tester.state()
         cls.c = cls.s.contract(cls.CONTRACT)
@@ -20,7 +22,7 @@ class TestSlethContract(object):
         return self.s.send(sender, self.c, 0, funid=1, abi=[round, entropy])
 
     def _deposit(self, amount, sender=tester.k0):
-        return self.s.send(sender, self.c, amount, funid=2, abi=[])
+        return self.s.send(sender, self.c, amount * self.ETHER, funid=2, abi=[])
 
     def _withdraw(self, amount, sender=tester.k0):
         return self.s.send(sender, self.c, 0, funid=3, abi=[amount])
@@ -64,7 +66,7 @@ class TestSlethContract(object):
         assert self._withdraw(5) == [1]
 
         balance_after = self.s.block.get_balance(tester.a0)
-        assert balance_after - balance_before == 5
+        assert balance_after - balance_before == 5 * self.ETHER
 
         assert self._get_current_player() == [0, 0]
 
