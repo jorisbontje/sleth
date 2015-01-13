@@ -8,7 +8,29 @@ from pyepm import api
 from serpent import compile
 
 CONTRACT_FILE = "contracts/sleth.se"
-CONTRACT_GAS = 50000
+CONTRACT_GAS = 51000
+
+def cmd_test(args):
+    instance = api.Api()
+
+    contract = compile(open(CONTRACT_FILE).read()).encode('hex')
+    contract_address = instance.create(contract, gas=CONTRACT_GAS)
+    print "Contract is available at %s" % contract_address
+
+    if args.wait:
+        instance.wait_for_next_block(verbose=True)
+
+    assert instance.is_contract_at(contract_address)
+
+    instance.transact(contract_address, funid=2, data=[], value=10)
+
+    result = instance.call(contract_address, funid=5, data=[])
+    pprint(result)
+
+    instance.transact(contract_address, funid=3, data=[5])
+
+    result = instance.call(contract_address, funid=5, data=[])
+    pprint(result)
 
 def cmd_spin(args):
     instance = api.Api()
@@ -43,9 +65,13 @@ def cmd_create(args):
     print "Contract is available at %s" % contract_address
     if args.wait:
         instance.wait_for_next_block(verbose=True)
+    print "Is contract?", instance.is_contract_at(contract_address)
 
 def cmd_inspect(args):
     instance = api.Api()
+    result = instance.is_contract_at(args.contract)
+    print "Is contract?", result
+
     result = instance.storage_at(args.contract)
     pprint(result)
 
@@ -125,6 +151,10 @@ def main():
     parser_get_current_player = subparsers.add_parser('get_current_player', help='get current player information')
     parser_get_current_player.set_defaults(func=cmd_get_current_player)
     parser_get_current_player.add_argument('contract', help='sleth contract address')
+
+    parser_test = subparsers.add_parser('test', help='test simple contract')
+    parser_test.set_defaults(func=cmd_test)
+    parser_test.add_argument('--wait', action='store_true', help='wait for block to be mined')
 
     args = parser.parse_args()
     args.func(args)
