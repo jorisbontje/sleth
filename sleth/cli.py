@@ -17,7 +17,7 @@ def cmd_test(args):
 
     contract = compile(open(CONTRACT_FILE).read()).encode('hex')
     contract_address = instance.create(contract, gas=CONTRACT_GAS)
-    print "Contract is available at %s" % contract_address
+    print "Contract will be available at %s" % contract_address
 
     if args.wait:
         instance.wait_for_next_block(verbose=True)
@@ -35,36 +35,51 @@ def cmd_test(args):
     pprint(result)
 
 def cmd_spin(args):
+    print "Spinning the slots with bet", args.bet
     instance = api.Api()
     instance.transact(args.contract, funid=0, data=[int(args.bet)])
 
 def cmd_claim(args):
+    print "Claiming round ", args.round, "with entropy", args.entropy
     instance = api.Api()
     instance.transact(args.contract, funid=1, data=[int(args.round), int(args.entropy)])
 
 def cmd_deposit(args):
+    print "Depositing", args.amount, "ether"
     instance = api.Api()
     instance.transact(args.contract, funid=2, data=[], value=int(args.amount) * ETHER)
 
 def cmd_withdraw(args):
+    print "Withdrawing", args.amount, "ether"
     instance = api.Api()
     instance.transact(args.contract, funid=3, data=[int(args.amount)])
 
 def cmd_get_round(args):
+    print "Getting information about round", args.round
     instance = api.Api()
     result = instance.call(args.contract, funid=4, data=[int(args.round)])
-    pprint(result)
+    player, block, timestamp, bet, result, entropy, status = result
+    print "Player:", hex(player)
+    print "Block:", block
+    print "Timestamp:", timestamp
+    print "Bet:", bet
+    print "Result:", result
+    print "Entropy:", entropy
+    print "Status:", status
 
 def cmd_get_current_player(args):
+    print "Getting information about the current player"
     instance = api.Api()
     result = instance.call(args.contract, funid=5, data=[])
-    pprint(result)
+    current_round, balance = result
+    print "Current round:", current_round
+    print "Balance:", balance, "ether"
 
 def cmd_create(args):
     instance = api.Api()
     contract = compile(open(CONTRACT_FILE).read()).encode('hex')
     contract_address = instance.create(contract, gas=CONTRACT_GAS)
-    print "Contract is available at %s" % contract_address
+    print "Contract will be available at %s" % contract_address
     if args.wait:
         instance.wait_for_next_block(verbose=True)
     print "Is contract?", instance.is_contract_at(contract_address)
