@@ -1,5 +1,9 @@
 from pyethereum import tester
 
+import random
+import pytest
+slow = pytest.mark.slow
+
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
@@ -39,8 +43,9 @@ class TestSlethContract(object):
     def _get_stops(self, rnd):
         return self.s.send(tester.k0, self.c, 0, funid=7, abi=[rnd])
 
-    def _calc_reward(self, rnd, lines):
-        return self.s.send(tester.k0, self.c, 0, funid=8, abi=[rnd, lines])
+    def _calc_reward(self, rnd, lines, profile=False):
+        f = self.s.profile if profile else self.s.send
+        return f(tester.k0, self.c, 0, funid=8, abi=[rnd, lines])
 
     def test_create_gas_used(self):
         assert self.s.block.gas_used < self.CONTRACT_GAS
@@ -190,3 +195,26 @@ class TestSlethContract(object):
         assert self._spin(5) == [1]
 
         assert self._claim(1, 0) == [92]
+
+    @slow
+    def test_calc_reward_loop(self):
+        random.seed(0)
+        bet = 5
+        times = 1000
+
+        total_cost = 0
+        total_payout = 0
+        total_gas = 0
+        total_time = 0
+
+        for _ in range(0, times):
+            total_cost += bet
+            rnd = random.randint(0, 32 ** 3)
+
+            result = self._calc_reward(rnd, bet, profile=True)
+            total_gas += result['gas']
+            total_time += result['time']
+            total_payout += result['output'][0]
+
+        print total_payout, total_cost, float(total_payout) / total_cost, total_gas / times, total_time / times
+        assert total_payout < total_cost
