@@ -9,7 +9,7 @@ Waiting for next block to be mined..
 INFO:pyepm.api Ready! Mining took 10s
 ```
 
-The contract is created under the account `0xc6c97de34c2b52b929baa21e662196b9e9e03fe0`. Now lets deposit 1000 Ether into the slot machine:
+The contract is created under the account `0xc6c97de34c2b52b929baa21e662196b9e9e03fe0`. Now lets deposit `1000` Ether into the slot machine:
 ```
 $ ./cli.py deposit 0xc6c97de34c2b52b929baa21e662196b9e9e03fe0 1000
 ```
@@ -21,19 +21,19 @@ Current round: 0
 Balance: 1000 ether
 ```
 
-Now that we have some coins to play with, lets give it a spin; betting 5 (giving us 5 lines):
+Now that we have some coins to play with, lets give it a spin; betting `5` (letting us play on 5 lines):
 ```
 $ ./cli.py spin 0xc6c97de34c2b52b929baa21e662196b9e9e03fe0 5
 ```
 
-Our bet is deducted from the balance, and we are playing in game round 1:
+Our bet is deducted from the balance, and we are playing in game round `1`:
 ```
 $ ./cli.py get_current_player 0xc6c97de34c2b52b929baa21e662196b9e9e03fe0
 Current round: 1
 Balance: 995 ether
 ```
 
-Knowing the round, we can check out its status:
+Knowing that we are in round `1`, we can check out its status:
 ```
 $ ./cli.py get_round 0xc6c97de34c2b52b929baa21e662196b9e9e03fe0 1
 Player: 0x9ecb3cc2e0d7eef7485a5234767b313c2f24b582L
@@ -45,12 +45,12 @@ Entropy: 0
 Status: 1
 ```
 
-The round is still pending (status=1), lets claim it! (for testing purposes we can provide the random seed `12345`):
+The round `1` is still pending (status=1), lets claim it! (for testing purposes we can provide the random seed `12345`):
 ```
 $ ./cli.py claim 0xc6c97de34c2b52b929baa21e662196b9e9e03fe0 1 12345
 ```
 
-Now we'll inspect the results:
+Now we'll inspect the results of round `1` again:
 ```
 $ ./cli.py get_round 0xc6c97de34c2b52b929baa21e662196b9e9e03fe0 1
 Player: 0x9ecb3cc2e0d7eef7485a5234767b313c2f24b582L
