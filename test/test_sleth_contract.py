@@ -3,6 +3,7 @@ from pyethereum import tester
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
+    CONTRACT_GAS = 51000
 
     def setup_class(cls):
         cls.s = tester.state()
@@ -38,6 +39,9 @@ class TestSlethContract(object):
 
     def _calc_reward(self, rnd, lines):
         return self.s.send(tester.k0, self.c, 0, funid=8, abi=[rnd, lines])
+
+    def test_create_gas_used(self):
+        assert self.s.block.gas_used < self.CONTRACT_GAS
 
     def test_spin_bet_out_of_range(self):
         assert self._spin(0) == [0]
