@@ -37,26 +37,31 @@ def cmd_test(args):
 def cmd_spin(args):
     print "Spinning the slots with bet", args.bet
     instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, funid=0, data=[int(args.bet)])
 
 def cmd_claim(args):
     print "Claiming round ", args.round, "with entropy", args.entropy
     instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, funid=1, data=[int(args.round), int(args.entropy)])
 
 def cmd_deposit(args):
     print "Depositing", args.amount, "ether"
     instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, funid=2, data=[], value=int(args.amount) * ETHER)
 
 def cmd_withdraw(args):
     print "Withdrawing", args.amount, "ether"
     instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, funid=3, data=[int(args.amount)])
 
 def cmd_get_round(args):
     print "Getting information about round", args.round
     instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, funid=4, data=[int(args.round)])
     player, block, timestamp, bet, result, entropy, status = result
     print "Player:", hex(player)
@@ -70,6 +75,7 @@ def cmd_get_round(args):
 def cmd_get_current_player(args):
     print "Getting information about the current player"
     instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, funid=5, data=[])
     current_round, balance = result
     print "Current round:", current_round
