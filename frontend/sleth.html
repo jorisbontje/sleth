@@ -98,8 +98,8 @@
 }];
 
     var web3 = require('web3');
-    //web3.setProvider(new web3.providers.AutoProvider());
-    web3.setProvider(new web3.providers.HttpRpcProvider('http://localhost:8080/'));
+    web3.setProvider(new web3.providers.AutoProvider());
+    //web3.setProvider(new web3.providers.HttpRpcProvider('http://localhost:8080/'));
 
     var contractInputParser = web3.eth.abi.inputParser(slethAbi);
     var contractOutputParser = web3.eth.abi.outputParser(slethAbi);
@@ -194,8 +194,6 @@
             document.getElementById("output").innerText += JSON.stringify(output);
         });
     }
-
-    whoAmI();
 
 </script>
 </head>
