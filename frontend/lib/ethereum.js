@@ -267,15 +267,8 @@ var outputParser = function (json) {
 /// @param method name for which we want to get method signature
 /// @returns (promise) contract method signature for method with given name
 var methodSignature = function (json, name) {
-    var method = json[findMethodIndex(json, name)];
-    var result = name + '(';
-    var inputTypes = method.inputs.map(function (inp) {
-        return inp.type;
-    });
-    result += inputTypes.join(',');
-    result += ')';
-
-    return web3.sha3(web3.fromAscii(result));
+    var idx = findMethodIndex(json, name);
+    return Promise.resolve("0x" + padLeft(idx.toString(16), 2));
 };
 
 module.exports = {
@@ -433,7 +426,7 @@ if ("build" !== 'build') {/*
 var abi = require('./abi');
 
 /// method signature length in bytes
-var ETH_METHOD_SIGNATURE_LENGTH = 4;
+var ETH_METHOD_SIGNATURE_LENGTH = 1;
 
 /**
  * This method should be called when we want to call / transact some solidity method from javascript
@@ -1422,12 +1415,11 @@ web3.providers.WebSocketProvider = require('./lib/websocket');
 web3.providers.HttpRpcProvider = require('./lib/httprpc');
 web3.providers.QtProvider = require('./lib/qt');
 web3.providers.AutoProvider = require('./lib/autoprovider');
-web3.eth.abi = require('./lib/abi');
 web3.eth.contract = require('./lib/contract');
 
 module.exports = web3;
 
-},{"./lib/abi":1,"./lib/autoprovider":2,"./lib/contract":3,"./lib/httprpc":5,"./lib/qt":7,"./lib/web3":8,"./lib/websocket":9}]},{},["web3"])
+},{"./lib/autoprovider":2,"./lib/contract":3,"./lib/httprpc":5,"./lib/qt":7,"./lib/web3":8,"./lib/websocket":9}]},{},["web3"])
 
 
 //# sourceMappingURL=ethereum.js.map
