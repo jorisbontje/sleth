@@ -28,12 +28,6 @@ def pass_(rnd):
     def setup_method(self, method):
         self.s.revert(self.snapshot)
 
-    def _get_stops(self, rnd):
-        return self.s.send(tester.k0, self.c, 0, funid=0, abi=[rnd])
-
-    def _pass(self, rnd):
-        return self.s.send(tester.k0, self.c, 0, funid=1, abi=[rnd])
-
     def test_get_stops(self):
         assert self.c.get_stops(23888) == [16, 10, 23]
         assert self.c.get_stops(1606) == [6, 18, 1]
