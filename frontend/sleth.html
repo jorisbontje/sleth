@@ -101,8 +101,7 @@
     web3.setProvider(new web3.providers.AutoProvider());
     //web3.setProvider(new web3.providers.HttpRpcProvider('http://localhost:8080/'));
 
-    var contractInputParser = web3.eth.abi.inputParser(slethAbi);
-    var contractOutputParser = web3.eth.abi.outputParser(slethAbi);
+    var contract = web3.eth.contract(slethAddress, slethAbi);
 
     function whoAmI() {
         web3.eth.accounts.then(function (accounts) {
@@ -119,13 +118,10 @@
     function spin() {
         document.getElementById('output').innerText = 'spin';
         var bet = parseInt(document.getElementById('bet').value);
-        var data = "0x00" + contractInputParser.spin(bet);
 
-        web3.eth.transact({to: slethAddress, data: data}).then(function(res) {
+        contract.spin(bet).transact().then(function(res) {
             console.log(res);
-            var output = contractOutputParser.spin(res);
-            console.log(output);
-            document.getElementById("output").innerText += JSON.stringify(output);
+            document.getElementById("output").innerText += JSON.stringify(res);
         });
     }
 
@@ -133,65 +129,50 @@
         document.getElementById('output').innerText = 'claim';
         var round = parseInt(document.getElementById('claimRound').value);
         var entropy = parseInt(document.getElementById('entropy').value);
-        var data = "0x01" + contractInputParser.claim(round, entropy);
 
-        web3.eth.transact({to: slethAddress, data: data}).then(function(res) {
+        contract.claim(round, entropy).transact().then(function(res) {
             console.log(res);
-            var output = contractOutputParser.claim(res);
-            console.log(output);
-            document.getElementById("output").innerText += JSON.stringify(output);
+            document.getElementById("output").innerText += JSON.stringify(res);
         });
     }
 
     function deposit() {
         document.getElementById('output').innerText = 'deposit';
         var amount = parseInt(document.getElementById('depositAmount').value);
-        var data = "0x02" + contractInputParser.deposit();
         var value = web3.fromDecimal(amount * Math.pow(10, 18))
 
-        web3.eth.transact({to: slethAddress, data: data, value: value}).then(function(res) {
+        contract.deposit().transact({value: value}).then(function(res) {
             console.log(res);
-            var output = contractOutputParser.deposit(res);
-            console.log(output);
-            document.getElementById("output").innerText += JSON.stringify(output);
+            document.getElementById("output").innerText += JSON.stringify(res);
         });
     }
 
     function withdraw() {
         document.getElementById('output').innerText = 'withdraw';
         var amount = parseInt(document.getElementById('withdrawAmount').value);
-        var data = "0x03" + contractInputParser.withdraw(amount);
 
-        web3.eth.transact({to: slethAddress, data: data}).then(function(res) {
+        contract.withdraw(amount).transact().then(function(res) {
             console.log(res);
-            var output = contractOutputParser.withdraw(res);
-            console.log(output);
-            document.getElementById("output").innerText += JSON.stringify(output);
+            document.getElementById("output").innerText += JSON.stringify(res);
         });
     }
 
     function getCurrentPlayer() {
         document.getElementById('output').innerText = 'getCurrentPlayer:';
-        var data = "0x05" + contractInputParser.get_current_player();
 
-        web3.eth.call({to: slethAddress, data: data}).then(function(res) {
+        contract.get_current_player().call().then(function(res) {
             console.log(res);
-            var output = contractOutputParser.get_current_player(res);
-            console.log(output);
-            document.getElementById("output").innerText += JSON.stringify(output);
+            document.getElementById("output").innerText += JSON.stringify(res);
         });
     }
 
     function getRound() {
         document.getElementById('output').innerText = 'getRound:';
         var round = parseInt(document.getElementById('round').value);
-        var data = "0x04" + contractInputParser.get_round(round);
 
-        web3.eth.call({to: slethAddress, data: data}).then(function(res) {
+        contract.get_round(round).call().then(function(res) {
             console.log(res);
-            var output = contractOutputParser.get_round(res);
-            console.log(output);
-            document.getElementById("output").innerText += JSON.stringify(output);
+            document.getElementById("output").innerText += JSON.stringify(res);
         });
     }
 
