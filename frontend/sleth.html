@@ -1,0 +1,241 @@
+<!doctype>
+<html>
+
+<head>
+<script type="text/javascript" src="lib/promise.min.js"></script>
+<script type="text/javascript" src="lib/ethereum.js"></script>
+<script type="text/javascript">
+
+    var slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+
+    var slethAbi = [
+{
+    "name": "spin",
+    "constant": false,
+    "inputs": [{
+        "name": "bet",
+        "type": "uint256"
+    }],
+    "outputs": []
+}, {
+    "name": "claim",
+    "constant": false,
+    "inputs": [{
+        "name": "round",
+        "type": "uint256"
+    }, {
+        "name": "entropy",
+        "type": "uint256"
+    }],
+    "outputs": []
+}, {
+    "name": "deposit",
+    "constant": false,
+    "inputs": [],
+    "outputs": []
+}, {
+    "name": "withdraw",
+    "constant": false,
+    "inputs": [{
+        "name": "amount",
+        "type": "uint256"
+    }],
+    "outputs": []
+}, {
+    "name": "get_round",
+    "constant": true,
+    "inputs": [{
+        "name": "round",
+        "type": "uint256"
+    }],
+    "outputs": [{
+        "name": "player",
+        "type": "address"
+    }, {
+        "name": "block",
+        "type": "uint256"
+    }, {
+        "name": "timestamp",
+        "type": "uint256"
+    }, {
+        "name": "bet",
+        "type": "uint256"
+    }, {
+        "name": "result",
+        "type": "uint256"
+    }, {
+        "name": "entropy",
+        "type": "uint256"
+    }, {
+        "name": "status",
+        "type": "uint256"
+    }]
+}, {
+    "name": "get_current_player",
+    "constant": true,
+    "inputs": [],
+    "outputs": [{
+        "name": "last_round",
+        "type": "uint256"
+    }, {
+        "name": "balance",
+        "type": "uint256"
+    }]
+}, {
+    "name": "calc_reward",
+    "constant": true,
+    "inputs": [{
+        "name": "rnd",
+        "type": "uint256"
+    }, {
+        "name": "playing_lines",
+        "type": "uint256"
+    }],
+    "outputs": [{
+        "name": "payout",
+        "type": "uint256"
+    }]
+}];
+
+    var web3 = require('web3');
+    //web3.setProvider(new web3.providers.AutoProvider());
+    web3.setProvider(new web3.providers.HttpRpcProvider('http://localhost:8080/'));
+
+    var contractInputParser = web3.eth.abi.inputParser(slethAbi);
+    var contractOutputParser = web3.eth.abi.outputParser(slethAbi);
+
+    function whoAmI() {
+        web3.eth.accounts.then(function (accounts) {
+            document.getElementById('contract').innerText = slethAddress;
+            document.getElementById('playerAddress').innerText = accounts[0];
+
+            web3.eth.balanceAt(accounts[0]).then(function (balance) {
+                var value = web3.toDecimal(balance);
+                document.getElementById('playerBalance').innerText = value;
+            });
+        });
+    }
+
+    function spin() {
+        document.getElementById('output').innerText = 'spin';
+        var bet = parseInt(document.getElementById('bet').value);
+        var data = "0x00" + contractInputParser.spin(bet);
+
+        web3.eth.transact({to: slethAddress, data: data}).then(function(res) {
+            console.log(res);
+            var output = contractOutputParser.spin(res);
+            console.log(output);
+            document.getElementById("output").innerText += JSON.stringify(output);
+        });
+    }
+
+    function claim() {
+        document.getElementById('output').innerText = 'claim';
+        var round = parseInt(document.getElementById('claimRound').value);
+        var entropy = parseInt(document.getElementById('entropy').value);
+        var data = "0x01" + contractInputParser.claim(round, entropy);
+
+        web3.eth.transact({to: slethAddress, data: data}).then(function(res) {
+            console.log(res);
+            var output = contractOutputParser.claim(res);
+            console.log(output);
+            document.getElementById("output").innerText += JSON.stringify(output);
+        });
+    }
+
+    function deposit() {
+        document.getElementById('output').innerText = 'deposit';
+        var amount = parseInt(document.getElementById('depositAmount').value);
+        var data = "0x02" + contractInputParser.deposit();
+        var value = web3.fromDecimal(amount * Math.pow(10, 18))
+
+        web3.eth.transact({to: slethAddress, data: data, value: value}).then(function(res) {
+            console.log(res);
+            var output = contractOutputParser.deposit(res);
+            console.log(output);
+            document.getElementById("output").innerText += JSON.stringify(output);
+        });
+    }
+
+    function withdraw() {
+        document.getElementById('output').innerText = 'withdraw';
+        var amount = parseInt(document.getElementById('withdrawAmount').value);
+        var data = "0x03" + contractInputParser.withdraw(amount);
+
+        web3.eth.transact({to: slethAddress, data: data}).then(function(res) {
+            console.log(res);
+            var output = contractOutputParser.withdraw(res);
+            console.log(output);
+            document.getElementById("output").innerText += JSON.stringify(output);
+        });
+    }
+
+    function getCurrentPlayer() {
+        document.getElementById('output').innerText = 'getCurrentPlayer:';
+        var data = "0x05" + contractInputParser.get_current_player();
+
+        web3.eth.call({to: slethAddress, data: data}).then(function(res) {
+            console.log(res);
+            var output = contractOutputParser.get_current_player(res);
+            console.log(output);
+            document.getElementById("output").innerText += JSON.stringify(output);
+        });
+    }
+
+    function getRound() {
+        document.getElementById('output').innerText = 'getRound:';
+        var round = parseInt(document.getElementById('round').value);
+        var data = "0x04" + contractInputParser.get_round(round);
+
+        web3.eth.call({to: slethAddress, data: data}).then(function(res) {
+            console.log(res);
+            var output = contractOutputParser.get_round(res);
+            console.log(output);
+            document.getElementById("output").innerText += JSON.stringify(output);
+        });
+    }
+
+    whoAmI();
+
+</script>
+</head>
+<body>
+    <h1>sleth</h1>
+    <div>
+        <button type="button" onClick="whoAmI();">who am I?</button><br />
+        Contract: <span id="contract"></span><br />
+        Player: <span id="playerAddress"></span><br />
+        Balance: <span id="playerBalance"></span>
+    </div>
+    <div>
+        <button type="button" onClick="spin();">spin</button>
+        <input type="number" id="bet" value="0"></input>
+    </div>
+    <div>
+        <button type="button" onClick="claim();">claim</button>
+        <input type="number" id="claimRound" value="0"></input>
+        <input type="number" id="entropy" value="0"></input>
+    </div>
+    <div>
+        <button type="button" onClick="deposit();">deposit</button>
+        <input type="number" id="depositAmount" value="0"></input>
+    </div>
+    <div>
+        <button type="button" onClick="withdraw();">withdraw</button>
+        <input type="number" id="withdrawAmount" value="0"></input>
+    </div>
+    <div>
+        <button type="button" onClick="watchContract();">watch contract</button>
+    </div>
+    <div>
+        <button type="button" onClick="getCurrentPlayer();">get current player</button>
+    </div>
+    <div>
+        <button type="button" onClick="getRound();">get round</button>
+        <input type="number" id="round" value="0"></input>
+    </div>
+    <div></div>
+    <div id="output"></div>
+</body>
+</html>
+
