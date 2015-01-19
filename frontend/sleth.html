@@ -80,6 +80,9 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
     $scope.round = {};
     $scope.message = "";
 
+    $scope.depositAmount = 0;
+    $scope.withdrawAmount = 0;
+
     $http.get('../contracts/sleth.abi.json').then(function(res) {
         $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
     });
@@ -110,7 +113,6 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             $scope.contract.promise.then(function(contract) {
                 return(contract.get_round(roundNumber).call());
             }).then(function(res) {
-                console.log("ROUND", res);
                 var round = {
                     number: roundNumber,
                     player: res[0],
@@ -121,6 +123,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
                     entropy: res[5].toNumber(),
                     status: res[6].toNumber()
                 };
+                console.log("ROUND", round);
                 $scope.round = round;
 
                 if (round.status == 2) {
@@ -144,7 +147,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             $scope.contract.promise.then(function(contract) {
                 return(contract.deposit().transact({value: value}));
             }).then(function(res) {
-                $scope.message = "Deposited " + amount;
+                $scope.message = "Deposited " + amount + " coins";
                 $scope.updateAccount();
                 $scope.updatePlayer();
             });
@@ -158,7 +161,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             $scope.contract.promise.then(function(contract) {
                 return(contract.withdraw(amount).transact());
             }).then(function(res) {
-                $scope.message = "Withdrawn " + amount;
+                $scope.message = "Withdrawn " + amount + " coins";
                 $scope.updateAccount();
                 $scope.updatePlayer();
             });
