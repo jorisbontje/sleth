@@ -125,20 +125,24 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
                     entropy: res[5].toNumber(),
                     status: res[6].toNumber()
                 };
-                console.log("ROUND", round);
+
+                var changed = !angular.equals(round, $scope.round);
                 $scope.round = round;
 
-                if (round.status == 1) {
-                    console.log("Automatically claiming round #" + roundNumber);
-                    $scope.claim(roundNumber, $scope.entropy);
-                } else if (round.status == 2) {
-                    var message = "Results for round #" + roundNumber + ": you won ";
-                    if (round.result) {
-                        message += round.result + " coins :)";
-                    } else {
-                        message += "nothing :(";
-                    };
-                    $scope.logMessage(message);
+                if (changed) {
+                    console.log("ROUND", round);
+                    if (round.status == 1) {
+                        console.log("Automatically claiming round #" + roundNumber);
+                        $scope.claim(roundNumber, $scope.entropy);
+                    } else if (round.status == 2) {
+                        var message = "Results for round #" + roundNumber + ": you won ";
+                        if (round.result) {
+                            message += round.result + " coins :)";
+                        } else {
+                            message += "nothing :(";
+                        };
+                        $scope.logMessage(message);
+                    }
                 }
             });
         }
