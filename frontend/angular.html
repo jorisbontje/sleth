@@ -35,8 +35,16 @@ app.controller("DappController", ['$scope', 'web3', function($scope, web3) {
 
     $scope.user = {};
 
+    web3.eth.account.then(function (account) {
+        console.log("ACCOUNT", account);
+        $scope.user.address = account;
+        $scope.$apply();
+    });
+
     web3.eth.balanceAt(web3.eth.coinbase).then(function (balance) {
+        console.log("BALANCE", balance);
         $scope.user.balance = web3.toDecimal(balance);
+        $scope.$apply();
     });
 
 }]);
