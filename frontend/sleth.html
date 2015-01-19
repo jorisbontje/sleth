@@ -50,7 +50,7 @@
         <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5">spin 5</button>
     </div>
     <div>
-        <button type="button" ng-click="claim(player.round, entropy)">claim</button>
+        <button type="button" ng-click="claim(player.round, entropy)" ng-disabled="round.status != 1">claim</button>
         round
         <input type="number" ng-model="player.round" integer min="1"></input>
         entropy
@@ -59,7 +59,9 @@
     <hr />
     <div>
         <h3>Message:</h3>
-        {{message}}
+        <div ng-repeat="message in messages track by $index">
+            <div>{{message}}</div>
+        </div>
     </div>
 </div>
 <script>
@@ -78,7 +80,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
 
     $scope.player = {};
     $scope.round = {};
-    $scope.message = "";
+    $scope.messages = [];
 
     $scope.depositAmount = 0;
     $scope.withdrawAmount = 0;
@@ -126,14 +128,17 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
                 console.log("ROUND", round);
                 $scope.round = round;
 
-                if (round.status == 2) {
-                    $scope.message = "Results for round #" + roundNumber + ": you won ";
+                if (round.status == 1) {
+                    console.log("Automatically claiming round #" + roundNumber);
+                    $scope.claim(roundNumber, $scope.entropy);
+                } else if (round.status == 2) {
+                    var message = "Results for round #" + roundNumber + ": you won ";
                     if (round.result) {
-                        $scope.message += round.result + " coins :)";
+                        message += round.result + " coins :)";
                     } else {
-                        $scope.message += "nothing :(";
+                        message += "nothing :(";
                     };
-
+                    $scope.logMessage(message);
                 }
             });
         }
@@ -147,7 +152,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             $scope.contract.promise.then(function(contract) {
                 return(contract.deposit().transact({value: value}));
             }).then(function(res) {
-                $scope.message = "Deposited " + amount + " coins";
+                $scope.logMessage("Deposited " + amount + " coins");
                 $scope.updateAccount();
                 $scope.updatePlayer();
             });
@@ -161,7 +166,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             $scope.contract.promise.then(function(contract) {
                 return(contract.withdraw(amount).transact());
             }).then(function(res) {
-                $scope.message = "Withdrawn " + amount + " coins";
+                $scope.logMessage("Withdrawn " + amount + " coins");
                 $scope.updateAccount();
                 $scope.updatePlayer();
             });
@@ -170,10 +175,11 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
 
     $scope.spin = function(bet) {
         if (bet) {
+            $scope.clearMessages();
             $scope.contract.promise.then(function(contract) {
                 return(contract.spin(bet).transact());
             }).then(function(res) {
-                $scope.message = "Spinning... " + bet;
+                $scope.logMessage("Spinning... " + bet);
                 $scope.updatePlayer();
             });
 
@@ -186,7 +192,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             $scope.contract.promise.then(function(contract) {
                 return(contract.claim(round, entropy).transact());
             }).then(function(res) {
-                $scope.message = "Claiming... " + round;
+                $scope.logMessage("Claiming round #" + round + "...");
                 $scope.updatePlayer();
                 $scope.updateRound();
             });
@@ -195,6 +201,15 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
 
     $scope.generateEntropy = function() {
         $scope.entropy = Math.floor(Math.random() * Math.pow(32, 3));
+    };
+
+    $scope.clearMessages = function() {
+        $scope.messages = [];
+    };
+
+    $scope.logMessage = function(message) {
+        console.log("MESSAGE", message);
+        $scope.messages.push(message);
     };
 
     $scope.$watch('player.round', $scope.updateRound);
