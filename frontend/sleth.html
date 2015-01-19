@@ -1,217 +1,199 @@
 <!doctype>
-<html>
-
+<html ng-app='sleth'>
 <head>
+<script type="text/javascript" src="lib/angular.min.js"></script>
 <script type="text/javascript" src="lib/promise.min.js"></script>
 <script type="text/javascript" src="lib/bignumber.min.js"></script>
 <script type="text/javascript" src="lib/ethereum.js"></script>
-<script type="text/javascript">
-
-    var slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
-
-    var slethAbi = [
-{
-    "name": "spin",
-    "constant": false,
-    "inputs": [{
-        "name": "bet",
-        "type": "uint256"
-    }],
-    "outputs": []
-}, {
-    "name": "claim",
-    "constant": false,
-    "inputs": [{
-        "name": "round",
-        "type": "uint256"
-    }, {
-        "name": "entropy",
-        "type": "uint256"
-    }],
-    "outputs": []
-}, {
-    "name": "deposit",
-    "constant": false,
-    "inputs": [],
-    "outputs": []
-}, {
-    "name": "withdraw",
-    "constant": false,
-    "inputs": [{
-        "name": "amount",
-        "type": "uint256"
-    }],
-    "outputs": []
-}, {
-    "name": "get_round",
-    "constant": true,
-    "inputs": [{
-        "name": "round",
-        "type": "uint256"
-    }],
-    "outputs": [{
-        "name": "player",
-        "type": "address"
-    }, {
-        "name": "block",
-        "type": "uint256"
-    }, {
-        "name": "timestamp",
-        "type": "uint256"
-    }, {
-        "name": "bet",
-        "type": "uint256"
-    }, {
-        "name": "result",
-        "type": "uint256"
-    }, {
-        "name": "entropy",
-        "type": "uint256"
-    }, {
-        "name": "status",
-        "type": "uint256"
-    }]
-}, {
-    "name": "get_current_player",
-    "constant": true,
-    "inputs": [],
-    "outputs": [{
-        "name": "last_round",
-        "type": "uint256"
-    }, {
-        "name": "balance",
-        "type": "uint256"
-    }]
-}, {
-    "name": "calc_reward",
-    "constant": true,
-    "inputs": [{
-        "name": "rnd",
-        "type": "uint256"
-    }, {
-        "name": "playing_lines",
-        "type": "uint256"
-    }],
-    "outputs": [{
-        "name": "payout",
-        "type": "uint256"
-    }]
-}];
-
-    var web3 = require('web3');
-    web3.setProvider(new web3.providers.AutoProvider());
-    //web3.setProvider(new web3.providers.HttpRpcProvider('http://localhost:8080/'));
-
-    var contract = web3.eth.contract(slethAddress, slethAbi);
-
-    function whoAmI() {
-        web3.eth.accounts.then(function (accounts) {
-            document.getElementById('contract').innerText = slethAddress;
-            document.getElementById('playerAddress').innerText = accounts[0];
-
-            web3.eth.balanceAt(accounts[0]).then(function (balance) {
-                var value = web3.toDecimal(balance);
-                document.getElementById('playerBalance').innerText = value;
-            });
-        });
-    }
-
-    function spin() {
-        document.getElementById('output').innerText = 'spin';
-        var bet = parseInt(document.getElementById('bet').value);
-
-        contract.spin(bet).transact().then(function(res) {
-            console.log(res);
-            document.getElementById("output").innerText += JSON.stringify(res);
-        });
-    }
-
-    function claim() {
-        document.getElementById('output').innerText = 'claim';
-        var round = parseInt(document.getElementById('claimRound').value);
-        var entropy = parseInt(document.getElementById('entropy').value);
-
-        contract.claim(round, entropy).transact().then(function(res) {
-            console.log(res);
-            document.getElementById("output").innerText += JSON.stringify(res);
-        });
-    }
-
-    function deposit() {
-        document.getElementById('output').innerText = 'deposit';
-        var amount = parseInt(document.getElementById('depositAmount').value);
-        var value = web3.fromDecimal(amount * Math.pow(10, 18))
-
-        contract.deposit().transact({value: value}).then(function(res) {
-            console.log(res);
-            document.getElementById("output").innerText += JSON.stringify(res);
-        });
-    }
-
-    function withdraw() {
-        document.getElementById('output').innerText = 'withdraw';
-        var amount = parseInt(document.getElementById('withdrawAmount').value);
-
-        contract.withdraw(amount).transact().then(function(res) {
-            console.log(res);
-            document.getElementById("output").innerText += JSON.stringify(res);
-        });
-    }
-
-    function getCurrentPlayer() {
-        document.getElementById('output').innerText = 'getCurrentPlayer:';
-
-        contract.get_current_player().call().then(function(res) {
-            console.log(res);
-            document.getElementById("output").innerText += JSON.stringify(res);
-        });
-    }
-
-    function getRound() {
-        document.getElementById('output').innerText = 'getRound:';
-        var round = parseInt(document.getElementById('round').value);
-
-        contract.get_round(round).call().then(function(res) {
-            console.log(res);
-            document.getElementById("output").innerText += JSON.stringify(res);
-        });
-    }
-</script>
 </head>
 <body>
-    <h1>sleth</h1>
+<h1>sleth</h1>
+
+<div ng-controller="SlethController">
     <div>
-        <button type="button" onClick="whoAmI();">who am I?</button><br />
-        Contract: <span id="contract"></span><br />
-        Player: <span id="playerAddress"></span><br />
-        Balance: <span id="playerBalance"></span>
+        <button ng-click="whoAmI()">who am I?</button><br />
+        Contract: {{slethAddress}}<br />
+        Player: {{player.address}}<br />
+        Balance: {{player.balance | number : 4}} ETH<br />
+        Coins: {{player.coins}}<br />
+    </div>
+
+    <div>
+        <button ng-click="deposit(depositAmount)">deposit</button>
+        <input type="number" ng-model="depositAmount" value="0" integer min="0"></input> coins
     </div>
     <div>
-        <button type="button" onClick="spin();">spin</button>
-        <input type="number" id="bet" value="0"></input>
+        <button ng-click="withdraw(withdrawAmount)" ng-disabled="player.coins == 0">withdraw</button>
+        <input type="number" ng-model="withdrawAmount" value="0" integer min="0"></input> coins
+    </div>
+
+    <hr />
+    <div>
+        Round #{{player.round}}<br />
+        {{round | json}}
+        <div>Player: {{round.player}}</div>
+        <div>Block: {{round.block}}</div>
+        <div>Timestamp: {{round.timestamp | date : 'medium'}}</div>
+        <div>Bet: {{round.bet}}</div>
+        <div ng-if="round.status == 2">Result: {{round.result}}</div>
+        <div ng-if="round.status == 2">Entropy: {{round.entropy}}</div>
+        <div>Status:
+            <span ng-switch on="round.status">
+                <span ng-switch-when="0">new</span>
+                <span ng-switch-when="1">spinning</span>
+                <span ng-switch-when="2">done</span>
+            </span>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <button type="button" ng-click="spin(1)" ng-disabled="player.coins < 1">spin 1</button>
+        <button type="button" ng-click="spin(3)" ng-disabled="player.coins < 3">spin 3</button>
+        <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5">spin 5</button>
     </div>
     <div>
-        <button type="button" onClick="claim();">claim</button>
-        <input type="number" id="claimRound" value="0"></input>
-        <input type="number" id="entropy" value="0"></input>
+        <button type="button" ng-click="claim(player.round, entropy)">claim</button>
+        round
+        <input type="number" ng-model="player.round" integer min="1"></input>
+        entropy
+        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
     </div>
+    <hr />
     <div>
-        <button type="button" onClick="deposit();">deposit</button>
-        <input type="number" id="depositAmount" value="0"></input>
+        <h3>Message:</h3>
+        {{message}}
     </div>
-    <div>
-        <button type="button" onClick="withdraw();">withdraw</button>
-        <input type="number" id="withdrawAmount" value="0"></input>
-    </div>
-    <div>
-        <button type="button" onClick="getCurrentPlayer();">get current player</button>
-    </div>
-    <div>
-        <button type="button" onClick="getRound();">get round</button>
-        <input type="number" id="round" value="0"></input>
-    </div>
-    <div></div>
-    <div id="output"></div>
+</div>
+<script>
+var app = angular.module('sleth',[]);
+app.factory('web3', function() {
+    var web3 = require('web3');
+    web3.setProvider(new web3.providers.AutoProvider());
+    return web3;
+});
+
+app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($http, $q, $scope, web3) {
+
+    $scope.player = {};
+    $scope.round = {};
+
+    $scope.message = "";
+
+    $scope.slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+    $scope.contract = $q.defer();
+
+    $http.get('../contracts/sleth.abi.json').then(function(res) {
+        $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
+    });
+
+    $scope.updateAccount = function() {
+        web3.eth.accounts.then(function (accounts) {
+            $scope.player.address = accounts[0];
+            $scope.$apply();
+            return(web3.eth.balanceAt(accounts[0]));
+        }).then(function (balance) {
+            $scope.player.balance = web3.toDecimal(balance) / Math.pow(10, 18);
+            $scope.$apply();
+        });
+    };
+
+    $scope.updatePlayer = function() {
+        $scope.contract.promise.then(function(contract) {
+            return(contract.get_current_player().call());
+        }).then(function(res) {
+            $scope.player.round = res[0].toNumber();
+            $scope.player.coins = res[1].toNumber();
+        });
+    };
+
+    $scope.updateRound = function() {
+        if($scope.player.round) {
+            $scope.contract.promise.then(function(contract) {
+                return(contract.get_round($scope.player.round).call());
+            }).then(function(res) {
+                console.log("ROUND", res);
+                $scope.round.player = res[0];
+                $scope.round.block = res[1].toNumber();
+                $scope.round.timestamp = new Date(res[2].toNumber() * 1000);
+                $scope.round.bet = res[3].toNumber();
+                $scope.round.result = res[4].toNumber();
+                $scope.round.entropy = res[5].toNumber();
+                $scope.round.status = res[6].toNumber();
+            });
+        }
+    };
+
+    $scope.deposit = function(amount) {
+        console.log("DEPOSIT", amount);
+        if (amount) {
+            var value = web3.fromDecimal(amount * Math.pow(10, 18));
+
+            $scope.contract.promise.then(function(contract) {
+                return(contract.deposit().transact({value: value}));
+            }).then(function(res) {
+                $scope.message = "Deposited " + amount;
+                $scope.updateAccount();
+                $scope.updatePlayer();
+            });
+        }
+    };
+
+    $scope.withdraw = function(amount) {
+        console.log("WITHDRAW", amount);
+
+        if (amount) {
+            $scope.contract.promise.then(function(contract) {
+                return(contract.withdraw(amount).transact());
+            }).then(function(res) {
+                $scope.message = "Withdrawn " + amount;
+                $scope.updateAccount();
+                $scope.updatePlayer();
+            });
+        }
+    };
+
+    $scope.spin = function(bet) {
+        if (bet) {
+            $scope.contract.promise.then(function(contract) {
+                return(contract.spin(bet).transact());
+            }).then(function(res) {
+                $scope.message = "Spinning... " + bet;
+                $scope.updatePlayer();
+            });
+
+            $scope.generateEntropy();
+        }
+    }
+
+    $scope.claim = function(round, entropy) {
+        if (round) {
+            $scope.contract.promise.then(function(contract) {
+                return(contract.claim(round, entropy).transact());
+            }).then(function(res) {
+                $scope.message = "Claiming... " + round;
+                $scope.updatePlayer();
+                $scope.updateRound();
+            });
+        }
+    }
+
+    $scope.generateEntropy = function() {
+        $scope.entropy = Math.floor(Math.random() * Math.pow(32, 3));
+    };
+
+    $scope.$watch('player.round', $scope.updateRound);
+
+    web3.eth.watch('chain').changed(function(res) {
+        console.log("CHAIN UPDATED", res);
+        $scope.updateAccount();
+        $scope.updatePlayer();
+        $scope.updateRound();
+    });
+
+    $scope.updateAccount();
+    $scope.updatePlayer();
+    $scope.generateEntropy();
+}]);
+</script>
 </body>
 </html>
-
