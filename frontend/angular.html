@@ -20,6 +20,12 @@
         Balance:
         <span>{{user.balance}}</span>
     </div>
+    <hr />
+
+    <div>
+        Block #{{blockNumber}}:
+        <div>{{block | json}}</div>
+    </div>
 </div>
 
 <script>
@@ -34,8 +40,9 @@ app.factory('web3', function() {
 app.controller("DappController", ['$scope', 'web3', function($scope, web3) {
 
     $scope.user = {};
+    $scope.blockNumber = 0;
 
-    web3.eth.accounts.then(function (accounts) {
+    web3.eth.accounts.then(function(accounts) {
         console.log("ACCOUNTS", accounts);
         $scope.user.address = accounts[0];
         $scope.$apply();
@@ -45,8 +52,29 @@ app.controller("DappController", ['$scope', 'web3', function($scope, web3) {
         $scope.user.balance = web3.toDecimal(balance);
         $scope.$apply();
     }).catch(function (error) {
-        console.error('web3 error: ', error);
+        console.error('account/balance error: ', error);
     });
+
+    $scope.loadBlock = function() {
+        web3.eth.number.then(function(blockNumber) {
+            console.log("blockNumber", blockNumber);
+            $scope.blockNumber = blockNumber;
+            $scope.$apply();
+            return web3.eth.block(blockNumber);
+        }).then(function(block) {
+            console.log("block", block);
+            $scope.block = block;
+            $scope.$apply();
+        });
+    };
+
+    web3.eth.watch('chain').changed(function(res) {
+        console.log("CHAIN UPDATED", res);
+        $scope.loadBlock();
+    });
+
+    $scope.loadBlock();
+
 }]);
 </script>
 </body>
