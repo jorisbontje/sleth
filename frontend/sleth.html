@@ -18,12 +18,12 @@
     </div>
 
     <div>
-        <button ng-click="deposit(depositAmount)">deposit</button>
-        <input type="number" ng-model="depositAmount" value="0" integer min="0"></input> coins
+        <button ng-click="deposit(depositAmount)" ng-disabled="depositAmount == 0">deposit</button>
+        <input type="number" ng-model="depositAmount" integer min="1"></input> coins
     </div>
     <div>
-        <button ng-click="withdraw(withdrawAmount)" ng-disabled="player.coins == 0">withdraw</button>
-        <input type="number" ng-model="withdrawAmount" value="0" integer min="0"></input> coins
+        <button ng-click="withdraw(withdrawAmount)" ng-disabled="withdrawAmount == 0 || withdrawAmount > player.coins">withdraw</button>
+        <input type="number" ng-model="withdrawAmount" integer min="1"></input> coins
     </div>
 
     <hr />
@@ -76,6 +76,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
 
 
     $scope.slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+    $scope.defaultGas = web3.fromDecimal(10000);
     $scope.contract = $q.defer();
 
     $scope.player = {};
@@ -154,7 +155,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
             var value = web3.fromDecimal(amount * Math.pow(10, 18));
 
             $scope.contract.promise.then(function(contract) {
-                return(contract.deposit().transact({value: value}));
+                return(contract.deposit().transact({gas: $scope.defaultGas, value: value}));
             }).then(function(res) {
                 $scope.logMessage("Deposited " + amount + " coins");
                 $scope.updateAccount();
@@ -168,7 +169,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
 
         if (amount) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.withdraw(amount).transact());
+                return(contract.withdraw(amount).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
                 $scope.logMessage("Withdrawn " + amount + " coins");
                 $scope.updateAccount();
@@ -181,7 +182,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
         if (bet) {
             $scope.clearMessages();
             $scope.contract.promise.then(function(contract) {
-                return(contract.spin(bet).transact());
+                return(contract.spin(bet).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
                 $scope.logMessage("Spinning... " + bet);
                 $scope.updatePlayer();
@@ -194,7 +195,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
     $scope.claim = function(round, entropy) {
         if (round) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.claim(round, entropy).transact());
+                return(contract.claim(round, entropy).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
                 $scope.logMessage("Claiming round #" + round + "...");
                 $scope.updatePlayer();
