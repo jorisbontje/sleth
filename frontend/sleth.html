@@ -11,7 +11,6 @@
 
 <div ng-controller="SlethController">
     <div>
-        <button ng-click="whoAmI()">who am I?</button><br />
         Contract: {{slethAddress}}<br />
         Player: {{player.address}}<br />
         Balance: {{player.balance | number : 4}} ETH<br />
@@ -29,8 +28,7 @@
 
     <hr />
     <div>
-        Round #{{player.round}}<br />
-        {{round | json}}
+        <h3>Round #{{round.number}}</h3>
         <div>Player: {{round.player}}</div>
         <div>Block: {{round.block}}</div>
         <div>Timestamp: {{round.timestamp | date : 'medium'}}</div>
@@ -74,13 +72,13 @@ app.factory('web3', function() {
 
 app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($http, $q, $scope, web3) {
 
-    $scope.player = {};
-    $scope.round = {};
-
-    $scope.message = "";
 
     $scope.slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
     $scope.contract = $q.defer();
+
+    $scope.player = {};
+    $scope.round = {};
+    $scope.message = "";
 
     $http.get('../contracts/sleth.abi.json').then(function(res) {
         $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
@@ -107,18 +105,33 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
     };
 
     $scope.updateRound = function() {
-        if($scope.player.round) {
+        var roundNumber = $scope.player.round;
+        if(roundNumber) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.get_round($scope.player.round).call());
+                return(contract.get_round(roundNumber).call());
             }).then(function(res) {
                 console.log("ROUND", res);
-                $scope.round.player = res[0];
-                $scope.round.block = res[1].toNumber();
-                $scope.round.timestamp = new Date(res[2].toNumber() * 1000);
-                $scope.round.bet = res[3].toNumber();
-                $scope.round.result = res[4].toNumber();
-                $scope.round.entropy = res[5].toNumber();
-                $scope.round.status = res[6].toNumber();
+                var round = {
+                    number: roundNumber,
+                    player: res[0],
+                    block: res[1].toNumber(),
+                    timestamp: new Date(res[2].toNumber() * 1000),
+                    bet: res[3].toNumber(),
+                    result: res[4].toNumber(),
+                    entropy: res[5].toNumber(),
+                    status: res[6].toNumber()
+                };
+                $scope.round = round;
+
+                if (round.status == 2) {
+                    $scope.message = "Results for round #" + roundNumber + ": you won ";
+                    if (round.result) {
+                        $scope.message += round.result + " coins :)";
+                    } else {
+                        $scope.message += "nothing :(";
+                    };
+
+                }
             });
         }
     };
