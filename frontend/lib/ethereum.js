@@ -23,9 +23,9 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
  */
 
 // TODO: is these line is supposed to be here? 
-if ("build" !== 'build') {
+if ("build" !== 'build') {/*
     var BigNumber = require('bignumber.js'); // jshint ignore:line
-}
+*/}
 
 var web3 = require('./web3'); // jshint ignore:line
 
@@ -357,7 +357,7 @@ module.exports = {
 };
 
 
-},{"./web3":8,"bignumber.js":undefined}],2:[function(require,module,exports){
+},{"./web3":8}],2:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -388,9 +388,9 @@ module.exports = {
  */
 
 var web3 = require('./web3'); // jshint ignore:line
-if ("build" !== 'build') {
+if ("build" !== 'build') {/*
     var WebSocket = require('ws'); // jshint ignore:line
-}
+*/}
 
 /**
  * AutoProvider object prototype is implementing 'provider protocol'
@@ -473,7 +473,7 @@ Object.defineProperty(AutoProvider.prototype, 'onmessage', {
 
 module.exports = AutoProvider;
 
-},{"./web3":8,"ws":undefined}],3:[function(require,module,exports){
+},{"./web3":8}],3:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -677,9 +677,9 @@ module.exports = Filter;
  */
 
 // TODO: is these line is supposed to be here? 
-if ("build" !== 'build') {
+if ("build" !== 'build') {/*
     var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest; // jshint ignore:line
-}
+*/}
 
 /**
  * HttpRpcProvider object prototype is implementing 'provider protocol'
@@ -780,7 +780,7 @@ Object.defineProperty(HttpRpcProvider.prototype, "onmessage", {
 module.exports = HttpRpcProvider;
 
 
-},{"xmlhttprequest":undefined}],6:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -1398,9 +1398,9 @@ module.exports = web3;
  */
 
 // TODO: is these line is supposed to be here? 
-if ("build" !== 'build') {
+if ("build" !== 'build') {/*
     var WebSocket = require('ws'); // jshint ignore:line
-}
+*/}
 
 /**
  * WebSocketProvider object prototype is implementing 'provider protocol'
@@ -1472,7 +1472,7 @@ Object.defineProperty(WebSocketProvider.prototype, "onmessage", {
 if (typeof(module) !== "undefined")
     module.exports = WebSocketProvider;
 
-},{"ws":undefined}],"web3":[function(require,module,exports){
+},{}],"web3":[function(require,module,exports){
 var web3 = require('./lib/web3');
 var ProviderManager = require('./lib/providermanager');
 web3.provider = new ProviderManager();
