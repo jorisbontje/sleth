@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html ng-app='mydapp'>
+<head>
+<title>Your DApp</title>
+<script src="lib/angular.min.js"></script>
+<script type="text/javascript" src="lib/promise.min.js"></script>
+<script type="text/javascript" src="lib/bignumber.min.js"></script>
+<script type="text/javascript" src="lib/ethereum.js"></script>
+</head>
+<body>
+
+<h1>Your DApp</h1>
+
+<div ng-controller="DappController">
+    <div>
+        User:
+        <span>{{user.address}}</span>
+    </div>
+    <div>
+        Balance:
+        <span>{{user.balance}}</span>
+    </div>
+</div>
+
+<script>
+
+var app = angular.module('mydapp',[]);
+app.factory('web3', function() {
+    require('bignumber.js');
+    var web3 = require('web3');
+    web3.setProvider(new web3.providers.AutoProvider());
+    return web3;
+});
+
+app.controller("DappController", ['$scope', 'web3', function($scope, web3) {
+
+    $scope.user = {};
+
+    web3.eth.balanceAt(web3.eth.coinbase).then(function (balance) {
+        $scope.user.balance = web3.toDecimal(balance);
+    });
+
+}]);
+</script>
+</body>
+</html>

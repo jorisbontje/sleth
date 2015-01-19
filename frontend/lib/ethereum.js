@@ -24,17 +24,14 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
 // TODO: is these line is supposed to be here? 
 if ("build" !== 'build') {/*
-    var web3 = require('./web3'); // jshint ignore:line
+    var BigNumber = require('bignumber.js'); // jshint ignore:line
 */}
 
-// TODO: make these be actually accurate instead of falling back onto JS's doubles.
-var hexToDec = function (hex) {
-    return parseInt(hex, 16).toString();
-};
+var web3 = require('./web3'); // jshint ignore:line
 
-var decToHex = function (dec) {
-    return parseInt(dec).toString(16);
-};
+BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_DOWN });
+
+var ETH_PADDING = 32;
 
 /// Finds first index of array element matching pattern
 /// @param array
@@ -58,9 +55,10 @@ var findMethodIndex = function (json, methodName) {
 
 /// @param string string to be padded
 /// @param number of characters that result string should have
+/// @param sign, by default 0
 /// @returns right aligned string
-var padLeft = function (string, chars) {
-    return new Array(chars - string.length + 1).join("0") + string;
+var padLeft = function (string, chars, sign) {
+    return new Array(chars - string.length + 1).join(sign ? sign : "0") + string;
 };
 
 /// @param expected type prefix (string)
@@ -79,46 +77,66 @@ var namedType = function (name) {
     };
 };
 
+var arrayType = function (type) {
+    return type.slice(-2) === '[]';
+};
+
+/// Formats input value to byte representation of int
+/// If value is negative, return it's two's complement
+/// If the value is floating point, round it down
+/// @returns right-aligned byte representation of int
+var formatInputInt = function (value) {
+    var padding = ETH_PADDING * 2;
+    if (value instanceof BigNumber || typeof value === 'number') {
+        if (typeof value === 'number')
+            value = new BigNumber(value);
+        value = value.round();
+
+        if (value.lessThan(0)) 
+            value = new BigNumber("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16).plus(value).plus(1);
+        value = value.toString(16);
+    }
+    else if (value.indexOf('0x') === 0)
+        value = value.substr(2);
+    else if (typeof value === 'string')
+        value = formatInputInt(new BigNumber(value));
+    else
+        value = (+value).toString(16);
+    return padLeft(value, padding);
+};
+
+/// Formats input value to byte representation of string
+/// @returns left-algined byte representation of string
+var formatInputString = function (value) {
+    return web3.fromAscii(value, ETH_PADDING).substr(2);
+};
+
+/// Formats input value to byte representation of bool
+/// @returns right-aligned byte representation bool
+var formatInputBool = function (value) {
+    return '000000000000000000000000000000000000000000000000000000000000000' + (value ?  '1' : '0');
+};
+
+var dynamicTypeBytes = function (type, value) {
+    // TODO: decide what to do with array of strings
+    if (arrayType(type) || prefixedType('string')(type))
+        return formatInputInt(value.length); 
+    return "";
+};
+
 /// Setups input formatters for solidity types
 /// @returns an array of input formatters 
 var setupInputTypes = function () {
     
-    /// Formats input value to byte representation of int
-    /// @returns right-aligned byte representation of int
-    var formatInt = function (value) {
-        var padding = 32 * 2;
-        if (typeof value === 'number')
-            value = value.toString(16);
-        else if (value.indexOf('0x') === 0)
-            value = value.substr(2);
-        else if (typeof value === 'string')
-            value = value.toHex(value);
-        else
-            value = (+value).toString(16);
-        return padLeft(value, padding);
-    };
-
-    /// Formats input value to byte representation of string
-    /// @returns left-algined byte representation of string
-    var formatString = function (value) {
-        return web3.fromAscii(value, 32).substr(2);
-    };
-
-    /// Formats input value to byte representation of bool
-    /// @returns right-aligned byte representation bool
-    var formatBool = function (value) {
-        return '000000000000000000000000000000000000000000000000000000000000000' + (value ?  '1' : '0');
-    };
-
     return [
-        { type: prefixedType('uint'), format: formatInt },
-        { type: prefixedType('int'), format: formatInt },
-        { type: prefixedType('hash'), format: formatInt },
-        { type: prefixedType('string'), format: formatString }, 
-        { type: prefixedType('real'), format: formatInt },
-        { type: prefixedType('ureal'), format: formatInt },
-        { type: namedType('address'), format: formatInt },
-        { type: namedType('bool'), format: formatBool }
+        { type: prefixedType('uint'), format: formatInputInt },
+        { type: prefixedType('int'), format: formatInputInt },
+        { type: prefixedType('hash'), format: formatInputInt },
+        { type: prefixedType('string'), format: formatInputString }, 
+        { type: prefixedType('real'), format: formatInputInt },
+        { type: prefixedType('ureal'), format: formatInputInt },
+        { type: namedType('address'), format: formatInputInt },
+        { type: namedType('bool'), format: formatInputBool }
     ];
 };
 
@@ -138,9 +156,14 @@ var toAbiInput = function (json, methodName, params) {
     }
 
     var method = json[index];
-    var padding = 32 * 2;
+    var padding = ETH_PADDING * 2;
 
-    for (var i = 0; i < method.inputs.length; i++) {
+    /// first we iterate in search for dynamic 
+    method.inputs.forEach(function (input, index) {
+        bytes += dynamicTypeBytes(input.type, params[index]);
+    });
+
+    method.inputs.forEach(function (input, i) {
         var typeMatch = false;
         for (var j = 0; j < inputTypes.length && !typeMatch; j++) {
             typeMatch = inputTypes[j].type(method.inputs[i].type, params[i]);
@@ -150,50 +173,77 @@ var toAbiInput = function (json, methodName, params) {
         }
 
         var formatter = inputTypes[j - 1].format;
-        bytes += (formatter ? formatter(params[i]) : params[i]);
-    }
+        var toAppend = "";
+
+        if (arrayType(method.inputs[i].type))
+            toAppend = params[i].reduce(function (acc, curr) {
+                return acc + formatter(curr);
+            }, "");
+        else
+            toAppend = formatter(params[i]);
+
+        bytes += toAppend; 
+    });
     return bytes;
+};
+
+/// Formats input right-aligned input bytes to int
+/// @returns right-aligned input bytes formatted to int
+var formatOutputInt = function (value) {
+    // check if it's negative number
+    // it it is, return two's complement
+    var firstBit = new BigNumber(value.substr(0, 1), 16).toString(2).substr(0, 1);
+    if (firstBit === '1') {
+        return new BigNumber(value, 16).minus(new BigNumber('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', 16)).minus(1);
+    }
+    return new BigNumber(value, 16);
+};
+
+/// Formats big right-aligned input bytes to uint
+/// @returns right-aligned input bytes formatted to uint
+var formatOutputUInt = function (value) {
+    return new BigNumber(value, 16);
+};
+
+/// @returns right-aligned input bytes formatted to hex
+var formatOutputHash = function (value) {
+    return "0x" + value;
+};
+
+/// @returns right-aligned input bytes formatted to bool
+var formatOutputBool = function (value) {
+    return value === '0000000000000000000000000000000000000000000000000000000000000001' ? true : false;
+};
+
+/// @returns left-aligned input bytes formatted to ascii string
+var formatOutputString = function (value) {
+    return web3.toAscii(value);
+};
+
+/// @returns right-aligned input bytes formatted to address
+var formatOutputAddress = function (value) {
+    return "0x" + value.slice(value.length - 40, value.length);
+};
+
+var dynamicBytesLength = function (type) {
+    if (arrayType(type) || prefixedType('string')(type))
+        return ETH_PADDING * 2;
+    return 0;
 };
 
 /// Setups output formaters for solidity types
 /// @returns an array of output formatters
 var setupOutputTypes = function () {
 
-    /// Formats input right-aligned input bytes to int
-    /// @returns right-aligned input bytes formatted to int
-    var formatInt = function (value) {
-        return value.length <= 8 ? +parseInt(value, 16) : hexToDec(value);
-    };
-
-    /// @returns right-aligned input bytes formatted to hex
-    var formatHash = function (value) {
-        return "0x" + value;
-    };
-
-    /// @returns right-aligned input bytes formatted to bool
-    var formatBool = function (value) {
-        return value === '0000000000000000000000000000000000000000000000000000000000000001' ? true : false;
-    };
-
-    /// @returns left-aligned input bytes formatted to ascii string
-    var formatString = function (value) {
-        return web3.toAscii(value);
-    };
-
-    /// @returns right-aligned input bytes formatted to address
-    var formatAddress = function (value) {
-        return "0x" + value.slice(value.length - 40, value.length);
-    };
-
     return [
-        { type: prefixedType('uint'), format: formatInt },
-        { type: prefixedType('int'), format: formatInt },
-        { type: prefixedType('hash'), format: formatHash },
-        { type: prefixedType('string'), format: formatString },
-        { type: prefixedType('real'), format: formatInt },
-        { type: prefixedType('ureal'), format: formatInt },
-        { type: namedType('address'), format: formatAddress },
-        { type: namedType('bool'), format: formatBool }
+        { type: prefixedType('uint'), format: formatOutputUInt },
+        { type: prefixedType('int'), format: formatOutputInt },
+        { type: prefixedType('hash'), format: formatOutputHash },
+        { type: prefixedType('string'), format: formatOutputString },
+        { type: prefixedType('real'), format: formatOutputInt },
+        { type: prefixedType('ureal'), format: formatOutputInt },
+        { type: namedType('address'), format: formatOutputAddress },
+        { type: namedType('bool'), format: formatOutputBool }
     ];
 };
 
@@ -215,23 +265,45 @@ var fromAbiOutput = function (json, methodName, output) {
 
     var result = [];
     var method = json[index];
-    var padding = 32 * 2;
-    for (var i = 0; i < method.outputs.length; i++) {
+    var padding = ETH_PADDING * 2;
+
+    var dynamicPartLength = method.outputs.reduce(function (acc, curr) {
+        return acc + dynamicBytesLength(curr.type);
+    }, 0);
+    
+    var dynamicPart = output.slice(0, dynamicPartLength);
+    output = output.slice(dynamicPartLength);
+
+    method.outputs.forEach(function (out, i) {
         var typeMatch = false;
         for (var j = 0; j < outputTypes.length && !typeMatch; j++) {
             typeMatch = outputTypes[j].type(method.outputs[i].type);
         }
 
         if (!typeMatch) {
-            // not found output parsing
             console.error('output parser does not support type: ' + method.outputs[i].type);
-            continue;
         }
-        var res = output.slice(0, padding);
+
         var formatter = outputTypes[j - 1].format;
-        result.push(formatter ? formatter(res) : ("0x" + res));
-        output = output.slice(padding);
-    }
+        if (arrayType(method.outputs[i].type)) {
+            var size = formatOutputUInt(dynamicPart.slice(0, padding));
+            dynamicPart = dynamicPart.slice(padding);
+            var array = [];
+            for (var k = 0; k < size; k++) {
+                array.push(formatter(output.slice(0, padding))); 
+                output = output.slice(padding);
+            }
+            result.push(array);
+        }
+        else if (prefixedType('string')(method.outputs[i].type)) {
+            dynamicPart = dynamicPart.slice(padding); 
+            result.push(formatter(output.slice(0, padding)));
+            output = output.slice(padding);
+        } else {
+            result.push(formatter(output.slice(0, padding)));
+            output = output.slice(padding);
+        }
+    });
 
     return result;
 };
@@ -267,8 +339,15 @@ var outputParser = function (json) {
 /// @param method name for which we want to get method signature
 /// @returns (promise) contract method signature for method with given name
 var methodSignature = function (json, name) {
-    var idx = findMethodIndex(json, name);
-    return Promise.resolve("0x" + padLeft(idx.toString(16), 2));
+    var method = json[findMethodIndex(json, name)];
+    var result = name + '(';
+    var inputTypes = method.inputs.map(function (inp) {
+        return inp.type;
+    });
+    result += inputTypes.join(',');
+    result += ')';
+
+    return web3.sha3(web3.fromAscii(result));
 };
 
 module.exports = {
@@ -278,7 +357,7 @@ module.exports = {
 };
 
 
-},{}],2:[function(require,module,exports){
+},{"./web3":8}],2:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -418,15 +497,11 @@ module.exports = AutoProvider;
  * @date 2014
  */
 
-// TODO: is these line is supposed to be here? 
-if ("build" !== 'build') {/*
-    var web3 = require('./web3'); // jshint ignore:line
-*/}
-
+var web3 = require('./web3'); // jshint ignore:line
 var abi = require('./abi');
 
 /// method signature length in bytes
-var ETH_METHOD_SIGNATURE_LENGTH = 1;
+var ETH_METHOD_SIGNATURE_LENGTH = 4;
 
 /**
  * This method should be called when we want to call / transact some solidity method from javascript
@@ -490,7 +565,7 @@ var contract = function (address, desc) {
 module.exports = contract;
 
 
-},{"./abi":1}],4:[function(require,module,exports){
+},{"./abi":1,"./web3":8}],4:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -516,10 +591,7 @@ module.exports = contract;
  * @date 2014
  */
 
-// TODO: is these line is supposed to be here? 
-if ("build" !== 'build') {/*
-    var web3 = require('./web3'); // jshint ignore:line
-*/}
+var web3 = require('./web3'); // jshint ignore:line
 
 /// should be used when we want to watch something
 /// it's using inner polling mechanism and is notified about changes
@@ -581,7 +653,7 @@ Filter.prototype.logs = function () {
 
 module.exports = Filter;
 
-},{}],5:[function(require,module,exports){
+},{"./web3":8}],5:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -736,9 +808,7 @@ module.exports = HttpRpcProvider;
  */
 
 // TODO: is these line is supposed to be here? 
-if ("build" !== 'build') {/*
-    var web3 = require('./web3'); // jshint ignore:line
-*/}
+var web3 = require('./web3'); // jshint ignore:line
 
 /**
  * Provider manager object prototype
@@ -833,7 +903,7 @@ ProviderManager.prototype.stopPolling = function (pollId) {
 module.exports = ProviderManager;
 
 
-},{}],7:[function(require,module,exports){
+},{"./web3":8}],7:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -917,9 +987,6 @@ module.exports = QtProvider;
  *   Gav Wood <g@ethdev.com>
  * @date 2014
  */
-
-var Filter = require('./filter');
-var ProviderManager = require('./providermanager');
 
 /// Recursively resolves all promises in given object and replaces the resolved values with promises
 /// @param any object/array/promise/anything else..
@@ -1214,7 +1281,7 @@ var web3 = {
     /// eth object prototype
     eth: {
         watch: function (params) {
-            return new Filter(params, ethWatch);
+            return new web3.filter(params, ethWatch);
         }
     },
 
@@ -1224,7 +1291,7 @@ var web3 = {
     /// shh object prototype
     shh: {
         watch: function (params) {
-            return new Filter(params, shhWatch);
+            return new web3.filter(params, shhWatch);
         }
     },
 
@@ -1282,8 +1349,6 @@ var shhWatch = {
 
 setupMethods(shhWatch, shhWatchMethods());
 
-web3.provider = new ProviderManager();
-
 web3.setProvider = function(provider) {
     provider.onmessage = messageHandler;
     web3.provider.set(provider);
@@ -1306,10 +1371,10 @@ function messageHandler(data) {
     }
 }
 
-if (typeof(module) !== "undefined")
-    module.exports = web3;
+module.exports = web3;
 
-},{"./filter":4,"./providermanager":6}],9:[function(require,module,exports){
+
+},{}],9:[function(require,module,exports){
 /*
     This file is part of ethereum.js.
 
@@ -1411,6 +1476,9 @@ if (typeof(module) !== "undefined")
 
 },{}],"web3":[function(require,module,exports){
 var web3 = require('./lib/web3');
+var ProviderManager = require('./lib/providermanager');
+web3.provider = new ProviderManager();
+web3.filter = require('./lib/filter');
 web3.providers.WebSocketProvider = require('./lib/websocket');
 web3.providers.HttpRpcProvider = require('./lib/httprpc');
 web3.providers.QtProvider = require('./lib/qt');
@@ -1419,7 +1487,7 @@ web3.eth.contract = require('./lib/contract');
 
 module.exports = web3;
 
-},{"./lib/autoprovider":2,"./lib/contract":3,"./lib/httprpc":5,"./lib/qt":7,"./lib/web3":8,"./lib/websocket":9}]},{},["web3"])
+},{"./lib/autoprovider":2,"./lib/contract":3,"./lib/filter":4,"./lib/httprpc":5,"./lib/providermanager":6,"./lib/qt":7,"./lib/web3":8,"./lib/websocket":9}]},{},["web3"])
 
 
 //# sourceMappingURL=ethereum.js.map
