@@ -26,7 +26,6 @@
 
 var app = angular.module('mydapp',[]);
 app.factory('web3', function() {
-    require('bignumber.js');
     var web3 = require('web3');
     web3.setProvider(new web3.providers.AutoProvider());
     return web3;
