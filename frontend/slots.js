@@ -64,8 +64,7 @@ $interval(function() {
 // html elements
 var can;     // canvas
 var ctx;     // context
-var log_p;   // log paragraph
-var cred_p;  // credits paragraph
+$scope.payouts = {};
 
 var symbols_loaded = false;
 var reels_bg_loaded = false;
@@ -146,7 +145,7 @@ for (var i=0; i<reel_count; i++) {
 }
 
 var game_state = STATE_REST;
-var credits = starting_credits;
+$scope.credits = starting_credits;
 var payout = 0;
 var reward_delay_counter = 0;
 var playing_lines;
@@ -360,8 +359,7 @@ function logic_reward() {
   }
 
   payout--;
-  credits++;
-  cred_p.innerHTML = "Karma (" + credits + ")";
+  $scope.credits++;
 
   if (payout < reward_grand_threshhold) {
     reward_delay_counter = reward_delay;
@@ -466,7 +464,7 @@ function calc_reward() {
   // Line 1
   partial_payout = calc_line(result[0][1], result[1][1], result[2][1]);
   if (partial_payout > 0) {
-    log_p.innerHTML += "Line 1 pays " + partial_payout + "<br />\n";
+    $scope.payouts[1] = partial_payout;
     payout += partial_payout;
     highlight_line(1);
   }
@@ -476,7 +474,7 @@ function calc_reward() {
     // Line 2
     partial_payout = calc_line(result[0][0], result[1][0], result[2][0]);
     if (partial_payout > 0) {
-      log_p.innerHTML += "Line 2 pays " + partial_payout + "<br />\n";
+      $scope.payouts[2] = partial_payout;
       payout += partial_payout;
       highlight_line(2);
     }
@@ -484,7 +482,7 @@ function calc_reward() {
     // Line 3
     partial_payout = calc_line(result[0][2], result[1][2], result[2][2]);
     if (partial_payout > 0) {
-      log_p.innerHTML += "Line 3 pays " + partial_payout + "<br />\n";
+      $scope.payouts[3] = partial_payout;
       payout += partial_payout;
       highlight_line(3);
     }
@@ -496,7 +494,7 @@ function calc_reward() {
     // Line 4
     partial_payout = calc_line(result[0][0], result[1][1], result[2][2]);
     if (partial_payout > 0) {
-      log_p.innerHTML += "Line 4 pays " + partial_payout + "<br />\n";
+      $scope.payouts[4] = partial_payout;
       payout += partial_payout;
       highlight_line(4);
     }
@@ -504,7 +502,7 @@ function calc_reward() {
     // Line 5
     partial_payout = calc_line(result[0][2], result[1][1], result[2][0]);
     if (partial_payout > 0) {
-      log_p.innerHTML += "Line 5 pays " + partial_payout + "<br />\n";
+      $scope.payouts[5] = partial_payout;
       payout += partial_payout;
       highlight_line(5);
     }
@@ -523,9 +521,9 @@ function calc_reward() {
       if (evt.keyCode == 32) { // spacebar
         if (game_state != STATE_REST) return;
 
-        if (credits >= 5) $scope.spin(5);
-        else if (credits >= 3) $scope.spin(3);
-        else if (credits >= 1) $scope.spin(1);
+        if ($scope.credits >= 5) $scope.spin(5);
+        else if ($scope.credits >= 3) $scope.spin(3);
+        else if ($scope.credits >= 1) $scope.spin(1);
 
       }
     };
@@ -533,13 +531,12 @@ function calc_reward() {
     $scope.spin = function(line_choice) {
 
       if (game_state != STATE_REST) return;
-      if (credits < line_choice) return;
+      if ($scope.credits < line_choice) return;
 
-      credits -= line_choice;
+      $scope.credits -= line_choice;
       playing_lines = line_choice;
 
-      cred_p.innerHTML = "Karma (" + credits + ")";
-      log_p.innerHTML = "";
+      $scope.payouts = {};
 
       game_state = STATE_SPINUP;
 
@@ -550,10 +547,6 @@ function calc_reward() {
     $scope.init = function() {
       can = document.getElementById("slots");
       ctx = can.getContext("2d");
-      log_p = document.getElementById("log");
-      cred_p = document.getElementById("credits");
-
-      cred_p.innerHTML = "Karma (" + credits + ")"
 
       symbols.onload = function() {
         symbols_loaded = true;

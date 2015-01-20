@@ -18,8 +18,12 @@
       </div>
 
       <div id="info">
-        <p id="credits"></p>
-        <p id="log"></p>
+        <p id="credits">Karma ({{credits}})</p>
+        <p id="log">
+            <span ng-repeat="(line, partial_payout) in payouts">
+                Line {{line}} pays {{partial_payout}}<br />
+            </span>
+        </p>
       </div>
 
       <div id="attribution">
