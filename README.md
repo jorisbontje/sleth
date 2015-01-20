@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/jorisbontje/sleth.png?label=ready&title=Ready)](https://waffle.io/jorisbontje/sleth)
 ## First game of sleth
 
 
