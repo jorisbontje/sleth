@@ -252,7 +252,7 @@ function set_stops() {
 
     start_slowing[i] = false;
 
-    stop_index = Math.floor(Math.random() * reel_positions);
+    var stop_index = Math.floor(Math.random() * reel_positions);
     stopping_position[i] = stop_index * symbol_size;
 
     stopping_position[i] += stopping_distance;
