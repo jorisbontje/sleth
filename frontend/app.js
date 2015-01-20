@@ -165,6 +165,18 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'sounds', 'web3', fu
         }
     }
 
+    $scope.keyPress = function(e) {
+        if (e.which == 32) { // spacebar
+            if ($scope.player.coins >= 5) {
+                $scope.spin(5);
+            } else if ($scope.player.coins >= 3) {
+                $scope.spin(3);
+            } else if ($scope.player.coins >= 1) {
+                $scope.spin(1);
+            }
+        }
+    };
+
     $scope.generateEntropy = function() {
         $scope.entropy = Math.floor(Math.random() * Math.pow(32, 3));
     };

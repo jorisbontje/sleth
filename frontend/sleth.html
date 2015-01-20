@@ -7,10 +7,10 @@
 <script type="text/javascript" src="lib/ethereum.js"></script>
 <link rel="stylesheet" type="text/css" href="slots.css" />
 </head>
-<body>
+<body ng-controller="SlethController" ng-keypress="keyPress($event)">
 <h1>sleth</h1>
 
-<div ng-controller="SlethController">
+<div>
     <div>
         Contract: {{slethAddress}}<br />
         Player: {{player.address}}<br />
