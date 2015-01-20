@@ -1,5 +1,6 @@
 /**
 
+Copyright (c) 2015 Joris Bontje
 Copyright (c) 2012 Clint Bellanger
 
 MIT License:
@@ -16,11 +17,49 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 */
 
+"use strict";
+
+var app = angular.module('slots',[]);
+
+app.factory('sounds', function() {
+    var snd_win = new Audio("sounds/win.wav");
+    var snd_reel_stop = new Array();
+    snd_reel_stop[0] = new Audio("sounds/reel_stop.wav");
+    snd_reel_stop[1] = new Audio("sounds/reel_stop.wav");
+    snd_reel_stop[2] = new Audio("sounds/reel_stop.wav");
+
+    var sounds = {};
+
+    sounds.playWin = function() {
+        try {
+            snd_win.currentTime = 0;
+            snd_win.load();  // workaround for chrome currentTime bug
+            snd_win.play();
+        } catch(err) {
+            console.error(err);
+        };
+    };
+
+    sounds.playReelStop = function(i) {
+        try {
+            snd_reel_stop[i].currentTime = 0;
+            snd_reel_stop[i].load();  // workaround for chrome currentTime bug
+            snd_reel_stop[i].play();
+        } catch(err) {
+            console.error(err);
+        };
+    };
+
+    return(sounds);
+});
+
+app.controller("SlotsController", ['$scope', '$interval', 'sounds', function($scope, $interval, sounds) {
+
 var FPS = 60;
-setInterval(function() {
-  logic();
-  render();
-}, 1000/FPS);
+$interval(function() {
+    logic();
+    render();
+}, 1000 / FPS);
 
 // html elements
 var can;     // canvas
@@ -34,16 +73,9 @@ var reels_bg_loaded = false;
 // art
 var symbols = new Image();
 var reels_bg = new Image();
-var snd_reel_stop = new Array();
-var snd_win;
 
 symbols.src = "images/reddit_icons_small.png";
 reels_bg.src = "images/reels_bg.png";
-
-snd_win = new Audio("sounds/win.wav");
-snd_reel_stop[0] = new Audio("sounds/reel_stop.wav");
-snd_reel_stop[1] = new Audio("sounds/reel_stop.wav");
-snd_reel_stop[2] = new Audio("sounds/reel_stop.wav");
 
 // enums
 var STATE_REST = 0;
@@ -147,7 +179,7 @@ function render_reel() {
 
       reel_index = Math.floor(reel_position[i] / symbol_size) + j;
       symbol_offset = reel_position[i] % symbol_size;
- 
+
       // reel wrap
       if (reel_index >= reel_positions) reel_index -= reel_positions;
 
@@ -293,9 +325,9 @@ function logic_spindown() {
       else if (start_slowing[i-1]) check_position = true;
 
       if (check_position) {
-      
+
         if (reel_position[i] == stopping_position[i]) {
-          start_slowing[i] = true;          
+          start_slowing[i] = true;
         }
       }
     }
@@ -304,10 +336,7 @@ function logic_spindown() {
         reel_speed[i] -= spindown_acceleration;
 
         if (reel_speed[i] == 0) {
-          try {
-            snd_reel_stop[i].currentTime = 0;
-            snd_reel_stop[i].play();
-          } catch(err) {};
+          sounds.playReelStop(i);
         }
 
       }
@@ -333,7 +362,7 @@ function logic_reward() {
   payout--;
   credits++;
   cred_p.innerHTML = "Karma (" + credits + ")";
-  
+
   if (payout < reward_grand_threshhold) {
     reward_delay_counter = reward_delay;
   }
@@ -357,7 +386,7 @@ function logic() {
   else if (game_state == STATE_REWARD) {
     logic_reward();
   }
-  
+
 }
 
 // given an input line of symbols, determine the payout
@@ -393,7 +422,7 @@ function calc_line(s1, s2, s3) {
     // wildcard trip downs
     if ((s2 == 5 || s2 == 6 || s2 == 7) &&
         (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
-  
+
   }
   if (s2 == 9) {
     if (s1 == s3) return match_payout[s1];
@@ -431,7 +460,7 @@ function calc_line(s1, s2, s3) {
 // calculate the reward
 function calc_reward() {
   payout = 0;
-  
+
   var partial_payout;
 
   // Line 1
@@ -481,67 +510,62 @@ function calc_reward() {
     }
   }
 
-  
+
   if (payout > 0) {
-    try {
-      snd_win.currentTime = 0;
-      snd_win.play();
-    }
-    catch(err) {};
+    sounds.playWin();
   }
 
 }
 
-//---- Input Functions ---------------------------------------------
+    //---- Input Functions ---------------------------------------------
 
-function handleKey(evt) {
-  if (evt.keyCode == 32) { // spacebar
-    if (game_state != STATE_REST) return;
+    $scope.handleKey = function(evt) {
+      if (evt.keyCode == 32) { // spacebar
+        if (game_state != STATE_REST) return;
 
-    if (credits >= 5) spin(5);
-    else if (credits >= 3) spin(3);
-    else if (credits >= 1) spin(1);
+        if (credits >= 5) $scope.spin(5);
+        else if (credits >= 3) $scope.spin(3);
+        else if (credits >= 1) $scope.spin(1);
 
-  }
-}
+      }
+    };
 
-function spin(line_choice) {
-  
-  if (game_state != STATE_REST) return;
-  if (credits < line_choice) return;
+    $scope.spin = function(line_choice) {
 
-  credits -= line_choice;
-  playing_lines = line_choice;
+      if (game_state != STATE_REST) return;
+      if (credits < line_choice) return;
 
-  cred_p.innerHTML = "Karma (" + credits + ")";
-  log_p.innerHTML = "";
+      credits -= line_choice;
+      playing_lines = line_choice;
 
-  game_state = STATE_SPINUP;
+      cred_p.innerHTML = "Karma (" + credits + ")";
+      log_p.innerHTML = "";
 
-}
+      game_state = STATE_SPINUP;
 
-//---- Init Functions -----------------------------------------------
+    };
 
-function init() {
-  can = document.getElementById("slots"); 
-  ctx = can.getContext("2d");
-  log_p = document.getElementById("log");
-  cred_p = document.getElementById("credits");
+    //---- Init Functions -----------------------------------------------
 
-  cred_p.innerHTML = "Karma (" + credits + ")"
+    $scope.init = function() {
+      can = document.getElementById("slots");
+      ctx = can.getContext("2d");
+      log_p = document.getElementById("log");
+      cred_p = document.getElementById("credits");
 
-  window.addEventListener('keydown', handleKey, true);
+      cred_p.innerHTML = "Karma (" + credits + ")"
 
-  symbols.onload = function() {
-    symbols_loaded = true;
-    if (symbols_loaded && reels_bg_loaded) render_reel();
-  };
+      symbols.onload = function() {
+        symbols_loaded = true;
+        if (symbols_loaded && reels_bg_loaded) render_reel();
+      };
 
-  reels_bg.onload = function() {
-    reels_bg_loaded = true;
-    if (symbols_loaded && reels_bg_loaded) render_reel();
-  };
+      reels_bg.onload = function() {
+        reels_bg_loaded = true;
+        if (symbols_loaded && reels_bg_loaded) render_reel();
+      };
+    };
 
-}
+    $scope.init();
 
-
+}]);

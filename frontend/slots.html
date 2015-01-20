@@ -6,15 +6,15 @@
     <link rel="stylesheet" type="text/css" href="slots.css" />
 
   </head>
-  <body ng-controller="SlotsController" ng-keypress="keyPress($event)">
+  <body ng-controller="SlotsController" ng-keypress="handleKey($event)">
 
     <div id="wrap">
 
       <div id="game">
         <canvas id="slots" width="160" height="160"></canvas><br />
-        <button type="button" onclick="spin(1);">1 Line</button>
-        <button type="button" onclick="spin(3);">3 Lines</button>
-        <button type="button" onclick="spin(5);">5 Lines</button>
+        <button type="button" ng-click="spin(1)">1 Line</button>
+        <button type="button" ng-click="spin(3)">3 Lines</button>
+        <button type="button" ng-click="spin(5)">5 Lines</button>
       </div>
 
       <div id="info">
