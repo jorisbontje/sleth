@@ -8,7 +8,31 @@ app.factory('web3', function() {
     return web3;
 });
 
-app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($http, $q, $scope, web3) {
+app.factory('sounds', function() {
+    var snd_win = new Audio("sounds/win.wav");
+    var snd_reel_stop = new Array();
+    snd_reel_stop[0] = new Audio("sounds/reel_stop.wav");
+    snd_reel_stop[1] = new Audio("sounds/reel_stop.wav");
+    snd_reel_stop[2] = new Audio("sounds/reel_stop.wav");
+
+    var sounds = {};
+
+    sounds.playWin = function() {
+        snd_win.currentTime = 0;
+        snd_win.load();  // workaround for chrome currentTime bug
+        snd_win.play();
+    };
+
+    sounds.playReelStop = function(i) {
+        snd_reel_stop[i].currentTime = 0;
+        snd_reel_stop[i].load();  // workaround for chrome currentTime bug
+        snd_reel_stop[i].play();
+    };
+
+    return(sounds);
+});
+
+app.controller("SlethController", ['$http', '$q', '$scope', 'sounds', 'web3', function($http, $q, $scope, sounds, web3) {
 
     $scope.slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
     $scope.defaultGas = web3.fromDecimal(10000);
@@ -74,6 +98,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
                             message += round.result + " coins :)";
+                            sounds.playWin();
                         } else {
                             message += "nothing :(";
                         };
@@ -120,6 +145,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'web3', function($ht
                 return(contract.spin(bet).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
                 $scope.logMessage("Spinning... " + bet);
+                sounds.playReelStop(0);
                 $scope.updatePlayer();
             });
 

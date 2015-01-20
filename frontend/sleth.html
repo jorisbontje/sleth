@@ -5,6 +5,7 @@
 <script type="text/javascript" src="lib/promise.min.js"></script>
 <script type="text/javascript" src="lib/bignumber.min.js"></script>
 <script type="text/javascript" src="lib/ethereum.js"></script>
+<link rel="stylesheet" type="text/css" href="slots.css" />
 </head>
 <body>
 <h1>sleth</h1>
@@ -24,6 +25,21 @@
     <div>
         <button ng-click="withdraw(withdrawAmount)" ng-disabled="withdrawAmount == 0 || withdrawAmount > player.coins">withdraw</button>
         <input type="number" ng-model="withdrawAmount" integer min="0"></input> coins
+    </div>
+
+    <hr />
+
+    <div id="wrap">
+
+        <div id="game">
+            <canvas id="slots" width="160" height="160"></canvas><br />
+        </div>
+
+        <div id="info">
+            <p id="credits"></p>
+            <p id="log"></p>
+        </div>
+
     </div>
 
     <hr />
