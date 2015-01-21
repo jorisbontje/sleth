@@ -79,8 +79,9 @@ reels_bg.src = "images/reels_bg.png";
 // enums
 var STATE_REST = 0;
 var STATE_SPINUP = 1;
-var STATE_SPINDOWN = 2;
-var STATE_REWARD = 3;
+var STATE_SPINMAX = 2;
+var STATE_SPINDOWN = 3;
+var STATE_REWARD = 4;
 
 // config
 var reel_count = 3;
@@ -144,11 +145,11 @@ for (var i=0; i<reel_count; i++) {
   result[i] = new Array(row_count);
 }
 
-var game_state = STATE_REST;
+$scope.game_state = STATE_REST;
 $scope.credits = starting_credits;
+
 var payout = 0;
 var reward_delay_counter = 0;
-var playing_lines;
 
 //---- Render Functions ---------------------------------------------
 
@@ -237,7 +238,7 @@ function highlight_line(line_num) {
 // render all art needed in the current frame
 function render() {
 
-  if (game_state == STATE_SPINUP || game_state == STATE_SPINDOWN) {
+  if ($scope.game_state == STATE_SPINUP || $scope.game_state == STATE_SPINMAX || $scope.game_state == STATE_SPINDOWN) {
     render_reel();
   }
 
@@ -246,12 +247,16 @@ function render() {
 
 //---- Logic Functions ---------------------------------------------
 
-function set_stops() {
+function set_stops(entropy) {
+  var rnd = entropy;
+
   for (var i=0; i<reel_count; i++) {
 
     start_slowing[i] = false;
 
-    var stop_index = Math.floor(Math.random() * reel_positions);
+    var stop_index = rnd % reel_positions;
+    rnd = Math.floor(rnd / reel_positions);
+
     stopping_position[i] = stop_index * symbol_size;
 
     stopping_position[i] += stopping_distance;
@@ -293,10 +298,16 @@ function logic_spinup() {
   // if reels at max speed, begin spindown
   if (reel_speed[0] == max_reel_speed) {
 
-    // calculate the final results now, so that spindown is ready
-    set_stops();
 
-    game_state = STATE_SPINDOWN;
+    $scope.game_state = STATE_SPINMAX;
+  }
+}
+
+function logic_spinmax() {
+  for (var i=0; i<reel_count; i++) {
+
+    // move reel at current speed
+    move_reel(i);
   }
 }
 
@@ -307,7 +318,7 @@ function logic_spindown() {
   if (reel_speed[reel_count-1] == 0) {
 
     calc_reward();
-    game_state = STATE_REWARD;
+    $scope.game_state = STATE_REWARD;
   }
 
   for (var i=0; i<reel_count; i++) {
@@ -348,7 +359,7 @@ function logic_spindown() {
 function logic_reward() {
 
   if (payout == 0) {
-    game_state = STATE_REST;
+    $scope.game_state = STATE_REST;
     return;
   }
 
@@ -373,15 +384,19 @@ function logic_reward() {
 // update all logic in the current frame
 function logic() {
 
+  // SPINMAX TO SPINDOWN happens on an input event
   // REST to SPINUP happens on an input event
 
-  if (game_state == STATE_SPINUP) {
+  if ($scope.game_state == STATE_SPINUP) {
     logic_spinup();
   }
-  else if (game_state == STATE_SPINDOWN) {
+  else if ($scope.game_state == STATE_SPINMAX) {
+    logic_spinmax();
+  }
+  else if ($scope.game_state == STATE_SPINDOWN) {
     logic_spindown();
   }
-  else if (game_state == STATE_REWARD) {
+  else if ($scope.game_state == STATE_REWARD) {
     logic_reward();
   }
 
@@ -469,7 +484,7 @@ function calc_reward() {
     highlight_line(1);
   }
 
-  if (playing_lines > 1) {
+  if ($scope.playing_lines > 1) {
 
     // Line 2
     partial_payout = calc_line(result[0][0], result[1][0], result[2][0]);
@@ -489,7 +504,7 @@ function calc_reward() {
   }
 
 
-  if (playing_lines > 3) {
+  if ($scope.playing_lines > 3) {
 
     // Line 4
     partial_payout = calc_line(result[0][0], result[1][1], result[2][2]);
@@ -519,7 +534,11 @@ function calc_reward() {
 
     $scope.handleKey = function(evt) {
       if (evt.keyCode == 32) { // spacebar
-        if (game_state != STATE_REST) return;
+        if ($scope.game_state == STATE_SPINMAX) {
+            $scope.stop();
+            return;
+        };
+        if ($scope.game_state != STATE_REST) return;
 
         if ($scope.credits >= 5) $scope.spin(5);
         else if ($scope.credits >= 3) $scope.spin(3);
@@ -530,16 +549,29 @@ function calc_reward() {
 
     $scope.spin = function(line_choice) {
 
-      if (game_state != STATE_REST) return;
+      if ($scope.game_state != STATE_REST) return;
       if ($scope.credits < line_choice) return;
 
       $scope.credits -= line_choice;
-      playing_lines = line_choice;
+      $scope.playing_lines = line_choice;
 
       $scope.payouts = {};
+      $scope.generateEntropy();
 
-      game_state = STATE_SPINUP;
+      $scope.game_state = STATE_SPINUP;
 
+    };
+
+    $scope.generateEntropy = function() {
+        $scope.entropy = Math.floor(Math.random() * Math.pow(32, 3));
+    };
+
+    $scope.stop = function() {
+        if ($scope.game_state != STATE_SPINMAX) return;
+
+        // calculate the final results now, so that spindown is ready
+        set_stops($scope.entropy);
+        $scope.game_state = STATE_SPINDOWN;
     };
 
     //---- Init Functions -----------------------------------------------

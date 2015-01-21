@@ -15,6 +15,8 @@
         <button type="button" ng-click="spin(1)">1 Line</button>
         <button type="button" ng-click="spin(3)">3 Lines</button>
         <button type="button" ng-click="spin(5)">5 Lines</button>
+        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
+        <button type="button" ng-click="stop()">stop</button>
       </div>
 
       <div id="info">
