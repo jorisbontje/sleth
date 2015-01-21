@@ -21,6 +21,10 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots',[]);
 
+app.constant('config', {
+    FPS: 60
+});
+
 app.factory('sounds', function() {
     var snd_win = new Audio("sounds/win.wav");
     var snd_reel_stop = new Array();
@@ -50,21 +54,159 @@ app.factory('sounds', function() {
         };
     };
 
-    return(sounds);
+    return sounds;
 });
 
-app.controller("SlotsController", ['$scope', '$interval', 'sounds', function($scope, $interval, sounds) {
+app.factory('game', function() {
+    var symbol_count = 11;
+    var match_payout = new Array(symbol_count);
+    match_payout[7] = 4; // 3Down
+    match_payout[6] = 6; // 2Down
+    match_payout[5] = 8; // 1Down
+    match_payout[1] = 10; // 1Up
+    match_payout[2] = 15; // 2Up
+    match_payout[3] = 20; // 3Up
+    match_payout[4] = 25; // OrangeRed
+    match_payout[0] = 50; // AlienHead
+    match_payout[9] = 75; // Bacon
+    match_payout[10] = 100; // Narwhal
+    match_payout[8] = 250; // CakeDay
 
-var FPS = 60;
+    var payout_ups = 6; // Any 3 Ups
+    var payout_downs = 2; // Any 3 Downs
+
+    var game = {};
+
+    // given an input line of symbols, determine the payout
+    game.calc_line = function(s1, s2, s3) {
+      // perfect match
+      if (s1 == s2 && s2 == s3) {
+        return match_payout[s1];
+      }
+
+      // special case #1: triple ups
+      if ((s1 == 1 || s1 == 2 || s1 == 3) &&
+          (s2 == 1 || s2 == 2 || s2 == 3) &&
+          (s3 == 1 || s3 == 2 || s3 == 3)) {
+        return payout_ups;
+      }
+
+      // special case #2: triple down
+      if ((s1 == 5 || s1 == 6 || s1 == 7) &&
+          (s2 == 5 || s2 == 6 || s2 == 7) &&
+          (s3 == 5 || s3 == 6 || s3 == 7)) {
+        return payout_downs;
+      }
+
+      // special case #3: bacon goes with everything
+      if (s1 == 9) {
+        if (s2 == s3) return match_payout[s2];
+
+        // wildcard trip ups
+        if ((s2 == 1 || s2 == 2 || s2 == 3) &&
+            (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
+
+        // wildcard trip downs
+        if ((s2 == 5 || s2 == 6 || s2 == 7) &&
+            (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
+
+      }
+      if (s2 == 9) {
+        if (s1 == s3) return match_payout[s1];
+
+        // wildcard trip ups
+        if ((s1 == 1 || s1 == 2 || s1 == 3) &&
+            (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
+
+        // wildcard trip downs
+        if ((s1 == 5 || s1 == 6 || s1 == 7) &&
+            (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
+
+      }
+      if (s3 == 9) {
+        if (s1 == s2) return match_payout[s1];
+
+        // wildcard trip ups
+        if ((s1 == 1 || s1 == 2 || s1 == 3) &&
+            (s2 == 1 || s2 == 2 || s2 == 3)) return payout_ups;
+
+        // wildcard trip downs
+        if ((s1 == 5 || s1 == 6 || s1 == 7) &&
+            (s2 == 5 || s2 == 6 || s2 == 7)) return payout_downs;
+      }
+
+      // check double-bacon
+      if (s2 == 9 && s3 == 9) return match_payout[s1];
+      if (s1 == 9 && s3 == 9) return match_payout[s2];
+      if (s1 == 9 && s2 == 9) return match_payout[s3];
+
+      // no reward
+      return 0;
+    };
+
+    // calculate the reward
+    game.calc_reward = function(playing_lines, result) {
+      var reward = {
+          payout: 0,
+          partial_payouts: {}
+      };
+
+      var partial_payout;
+
+      // Line 1
+      partial_payout = game.calc_line(result[0][1], result[1][1], result[2][1]);
+      if (partial_payout > 0) {
+        reward.partial_payouts[1] = partial_payout;
+        reward.payout += partial_payout;
+      }
+
+      if (playing_lines > 1) {
+        // Line 2
+        partial_payout = game.calc_line(result[0][0], result[1][0], result[2][0]);
+        if (partial_payout > 0) {
+          reward.partial_payouts[2] = partial_payout;
+          reward.payout += partial_payout;
+        }
+
+        // Line 3
+        partial_payout = game.calc_line(result[0][2], result[1][2], result[2][2]);
+        if (partial_payout > 0) {
+          reward.partial_payouts[3] = partial_payout;
+          reward.payout += partial_payout;
+        }
+      }
+
+      if (playing_lines > 3) {
+        // Line 4
+        partial_payout = game.calc_line(result[0][0], result[1][1], result[2][2]);
+        if (partial_payout > 0) {
+          reward.partial_payouts[4] = partial_payout;
+          reward.payout += partial_payout;
+        }
+
+        // Line 5
+        partial_payout = game.calc_line(result[0][2], result[1][1], result[2][0]);
+        if (partial_payout > 0) {
+          reward.partial_payouts[5] = partial_payout;
+          reward.payout += partial_payout;
+        }
+      }
+
+      return reward;
+    }
+
+    return game;
+});
+
+app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', 'sounds', function($scope, $interval, config, game, sounds) {
+
 $interval(function() {
     logic();
     render();
-}, 1000 / FPS);
+}, 1000 / config.FPS);
 
 // html elements
-var can;     // canvas
 var ctx;     // context
-$scope.payouts = {};
 
 var symbols_loaded = false;
 var reels_bg_loaded = false;
@@ -87,7 +229,7 @@ var STATE_REWARD = 4;
 var reel_count = 3;
 var reel_positions = 32;
 var symbol_size = 32;
-var symbol_count = 11;
+
 var reel_pixel_length = reel_positions * symbol_size;
 var row_count = 3;
 var stopping_distance = 528;
@@ -98,22 +240,6 @@ var starting_credits = 100;
 var reward_delay = 3; // how many frames between each credit tick
 var reward_delay_grand = 1; // delay for grand-prize winning
 var reward_grand_threshhold = 25; // count faster if the reward is over this size
-
-var match_payout = new Array(symbol_count);
-match_payout[7] = 4; // 3Down
-match_payout[6] = 6; // 2Down
-match_payout[5] = 8; // 1Down
-match_payout[1] = 10; // 1Up
-match_payout[2] = 15; // 2Up
-match_payout[3] = 20; // 3Up
-match_payout[4] = 25; // OrangeRed
-match_payout[0] = 50; // AlienHead
-match_payout[9] = 75; // Bacon
-match_payout[10] = 100; // Narwhal
-match_payout[8] = 250; // CakeDay
-
-var payout_ups = 6; // Any 3 Ups
-var payout_downs = 2; // Any 3 Downs
 
 var reel_area_left = 32;
 var reel_area_top = 32;
@@ -148,7 +274,10 @@ for (var i=0; i<reel_count; i++) {
 $scope.game_state = STATE_REST;
 $scope.credits = starting_credits;
 
-var payout = 0;
+$scope.reward = {
+    payout: 0,
+    partial_payouts: {}
+};
 var reward_delay_counter = 0;
 
 //---- Render Functions ---------------------------------------------
@@ -317,7 +446,15 @@ function logic_spindown() {
   // if reels finished moving, begin rewards
   if (reel_speed[reel_count-1] == 0) {
 
-    calc_reward();
+    var reward = game.calc_reward($scope.playing_lines, result);
+    angular.forEach(reward.partial_payouts, function(value, key) {
+        highlight_line(key);
+    });
+
+    if (reward.payout > 0) {
+        sounds.playWin();
+    }
+    $scope.reward = reward;
     $scope.game_state = STATE_REWARD;
   }
 
@@ -358,7 +495,7 @@ function logic_spindown() {
 // count up the reward credits, play sound effects, etc.
 function logic_reward() {
 
-  if (payout == 0) {
+  if ($scope.reward.payout == 0) {
     $scope.game_state = STATE_REST;
     return;
   }
@@ -369,10 +506,10 @@ function logic_reward() {
     return;
   }
 
-  payout--;
+  $scope.reward.payout--;
   $scope.credits++;
 
-  if (payout < reward_grand_threshhold) {
+  if ($scope.reward.payout < reward_grand_threshhold) {
     reward_delay_counter = reward_delay;
   }
   else { // speed up big rewards
@@ -402,133 +539,6 @@ function logic() {
 
 }
 
-// given an input line of symbols, determine the payout
-function calc_line(s1, s2, s3) {
-
-  // perfect match
-  if (s1 == s2 && s2 == s3) {
-    return match_payout[s1];
-  }
-
-  // special case #1: triple ups
-  if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-      (s2 == 1 || s2 == 2 || s2 == 3) &&
-      (s3 == 1 || s3 == 2 || s3 == 3)) {
-    return payout_ups;
-  }
-
-  // special case #2: triple down
-  if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-      (s2 == 5 || s2 == 6 || s2 == 7) &&
-      (s3 == 5 || s3 == 6 || s3 == 7)) {
-    return payout_downs;
-  }
-
-  // special case #3: bacon goes with everything
-  if (s1 == 9) {
-    if (s2 == s3) return match_payout[s2];
-
-    // wildcard trip ups
-    if ((s2 == 1 || s2 == 2 || s2 == 3) &&
-        (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
-
-    // wildcard trip downs
-    if ((s2 == 5 || s2 == 6 || s2 == 7) &&
-        (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
-
-  }
-  if (s2 == 9) {
-    if (s1 == s3) return match_payout[s1];
-
-    // wildcard trip ups
-    if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-        (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
-
-    // wildcard trip downs
-    if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-        (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
-
-  }
-  if (s3 == 9) {
-    if (s1 == s2) return match_payout[s1];
-
-    // wildcard trip ups
-    if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-        (s2 == 1 || s2 == 2 || s2 == 3)) return payout_ups;
-
-    // wildcard trip downs
-    if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-        (s2 == 5 || s2 == 6 || s2 == 7)) return payout_downs;
-  }
-
-  // check double-bacon
-  if (s2 == 9 && s3 == 9) return match_payout[s1];
-  if (s1 == 9 && s3 == 9) return match_payout[s2];
-  if (s1 == 9 && s2 == 9) return match_payout[s3];
-
-  // no reward
-  return 0;
-}
-
-// calculate the reward
-function calc_reward() {
-  payout = 0;
-
-  var partial_payout;
-
-  // Line 1
-  partial_payout = calc_line(result[0][1], result[1][1], result[2][1]);
-  if (partial_payout > 0) {
-    $scope.payouts[1] = partial_payout;
-    payout += partial_payout;
-    highlight_line(1);
-  }
-
-  if ($scope.playing_lines > 1) {
-
-    // Line 2
-    partial_payout = calc_line(result[0][0], result[1][0], result[2][0]);
-    if (partial_payout > 0) {
-      $scope.payouts[2] = partial_payout;
-      payout += partial_payout;
-      highlight_line(2);
-    }
-
-    // Line 3
-    partial_payout = calc_line(result[0][2], result[1][2], result[2][2]);
-    if (partial_payout > 0) {
-      $scope.payouts[3] = partial_payout;
-      payout += partial_payout;
-      highlight_line(3);
-    }
-  }
-
-
-  if ($scope.playing_lines > 3) {
-
-    // Line 4
-    partial_payout = calc_line(result[0][0], result[1][1], result[2][2]);
-    if (partial_payout > 0) {
-      $scope.payouts[4] = partial_payout;
-      payout += partial_payout;
-      highlight_line(4);
-    }
-
-    // Line 5
-    partial_payout = calc_line(result[0][2], result[1][1], result[2][0]);
-    if (partial_payout > 0) {
-      $scope.payouts[5] = partial_payout;
-      payout += partial_payout;
-      highlight_line(5);
-    }
-  }
-
-
-  if (payout > 0) {
-    sounds.playWin();
-  }
-
-}
 
     //---- Input Functions ---------------------------------------------
 
@@ -555,7 +565,7 @@ function calc_reward() {
       $scope.credits -= line_choice;
       $scope.playing_lines = line_choice;
 
-      $scope.payouts = {};
+      $scope.reward.partial_payouts = {};
       $scope.generateEntropy();
 
       $scope.game_state = STATE_SPINUP;
@@ -577,7 +587,7 @@ function calc_reward() {
     //---- Init Functions -----------------------------------------------
 
     $scope.init = function() {
-      can = document.getElementById("slots");
+      var can = document.getElementById("slots");
       ctx = can.getContext("2d");
 
       symbols.onload = function() {
