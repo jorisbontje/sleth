@@ -21,7 +21,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots.game', []);
 
-app.factory('game', function() {
+app.factory('game', ['config', function(config) {
     var symbol_count = 11;
     var match_payout = new Array(symbol_count);
     match_payout[7] = 4; // 3Down
@@ -40,6 +40,12 @@ app.factory('game', function() {
     var payout_downs = 2; // Any 3 Downs
 
     var game = {};
+
+    // set up reels
+    game.reels = new Array(config.reel_count);
+    game.reels[0] = new Array(2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4);
+    game.reels[1] = new Array(6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4);
+    game.reels[2] = new Array(1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3);
 
     // given an input line of symbols, determine the payout
     game.calc_line = function(s1, s2, s3) {
@@ -160,4 +166,4 @@ app.factory('game', function() {
     }
 
     return game;
-});
+}]);
