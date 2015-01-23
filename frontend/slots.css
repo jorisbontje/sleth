@@ -1,11 +1,15 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  font-family: arial, helvetica, sans-serif;
+}
+
 #wrap {
   width: 300px;
   height: 240px;
   overflow: hidden;
 
-  margin: 0;
-  padding: 0;
-  background-color: #ffffff;
   background-image: url("images/background.png");
   background-position: 20px 0px;
   background-repeat: no-repeat;
@@ -27,7 +31,6 @@ button {
   width: 100px;
   text-align: left;
   font-size: 9pt;
-  font-family: arial, helvetica, sans-serif;
 }
 
 #credits {
@@ -38,12 +41,18 @@ button {
   color: #666666;
 }
 
+#paytable {
+  position: absolute;
+  top: 165px;
+  left: 200px;
+  font-size: 9pt;
+}
+
 #attribution {
   text-align: right;
   width: 280px;
   font-size: 7pt;
   color: #666666;
-  font-family: arial, helvetica, sans-serif;
   margin-top: 20px;
 }
 
