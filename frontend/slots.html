@@ -11,13 +11,15 @@
     <div id="wrap">
 
       <div id="game">
-        <canvas id="slots" width="160" height="160"></canvas><br />
+        <canvas slots-reels id="slots" width="160" height="160"></canvas>
         <button type="button" ng-click="spin(1)">1 Line</button>
         <button type="button" ng-click="spin(3)">3 Lines</button>
         <button type="button" ng-click="spin(5)">5 Lines</button>
         <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
         <button type="button" ng-click="stop()">stop</button>
       </div>
+
+      <hello></hello>
 
       <div id="info">
         <p id="credits">Karma ({{credits}})</p>
@@ -34,6 +36,8 @@
 
     </div>
 
+    <script type="text/javascript" src="game.js"></script>
+    <script type="text/javascript" src="sounds.js"></script>
     <script type="text/javascript" src="slots.js"></script>
 
   </body>
