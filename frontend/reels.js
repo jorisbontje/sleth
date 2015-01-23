@@ -84,7 +84,7 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
             }
                         // render all art needed in the current frame
             function render() {
-              if (scope.game_state == config.STATE_SPINUP || scope.game_state == config.STATE_SPINMAX || scope.game_state == config.STATE_SPINDOWN) {
+              if (scope.game_state == game.STATE_SPINUP || scope.game_state == game.STATE_SPINMAX || scope.game_state == game.STATE_SPINDOWN) {
                 render_reel();
               }
             }

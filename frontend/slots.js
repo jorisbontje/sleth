@@ -23,16 +23,22 @@ var app = angular.module('slots', ['slots.game', 'slots.reels', 'slots.sounds'])
 
 app.constant('config', {
     FPS: 60,
-    STATE_REST: 0,
-    STATE_SPINUP: 1,
-    STATE_SPINMAX: 2,
-    STATE_SPINDOWN: 3,
-    STATE_REWARD: 4,
 
     reel_count: 3,
     row_count: 3,
     reel_positions: 32,
-    symbol_size: 32
+    symbol_size: 32,
+
+    reel_pixel_length: 1024, // reel_positions * symbol_size
+    stopping_distance: 528,
+    max_reel_speed: 32,
+    spinup_acceleration: 2,
+    spindown_acceleration: 1,
+    starting_credits: 100,
+
+    reward_delay: 3, // how many frames between each credit tick
+    reward_delay_grand: 1, // delay for grand-prize winning
+    reward_grand_threshhold: 25 // count faster if the reward is over this size
 });
 
 app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', 'sounds', function($scope, $interval, config, game, sounds) {
@@ -42,16 +48,6 @@ $interval(function() {
 }, 1000 / config.FPS);
 
 // config
-var reel_pixel_length = config.reel_positions * config.symbol_size;
-var stopping_distance = 528;
-var max_reel_speed = 32;
-var spinup_acceleration = 2;
-var spindown_acceleration = 1;
-var starting_credits = 100;
-var reward_delay = 3; // how many frames between each credit tick
-var reward_delay_grand = 1; // delay for grand-prize winning
-var reward_grand_threshhold = 25; // count faster if the reward is over this size
-
 $scope.reel_position = new Array(config.reel_count);
 for (var i=0; i<config.reel_count; i++) {
   $scope.reel_position[i] = Math.floor(Math.random() * config.reel_positions) * config.symbol_size;
@@ -72,14 +68,14 @@ for (var i=0; i<config.reel_count; i++) {
 }
 
 $scope.highlights = [];
-$scope.game_state = config.STATE_REST;
-$scope.credits = starting_credits;
+$scope.game_state = game.STATE_REST;
+$scope.credits = config.starting_credits;
 
 $scope.reward = {
     payout: 0,
     partial_payouts: {}
 };
-var reward_delay_counter = 0;
+$scope.reward_delay_counter = 0;
 
 //---- Logic Functions ---------------------------------------------
 
@@ -95,8 +91,8 @@ function set_stops(entropy) {
 
     stopping_position[i] = stop_index * config.symbol_size;
 
-    stopping_position[i] += stopping_distance;
-    if (stopping_position[i] >= reel_pixel_length) stopping_position[i] -= reel_pixel_length;
+    stopping_position[i] += config.stopping_distance;
+    if (stopping_position[i] >= config.reel_pixel_length) stopping_position[i] -= config.reel_pixel_length;
 
     // convenient here to remember the winning positions
     for (var j=0; j<config.row_count; j++) {
@@ -114,7 +110,7 @@ function move_reel(i) {
 
   // wrap
   if ($scope.reel_position[i] < 0) {
-    $scope.reel_position[i] += reel_pixel_length;
+    $scope.reel_position[i] += config.reel_pixel_length;
   }
 }
 
@@ -127,15 +123,15 @@ function logic_spinup() {
     move_reel(i);
 
     // accelerate speed
-    reel_speed[i] += spinup_acceleration;
+    reel_speed[i] += config.spinup_acceleration;
 
   }
 
   // if reels at max speed, begin spindown
-  if (reel_speed[0] == max_reel_speed) {
+  if (reel_speed[0] == config.max_reel_speed) {
 
 
-    $scope.game_state = config.STATE_SPINMAX;
+    $scope.game_state = game.STATE_SPINMAX;
   }
 }
 
@@ -160,7 +156,7 @@ function logic_spindown() {
         sounds.playWin();
     }
     $scope.reward = reward;
-    $scope.game_state = config.STATE_REWARD;
+    $scope.game_state = game.STATE_REWARD;
   }
 
   for (var i=0; i<config.reel_count; i++) {
@@ -185,7 +181,7 @@ function logic_spindown() {
     }
     else {
       if (reel_speed[i] > 0) {
-        reel_speed[i] -= spindown_acceleration;
+        reel_speed[i] -= config.spindown_acceleration;
 
         if (reel_speed[i] == 0) {
           sounds.playReelStop(i);
@@ -201,24 +197,24 @@ function logic_spindown() {
 function logic_reward() {
 
   if ($scope.reward.payout == 0) {
-    $scope.game_state = config.STATE_REST;
+    $scope.game_state = game.STATE_REST;
     return;
   }
 
   // don't tick up rewards each frame, too fast
-  if (reward_delay_counter > 0) {
-    reward_delay_counter--;
+  if ($scope.reward_delay_counter > 0) {
+    $scope.reward_delay_counter--;
     return;
   }
 
   $scope.reward.payout--;
   $scope.credits++;
 
-  if ($scope.reward.payout < reward_grand_threshhold) {
-    reward_delay_counter = reward_delay;
+  if ($scope.reward.payout < config.reward_grand_threshhold) {
+    $scope.reward_delay_counter = config.reward_delay;
   }
   else { // speed up big rewards
-    reward_delay_counter += reward_delay_grand;
+    $scope.reward_delay_counter += config.reward_delay_grand;
   }
 
 }
@@ -229,16 +225,16 @@ function logic() {
   // SPINMAX TO SPINDOWN happens on an input event
   // REST to SPINUP happens on an input event
 
-  if ($scope.game_state == config.STATE_SPINUP) {
+  if ($scope.game_state == game.STATE_SPINUP) {
     logic_spinup();
   }
-  else if ($scope.game_state == config.STATE_SPINMAX) {
+  else if ($scope.game_state == game.STATE_SPINMAX) {
     logic_spinmax();
   }
-  else if ($scope.game_state == config.STATE_SPINDOWN) {
+  else if ($scope.game_state == game.STATE_SPINDOWN) {
     logic_spindown();
   }
-  else if ($scope.game_state == config.STATE_REWARD) {
+  else if ($scope.game_state == game.STATE_REWARD) {
     logic_reward();
   }
 
@@ -248,11 +244,11 @@ function logic() {
 
     $scope.handleKey = function(evt) {
       if (evt.keyCode == 32) { // spacebar
-        if ($scope.game_state == config.STATE_SPINMAX) {
+        if ($scope.game_state == game.STATE_SPINMAX) {
             $scope.stop();
             return;
         };
-        if ($scope.game_state != config.STATE_REST) return;
+        if ($scope.game_state != game.STATE_REST) return;
 
         if ($scope.credits >= 5) $scope.spin(5);
         else if ($scope.credits >= 3) $scope.spin(3);
@@ -262,7 +258,7 @@ function logic() {
     };
 
     $scope.spin = function(line_choice) {
-      if ($scope.game_state != config.STATE_REST) return;
+      if ($scope.game_state != game.STATE_REST) return;
       if ($scope.credits < line_choice) return;
 
       $scope.credits -= line_choice;
@@ -271,7 +267,7 @@ function logic() {
       $scope.reward.partial_payouts = {};
       $scope.generateEntropy();
 
-      $scope.game_state = config.STATE_SPINUP;
+      $scope.game_state = game.STATE_SPINUP;
 
     };
 
@@ -280,11 +276,11 @@ function logic() {
     };
 
     $scope.stop = function() {
-        if ($scope.game_state != config.STATE_SPINMAX) return;
+        if ($scope.game_state != game.STATE_SPINMAX) return;
 
         // calculate the final results now, so that spindown is ready
         set_stops($scope.entropy);
-        $scope.game_state = config.STATE_SPINDOWN;
+        $scope.game_state = game.STATE_SPINDOWN;
     };
 
 }]);

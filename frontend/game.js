@@ -41,6 +41,12 @@ app.factory('game', ['config', function(config) {
 
     var game = {};
 
+    game.STATE_REST = 0;
+    game.STATE_SPINUP = 1;
+    game.STATE_SPINMAX = 2;
+    game.STATE_SPINDOWN = 3;
+    game.STATE_REWARD = 4;
+
     // set up reels
     game.reels = new Array(config.reel_count);
     game.reels[0] = new Array(2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4);
