@@ -30,7 +30,7 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
             var reel_area_width = 96;
             var reel_area_height = 96;
 
-            var ctx;
+            var ctx = element[0].getContext("2d");
 
             var symbols_loaded = false;
             var reels_bg_loaded = false;
@@ -137,8 +137,6 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
             }, 1000 / config.FPS);
 
             scope.init = function() {
-              ctx = element[0].getContext("2d");
-
               symbols.onload = function() {
                 symbols_loaded = true;
                 if (symbols_loaded && reels_bg_loaded) render_reel();
