@@ -19,23 +19,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 "use strict";
 
-var app = angular.module('slots', ['slots.game', 'slots.reels', 'slots.sounds']);
-
-app.constant('config', {
-    FPS: 60,
-
-    reel_count: 3,
-    row_count: 3,
-    reel_positions: 32,
-    symbol_size: 32,
-
-    reel_pixel_length: 1024, // reel_positions * symbol_size
-    stopping_distance: 528,
-    max_reel_speed: 32,
-    spinup_acceleration: 2,
-    spindown_acceleration: 1,
-    starting_credits: 100
-});
+var app = angular.module('slots', ['slots.config', 'slots.game', 'slots.reels', 'slots.sounds']);
 
 app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', 'sounds', function($scope, $interval, config, game, sounds) {
 
