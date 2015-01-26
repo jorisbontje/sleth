@@ -8,14 +8,43 @@
 <link rel="stylesheet" type="text/css" href="slots.css" />
 </head>
 <body ng-controller="SlethController" ng-keypress="handlePress($event)">
-<h1>sleth</h1>
 
 <div>
+    <div id="wrap">
+
+      <div id="game">
+        <canvas slots-reels id="slots" width="160" height="160"></canvas>
+        <button type="button" ng-click="spin(1)" ng-disabled="player.coins < 1">1 Line</button>
+        <button type="button" ng-click="spin(3)" ng-disabled="player.coins < 3">3 Lines</button>
+        <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5">5 Lines</button><br/>
+
+        <button type="button" ng-click="claim(player.round, entropy)" ng-disabled="round.status != 1">claim #{{player.round}}</button>
+        entropy
+        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
+      </div>
+
+      <div id="info">
+        <p id="credits">Coins ({{player.coins}})</p>
+        <p id="log">
+            <span ng-if="reward.payout">
+                You won {{reward.payout}}!<br />
+            </span>
+            <span ng-repeat="(line, partial_payout) in reward.partial_payouts">
+                Line {{line}} pays {{partial_payout}}<br />
+            </span>
+        </p>
+      </div>
+
+      <div id="paytable">
+        <a href="paytable.html" target="_blank">Pay Table</a>
+      </div>
+    </div>
+
+    <hr />
     <div>
         Contract: {{slethAddress}}<br />
         Player: {{player.address}}<br />
         Balance: {{player.balance | number : 4}} ETH<br />
-        Coins: {{player.coins}}<br />
     </div>
 
     <div>
@@ -28,36 +57,8 @@
     </div>
 
     <hr />
-
-    <div id="wrap">
-
-      <div id="game">
-        <canvas slots-reels id="slots" width="160" height="160"></canvas>
-        <button type="button" ng-click="spin(1)">1 Line</button>
-        <button type="button" ng-click="spin(3)">3 Lines</button>
-        <button type="button" ng-click="spin(5)">5 Lines</button>
-        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
-        <button type="button" ng-click="stop()">stop</button>
-      </div>
-
-      <div id="info">
-        <p id="credits">Karma ({{credits}})</p>
-        <p id="log">
-            <span ng-repeat="(line, partial_payout) in reward.partial_payouts">
-                Line {{line}} pays {{partial_payout}}<br />
-            </span>
-        </p>
-      </div>
-
-      <div id="paytable">
-        <a href="paytable.html" target="_blank">Pay Table</a>
-      </div>
-
-    </div>
-
-    <hr />
     <div>
-        <h3>Round #{{round.number}}</h3>
+        <h3>Last Round #{{round.number}}</h3>
         <div>Player: {{round.player}}</div>
         <div>Block: {{round.block}}</div>
         <div>Timestamp: {{round.timestamp | date : 'medium'}}</div>
@@ -72,19 +73,7 @@
             </span>
         </div>
     </div>
-    <hr />
-    <div>
-        <button type="button" ng-click="spin(1)" ng-disabled="player.coins < 1">spin 1</button>
-        <button type="button" ng-click="spin(3)" ng-disabled="player.coins < 3">spin 3</button>
-        <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5">spin 5</button>
-    </div>
-    <div>
-        <button type="button" ng-click="claim(player.round, entropy)" ng-disabled="round.status != 1">claim</button>
-        round
-        <input type="number" ng-model="player.round" integer min="1"></input>
-        entropy
-        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
-    </div>
+
     <hr />
     <div>
         <h3>Message:</h3>
@@ -92,11 +81,11 @@
             <div>{{message}}</div>
         </div>
     </div>
+
 </div>
 <script type="text/javascript" src="config.js"></script>
 <script type="text/javascript" src="game.js"></script>
 <script type="text/javascript" src="reels.js"></script>
-<script type="text/javascript" src="sounds.js"></script>
 <script type="text/javascript" src="sleth.js"></script>
 </body>
 </html>

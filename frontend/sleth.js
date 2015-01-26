@@ -1,38 +1,34 @@
+/**
+
+Copyright (c) 2015 Joris Bontje
+Copyright (c) 2012 Clint Bellanger
+
+MIT License:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+Sounds by Brandon Morris (CC-BY 3.0)
+Art by Clint Bellanger (CC-BY 3.0)
+
+*/
+
 "use strict";
 
-var app = angular.module('sleth',[]);
+var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels']);
 
 app.factory('web3', function() {
     var web3 = require('web3');
     web3.setProvider(new web3.providers.AutoProvider());
+    //web3.setProvider(new web3.providers.HttpRpcProvider("http://poc-8.ethdev.com:8080/"));
     return web3;
 });
 
-app.factory('sounds', function() {
-    var snd_win = new Audio("sounds/win.wav");
-    var snd_reel_stop = [];
-    snd_reel_stop[0] = new Audio("sounds/reel_stop.wav");
-    snd_reel_stop[1] = new Audio("sounds/reel_stop.wav");
-    snd_reel_stop[2] = new Audio("sounds/reel_stop.wav");
-
-    var sounds = {};
-
-    sounds.playWin = function() {
-        snd_win.currentTime = 0;
-        snd_win.load();  // workaround for chrome currentTime bug
-        snd_win.play();
-    };
-
-    sounds.playReelStop = function(i) {
-        snd_reel_stop[i].currentTime = 0;
-        snd_reel_stop[i].load();  // workaround for chrome currentTime bug
-        snd_reel_stop[i].play();
-    };
-
-    return(sounds);
-});
-
-app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds', 'web3', function($http, $location, $q, $scope, sounds, web3) {
+app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$scope', 'config', 'game', 'web3', function($http, $interval, $location, $q, $scope, config, game, web3) {
 
     $scope.slethAddress = $location.search()['address'] || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
     $scope.defaultGas = web3.fromDecimal(10000);
@@ -44,6 +40,10 @@ app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds
 
     $scope.depositAmount = 0;
     $scope.withdrawAmount = 0;
+
+    $interval(function() {
+        game.logic();
+    }, 1000 / config.FPS);
 
     $http.get('../contracts/sleth.abi.json').then(function(res) {
         $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
@@ -92,13 +92,12 @@ app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds
                 if (changed) {
                     console.log("ROUND", round);
                     if (round.status == 1) {
-                        console.log("Automatically claiming round #" + roundNumber);
+                        console.log("Trying to claim round #" + roundNumber);
                         $scope.claim(roundNumber, $scope.entropy);
                     } else if (round.status == 2) {
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
                             message += round.result + " coins :)";
-                            sounds.playWin();
                         } else {
                             message += "nothing :(";
                         }
@@ -140,12 +139,15 @@ app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds
 
     $scope.spin = function(bet) {
         if (bet) {
+            if (game.state != game.STATE_REST) return;
+            if ($scope.player.coins < bet) return;
+
             $scope.clearMessages();
             $scope.contract.promise.then(function(contract) {
                 return(contract.spin(bet).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
+                game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
-                sounds.playReelStop(0);
                 $scope.updatePlayer();
             });
 
@@ -154,7 +156,9 @@ app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds
     };
 
     $scope.claim = function(round, entropy) {
+        if (game.state != game.STATE_SPINMAX) return;
         if (round) {
+            game.set_stops(entropy);
             $scope.contract.promise.then(function(contract) {
                 return(contract.claim(round, entropy).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
@@ -165,7 +169,11 @@ app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds
         }
     };
 
-    $scope.keyPress = function(e) {
+    $scope.$on('slots:reward', function(evt, reward) {
+        $scope.reward = reward;
+    });
+
+    $scope.handleKey = function(e) {
         if (e.which == 32) { // spacebar
             if ($scope.player.coins >= 5) {
                 $scope.spin(5);
