@@ -197,6 +197,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
     game.spin = function(line_choice) {
         game.playing_lines = line_choice;
+        game.reward.payout = 0;
         game.reward.partial_payouts = {};
         game.state = game.STATE_SPINUP;
     };

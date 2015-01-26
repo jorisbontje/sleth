@@ -22,6 +22,9 @@
       <div id="info">
         <p id="credits">Karma ({{credits}})</p>
         <p id="log">
+            <span ng-if="reward.payout">
+                You won {{reward.payout}}!<br />
+            </span>
             <span ng-repeat="(line, partial_payout) in reward.partial_payouts">
                 Line {{line}} pays {{partial_payout}}<br />
             </span>
