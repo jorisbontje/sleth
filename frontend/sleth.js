@@ -45,7 +45,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
         game.logic();
     }, 1000 / config.FPS);
 
-    $http.get('../contracts/sleth.abi.json').then(function(res) {
+    $http.get('sleth.abi.json').then(function(res) {
         $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
     });
 
