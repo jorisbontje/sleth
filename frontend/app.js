@@ -10,7 +10,7 @@ app.factory('web3', function() {
 
 app.factory('sounds', function() {
     var snd_win = new Audio("sounds/win.wav");
-    var snd_reel_stop = new Array();
+    var snd_reel_stop = [];
     snd_reel_stop[0] = new Audio("sounds/reel_stop.wav");
     snd_reel_stop[1] = new Audio("sounds/reel_stop.wav");
     snd_reel_stop[2] = new Audio("sounds/reel_stop.wav");
@@ -101,7 +101,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'sounds', 'web3', fu
                             sounds.playWin();
                         } else {
                             message += "nothing :(";
-                        };
+                        }
                         $scope.logMessage(message);
                     }
                 }
@@ -151,7 +151,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'sounds', 'web3', fu
 
             $scope.generateEntropy();
         }
-    }
+    };
 
     $scope.claim = function(round, entropy) {
         if (round) {
@@ -163,7 +163,7 @@ app.controller("SlethController", ['$http', '$q', '$scope', 'sounds', 'web3', fu
                 $scope.updateRound();
             });
         }
-    }
+    };
 
     $scope.keyPress = function(e) {
         if (e.which == 32) { // spacebar

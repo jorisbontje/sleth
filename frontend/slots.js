@@ -57,7 +57,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', 'sou
         if (game.state == game.STATE_SPINMAX) {
             $scope.stop();
             return;
-        };
+        }
         if (game.state != game.STATE_REST) return;
 
         if ($scope.credits >= 5) $scope.spin(5);

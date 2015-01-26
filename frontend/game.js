@@ -41,10 +41,19 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
     var game = {};
 
+
     game.STATE_REST = 0;
     game.STATE_SPINUP = 1;
     game.STATE_SPINMAX = 2;
     game.STATE_SPINDOWN = 3;
+
+    game.state = game.STATE_REST;
+
+    game.reward = {
+        payout: 0,
+        partial_payouts: {},
+        highlights: []
+    };
 
     // set up reels
     game.reels = new Array(config.reel_count);
@@ -54,33 +63,17 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
     // config
     game.reel_position = new Array(config.reel_count);
-    for (var i=0; i<config.reel_count; i++) {
-        game.reel_position[i] = Math.floor(Math.random() * config.reel_positions) * config.symbol_size;
-    }
 
     var stopping_position = new Array(config.reel_count);
     var start_slowing = new Array(config.reel_count);
-
-    // reel spin speed in pixels per frame
-    var reel_speed = new Array(config.reel_count);
-    for (var i=0; i<config.reel_count; i++) {
-        reel_speed[i] = 0;
-    }
-
+    var reel_speed = new Array(config.reel_count);  // reel spin speed in pixels per frame
     var result = new Array(config.reel_count);
+
     for (var i=0; i<config.reel_count; i++) {
+        game.reel_position[i] = Math.floor(Math.random() * config.reel_positions) * config.symbol_size;
+        reel_speed[i] = 0;
         result[i] = new Array(config.row_count);
     }
-
-    game.highlights = [];
-    game.state = game.STATE_REST;
-    game.credits = config.starting_credits;
-
-    game.reward = {
-        payout: 0,
-        partial_payouts: {},
-        highlights: []
-    };
 
     // given an input line of symbols, determine the payout
     game.calc_line = function(s1, s2, s3) {
@@ -200,7 +193,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
       reward.highlights = Object.keys(reward.partial_payouts);
       return reward;
-    }
+    };
 
     game.spin = function(line_choice) {
         game.playing_lines = line_choice;
@@ -234,7 +227,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       }
 
       game.state = game.STATE_SPINDOWN;
-    }
+    };
 
     function move_reel(i) {
       game.reel_position[i] -= reel_speed[i];
@@ -276,7 +269,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     function logic_spindown() {
 
       // if reels finished moving, begin rewards
-      if (reel_speed[config.reel_count-1] == 0) {
+      if (reel_speed[config.reel_count-1] === 0) {
 
         var reward = game.calc_reward(game.playing_lines, result);
         game.reward = reward;
@@ -292,11 +285,11 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
         move_reel(i);
 
         // start slowing this reel?
-        if (start_slowing[i] == false) {
+        if (! start_slowing[i]) {
 
           // if the first reel, or the previous reel is already slowing
           var check_position = false;
-          if (i == 0) check_position = true;
+          if (i === 0) check_position = true;
           else if (start_slowing[i-1]) check_position = true;
 
           if (check_position) {
@@ -335,7 +328,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       else if (game.state == game.STATE_SPINDOWN) {
         logic_spindown();
       }
-    }
+    };
 
     return game;
 }]);

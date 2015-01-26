@@ -23,7 +23,7 @@ var app = angular.module('slots.sounds', []);
 
 app.factory('sounds', function() {
     var snd_win = new Audio("sounds/win.wav");
-    var snd_reel_stop = new Array();
+    var snd_reel_stop = [];
     snd_reel_stop[0] = new Audio("sounds/reel_stop.wav");
     snd_reel_stop[1] = new Audio("sounds/reel_stop.wav");
     snd_reel_stop[2] = new Audio("sounds/reel_stop.wav");
@@ -37,7 +37,7 @@ app.factory('sounds', function() {
             snd_win.play();
         } catch(err) {
             console.error(err);
-        };
+        }
     };
 
     sounds.playReelStop = function(i) {
@@ -47,7 +47,7 @@ app.factory('sounds', function() {
             snd_reel_stop[i].play();
         } catch(err) {
             console.error(err);
-        };
+        }
     };
 
     return sounds;
