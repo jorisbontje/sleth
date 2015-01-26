@@ -65,8 +65,8 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
               for (var i=0; i<config.reel_count; i++) {
                 for (var j=0; j<config.row_count +1; j++) {
 
-                  reel_index = Math.floor(scope.reel_position[i] / config.symbol_size) + j;
-                  symbol_offset = scope.reel_position[i] % config.symbol_size;
+                  reel_index = Math.floor(game.reel_position[i] / config.symbol_size) + j;
+                  symbol_offset = game.reel_position[i] % config.symbol_size;
 
                   // reel wrap
                   if (reel_index >= config.reel_positions) reel_index -= config.reel_positions;
@@ -84,7 +84,7 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
             }
                         // render all art needed in the current frame
             function render() {
-              if (scope.game_state == game.STATE_SPINUP || scope.game_state == game.STATE_SPINMAX || scope.game_state == game.STATE_SPINDOWN) {
+              if (game.state == game.STATE_SPINUP || game.state == game.STATE_SPINMAX || game.state == game.STATE_SPINDOWN) {
                 render_reel();
               }
             }
@@ -125,11 +125,10 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
               if (line_num == 3 || line_num == 4) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top + ss + ss, ss-1, ss-1); // top right
               }
-
             }
 
-            scope.$watch('highlights', function() {
-                scope.highlights.forEach(highlight_line);
+            scope.$on('slots:reward', function(evt, reward) {
+                reward.highlights.forEach(highlight_line);
             });
 
             $interval(function() {

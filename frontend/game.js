@@ -21,7 +21,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots.game', []);
 
-app.factory('game', ['config', function(config) {
+app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     var symbol_count = 11;
     var match_payout = new Array(symbol_count);
     match_payout[7] = 4; // 3Down
@@ -45,13 +45,42 @@ app.factory('game', ['config', function(config) {
     game.STATE_SPINUP = 1;
     game.STATE_SPINMAX = 2;
     game.STATE_SPINDOWN = 3;
-    game.STATE_REWARD = 4;
 
     // set up reels
     game.reels = new Array(config.reel_count);
     game.reels[0] = new Array(2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4);
     game.reels[1] = new Array(6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4);
     game.reels[2] = new Array(1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3);
+
+    // config
+    game.reel_position = new Array(config.reel_count);
+    for (var i=0; i<config.reel_count; i++) {
+        game.reel_position[i] = Math.floor(Math.random() * config.reel_positions) * config.symbol_size;
+    }
+
+    var stopping_position = new Array(config.reel_count);
+    var start_slowing = new Array(config.reel_count);
+
+    // reel spin speed in pixels per frame
+    var reel_speed = new Array(config.reel_count);
+    for (var i=0; i<config.reel_count; i++) {
+        reel_speed[i] = 0;
+    }
+
+    var result = new Array(config.reel_count);
+    for (var i=0; i<config.reel_count; i++) {
+        result[i] = new Array(config.row_count);
+    }
+
+    game.highlights = [];
+    game.state = game.STATE_REST;
+    game.credits = config.starting_credits;
+
+    game.reward = {
+        payout: 0,
+        partial_payouts: {},
+        highlights: []
+    };
 
     // given an input line of symbols, determine the payout
     game.calc_line = function(s1, s2, s3) {
@@ -124,7 +153,8 @@ app.factory('game', ['config', function(config) {
     game.calc_reward = function(playing_lines, result) {
       var reward = {
           payout: 0,
-          partial_payouts: {}
+          partial_payouts: {},
+          highlights: []
       };
 
       var partial_payout;
@@ -168,7 +198,143 @@ app.factory('game', ['config', function(config) {
         }
       }
 
+      reward.highlights = Object.keys(reward.partial_payouts);
       return reward;
+    }
+
+    game.spin = function(line_choice) {
+        game.playing_lines = line_choice;
+        game.reward.partial_payouts = {};
+        game.state = game.STATE_SPINUP;
+    };
+
+    game.set_stops = function(entropy) {
+      var rnd = entropy;
+
+      for (var i=0; i<config.reel_count; i++) {
+
+        start_slowing[i] = false;
+
+        var stop_index = rnd % config.reel_positions;
+        rnd = Math.floor(rnd / config.reel_positions);
+
+        stopping_position[i] = stop_index * config.symbol_size;
+
+        stopping_position[i] += config.stopping_distance;
+        if (stopping_position[i] >= config.reel_pixel_length) stopping_position[i] -= config.reel_pixel_length;
+
+        // convenient here to remember the winning positions
+        for (var j=0; j<config.row_count; j++) {
+          result[i][j] = stop_index + j;
+          if (result[i][j] >= config.reel_positions) result[i][j] -= config.reel_positions;
+
+          // translate reel positions into symbol
+          result[i][j] = game.reels[i][result[i][j]];
+        }
+      }
+
+      game.state = game.STATE_SPINDOWN;
+    }
+
+    function move_reel(i) {
+      game.reel_position[i] -= reel_speed[i];
+
+      // wrap
+      if (game.reel_position[i] < 0) {
+        game.reel_position[i] += config.reel_pixel_length;
+      }
+    }
+
+    //---- Logic Functions ---------------------------------------------
+
+
+    // handle reels accelerating to full speed
+    function logic_spinup() {
+      for (var i=0; i<config.reel_count; i++) {
+        // move reel at current speed
+        move_reel(i);
+
+        // accelerate speed
+        reel_speed[i] += config.spinup_acceleration;
+      }
+
+      // if reels at max speed, begin spindown
+      if (reel_speed[0] == config.max_reel_speed) {
+        game.state = game.STATE_SPINMAX;
+      }
+    }
+
+    function logic_spinmax() {
+      for (var i=0; i<config.reel_count; i++) {
+
+        // move reel at current speed
+        move_reel(i);
+      }
+    }
+
+    // handle reel movement as the reels are coming to rest
+    function logic_spindown() {
+
+      // if reels finished moving, begin rewards
+      if (reel_speed[config.reel_count-1] == 0) {
+
+        var reward = game.calc_reward(game.playing_lines, result);
+        game.reward = reward;
+        game.state = game.STATE_REST;
+
+        $rootScope.$broadcast('slots:reward', reward);
+        return;
+      }
+
+      for (var i=0; i<config.reel_count; i++) {
+
+        // move reel at current speed
+        move_reel(i);
+
+        // start slowing this reel?
+        if (start_slowing[i] == false) {
+
+          // if the first reel, or the previous reel is already slowing
+          var check_position = false;
+          if (i == 0) check_position = true;
+          else if (start_slowing[i-1]) check_position = true;
+
+          if (check_position) {
+
+            if (game.reel_position[i] == stopping_position[i]) {
+              start_slowing[i] = true;
+            }
+          }
+        }
+        else {
+          if (reel_speed[i] > 0) {
+            reel_speed[i] -= config.spindown_acceleration;
+
+            // XXX sounds
+            /*
+            if (reel_speed[i] == 0) {
+              sounds.playReelStop(i);
+            }*/
+          }
+        }
+      }
+    }
+
+    // update all logic in the current frame
+    game.logic = function() {
+
+      // SPINMAX TO SPINDOWN happens on an input event
+      // REST to SPINUP happens on an input event
+
+      if (game.state == game.STATE_SPINUP) {
+        logic_spinup();
+      }
+      else if (game.state == game.STATE_SPINMAX) {
+        logic_spinmax();
+      }
+      else if (game.state == game.STATE_SPINDOWN) {
+        logic_spindown();
+      }
     }
 
     return game;
