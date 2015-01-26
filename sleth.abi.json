@@ -1,0 +1,87 @@
+[{
+    "name": "spin",
+    "constant": false,
+    "inputs": [{
+        "name": "bet",
+        "type": "uint256"
+    }],
+    "outputs": []
+}, {
+    "name": "claim",
+    "constant": false,
+    "inputs": [{
+        "name": "round",
+        "type": "uint256"
+    }, {
+        "name": "entropy",
+        "type": "uint256"
+    }],
+    "outputs": []
+}, {
+    "name": "deposit",
+    "constant": false,
+    "inputs": [],
+    "outputs": []
+}, {
+    "name": "withdraw",
+    "constant": false,
+    "inputs": [{
+        "name": "amount",
+        "type": "uint256"
+    }],
+    "outputs": []
+}, {
+    "name": "get_round",
+    "constant": true,
+    "inputs": [{
+        "name": "round",
+        "type": "uint256"
+    }],
+    "outputs": [{
+        "name": "player",
+        "type": "address"
+    }, {
+        "name": "block",
+        "type": "uint256"
+    }, {
+        "name": "timestamp",
+        "type": "uint256"
+    }, {
+        "name": "bet",
+        "type": "uint256"
+    }, {
+        "name": "result",
+        "type": "uint256"
+    }, {
+        "name": "entropy",
+        "type": "uint256"
+    }, {
+        "name": "status",
+        "type": "uint256"
+    }]
+}, {
+    "name": "get_current_player",
+    "constant": true,
+    "inputs": [],
+    "outputs": [{
+        "name": "last_round",
+        "type": "uint256"
+    }, {
+        "name": "balance",
+        "type": "uint256"
+    }]
+}, {
+    "name": "calc_reward",
+    "constant": true,
+    "inputs": [{
+        "name": "rnd",
+        "type": "uint256"
+    }, {
+        "name": "playing_lines",
+        "type": "uint256"
+    }],
+    "outputs": [{
+        "name": "payout",
+        "type": "uint256"
+    }]
+}]
