@@ -19,9 +19,9 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 "use strict";
 
-var app = angular.module('slots', ['slots.config', 'slots.game', 'slots.reels', 'slots.sounds']);
+var app = angular.module('slots', ['slots.config', 'slots.game', 'slots.reels']);
 
-app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', 'sounds', function($scope, $interval, config, game, sounds) {
+app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', function($scope, $interval, config, game) {
 
     //  sync with blockchain
     $scope.credits = config.starting_credits;
@@ -71,7 +71,6 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', 'sou
         /*if (reward.payout > 0) {
             sounds.playWin();
         }*/
-        console.log('REWARD', reward);
         $scope.credits += reward.payout;
         $scope.reward = reward;
     });
