@@ -32,9 +32,9 @@ app.factory('sounds', function() {
     return(sounds);
 });
 
-app.controller("SlethController", ['$http', '$q', '$scope', 'sounds', 'web3', function($http, $q, $scope, sounds, web3) {
+app.controller("SlethController", ['$http', '$location', '$q', '$scope', 'sounds', 'web3', function($http, $location, $q, $scope, sounds, web3) {
 
-    $scope.slethAddress = "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+    $scope.slethAddress = $location.search()['address'] || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
     $scope.defaultGas = web3.fromDecimal(10000);
     $scope.contract = $q.defer();
 

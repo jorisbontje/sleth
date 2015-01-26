@@ -7,7 +7,7 @@
 <script type="text/javascript" src="lib/ethereum.js"></script>
 <link rel="stylesheet" type="text/css" href="slots.css" />
 </head>
-<body ng-controller="SlethController" ng-keypress="keyPress($event)">
+<body ng-controller="SlethController" ng-keypress="handlePress($event)">
 <h1>sleth</h1>
 
 <div>
@@ -31,14 +31,27 @@
 
     <div id="wrap">
 
-        <div id="game">
-            <canvas id="slots" width="160" height="160"></canvas><br />
-        </div>
+      <div id="game">
+        <canvas slots-reels id="slots" width="160" height="160"></canvas>
+        <button type="button" ng-click="spin(1)">1 Line</button>
+        <button type="button" ng-click="spin(3)">3 Lines</button>
+        <button type="button" ng-click="spin(5)">5 Lines</button>
+        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
+        <button type="button" ng-click="stop()">stop</button>
+      </div>
 
-        <div id="info">
-            <p id="credits"></p>
-            <p id="log"></p>
-        </div>
+      <div id="info">
+        <p id="credits">Karma ({{credits}})</p>
+        <p id="log">
+            <span ng-repeat="(line, partial_payout) in reward.partial_payouts">
+                Line {{line}} pays {{partial_payout}}<br />
+            </span>
+        </p>
+      </div>
+
+      <div id="paytable">
+        <a href="paytable.html" target="_blank">Pay Table</a>
+      </div>
 
     </div>
 
@@ -80,6 +93,10 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" src="app.js"></script>
+<script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="game.js"></script>
+<script type="text/javascript" src="reels.js"></script>
+<script type="text/javascript" src="sounds.js"></script>
+<script type="text/javascript" src="sleth.js"></script>
 </body>
 </html>
