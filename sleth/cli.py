@@ -8,7 +8,7 @@ from pyepm import api
 from serpent import compile
 
 CONTRACT_FILE = "contracts/sleth.se"
-CONTRACT_GAS = 51000
+CONTRACT_GAS = 52000
 
 ETHER = 10 ** 18
 

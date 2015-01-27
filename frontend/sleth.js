@@ -30,11 +30,13 @@ app.factory('web3', function() {
 
 app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$scope', 'config', 'game', 'web3', function($http, $interval, $location, $q, $scope, config, game, web3) {
 
-    $scope.slethAddress = $location.search()['address'] || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+    $scope.slethAddress = $location.search().address || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+    $scope.slethBalance = 0;
     $scope.defaultGas = web3.fromDecimal(10000);
     $scope.contract = $q.defer();
 
     $scope.player = {};
+    $scope.stats = {};
     $scope.round = {};
     $scope.messages = [];
 
@@ -49,13 +51,18 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
         $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
     });
 
-    $scope.updateAccount = function() {
+    $scope.updateChain = function() {
         web3.eth.accounts.then(function (accounts) {
             $scope.player.address = accounts[0];
             $scope.$apply();
             return(web3.eth.balanceAt(accounts[0]));
         }).then(function (balance) {
-            $scope.player.balance = web3.toDecimal(balance) / Math.pow(10, 18);
+            $scope.player.balance = web3.toDecimal(balance) / Math.pow(10, 18) || 0;
+            $scope.$apply();
+        });
+
+        web3.eth.balanceAt($scope.slethAddress).then(function (balance) {
+            $scope.slethBalance = web3.toDecimal(balance) / Math.pow(10, 18) || 0;
             $scope.$apply();
         });
     };
@@ -66,6 +73,15 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
         }).then(function(res) {
             $scope.player.round = res[0].toNumber();
             $scope.player.coins = res[1].toNumber();
+        });
+    };
+
+    $scope.updateStats = function() {
+        $scope.contract.promise.then(function(contract) {
+            return(contract.get_stats().call());
+        }).then(function(res) {
+            $scope.stats.total_spins = res[1].toNumber();
+            $scope.stats.total_coins_won = res[2].toNumber();
         });
     };
 
@@ -117,8 +133,9 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 return(contract.deposit().transact({gas: $scope.defaultGas, value: value}));
             }).then(function(res) {
                 $scope.logMessage("Deposited " + amount + " coins");
-                $scope.updateAccount();
+                $scope.updateChain();
                 $scope.updatePlayer();
+                $scope.updateStats();
             });
         }
     };
@@ -131,8 +148,9 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 return(contract.withdraw(amount).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
                 $scope.logMessage("Withdrawn " + amount + " coins");
-                $scope.updateAccount();
+                $scope.updateChain();
                 $scope.updatePlayer();
+                $scope.updateStats();
             });
         }
     };
@@ -149,6 +167,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
                 $scope.updatePlayer();
+                $scope.updateStats();
             });
 
             $scope.generateEntropy();
@@ -164,6 +183,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
             }).then(function(res) {
                 $scope.logMessage("Claiming round #" + round + "...");
                 $scope.updatePlayer();
+                $scope.updateStats();
                 $scope.updateRound();
             });
         }
@@ -202,12 +222,14 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     web3.eth.watch('chain').changed(function(res) {
         console.log("CHAIN UPDATED", res);
-        $scope.updateAccount();
+        $scope.updateChain();
         $scope.updatePlayer();
         $scope.updateRound();
+        $scope.updateStats();
     });
 
-    $scope.updateAccount();
+    $scope.updateChain();
     $scope.updatePlayer();
     $scope.generateEntropy();
+    $scope.updateStats();
 }]);

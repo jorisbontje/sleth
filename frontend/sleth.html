@@ -43,8 +43,9 @@
     <hr />
     <div>
         Contract: {{slethAddress}}<br />
+        Contract Balance: {{slethBalance | number : 4}} ETH<br />
         Player: {{player.address}}<br />
-        Balance: {{player.balance | number : 4}} ETH<br />
+        Player Balance: {{player.balance | number : 4}} ETH<br />
     </div>
 
     <div>
@@ -72,6 +73,13 @@
                 <span ng-switch-when="2">done</span>
             </span>
         </div>
+    </div>
+
+    <hr />
+    <div>
+        <h3>Stats</h3>
+        <div>Total Spins: {{stats.total_spins}}</div>
+        <div>Total Coins Won: {{stats.total_coins_won}}</div>
     </div>
 
     <hr />
