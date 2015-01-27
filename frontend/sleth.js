@@ -191,6 +191,13 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.$on('slots:reward', function(evt, reward) {
         $scope.reward = reward;
+        // check if the locally calculated reward matches with the contract results
+        $scope.reward.verified = (reward.payout == $scope.round.result);
+        if ($scope.reward.verified) {
+            $scope.logMessage("Reward verified");
+        } else {
+            $scope.logMessage("Reward NOT verified");
+        }
     });
 
     $scope.handleKey = function(e) {
