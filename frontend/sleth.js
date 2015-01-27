@@ -175,7 +175,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     };
 
     $scope.claim = function(round, entropy) {
-        if (game.state != game.STATE_SPINMAX) return;
+        if (game.state != game.STATE_SPINMAX && game.state != game.STATE_REST) return;
         if (round) {
             game.set_stops(entropy);
             $scope.contract.promise.then(function(contract) {
@@ -195,6 +195,12 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.handleKey = function(e) {
         if (e.which == 32) { // spacebar
+            if (game.state == game.STATE_SPINMAX) {
+                $scope.claim($scope.player.round, $scope.entropy);
+                return;
+            }
+            if (game.state != game.STATE_REST) return;
+
             if ($scope.player.coins >= 5) {
                 $scope.spin(5);
             } else if ($scope.player.coins >= 3) {

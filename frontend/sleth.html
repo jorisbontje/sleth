@@ -7,16 +7,16 @@
 <script type="text/javascript" src="lib/ethereum.js"></script>
 <link rel="stylesheet" type="text/css" href="slots.css" />
 </head>
-<body ng-controller="SlethController" ng-keypress="handlePress($event)">
+<body ng-controller="SlethController" ng-keypress="handleKey($event)">
 
 <div>
     <div id="wrap">
 
       <div id="game">
         <canvas slots-reels id="slots" width="160" height="160"></canvas>
-        <button type="button" ng-click="spin(1)" ng-disabled="player.coins < 1">1 Line</button>
-        <button type="button" ng-click="spin(3)" ng-disabled="player.coins < 3">3 Lines</button>
-        <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5">5 Lines</button><br/>
+        <button type="button" ng-click="spin(1)" ng-disabled="player.coins < 1 || round.status == 1">1 Line</button>
+        <button type="button" ng-click="spin(3)" ng-disabled="player.coins < 3 || round.status == 1">3 Lines</button>
+        <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5 || round.status == 1">5 Lines</button><br/>
 
         <button type="button" ng-click="claim(player.round, entropy)" ng-disabled="round.status != 1">claim #{{player.round}}</button>
         entropy
@@ -42,8 +42,6 @@
 
     <hr />
     <div>
-        Contract: {{slethAddress}}<br />
-        Contract Balance: {{slethBalance | number : 4}} ETH<br />
         Player: {{player.address}}<br />
         Player Balance: {{player.balance | number : 4}} ETH<br />
     </div>
@@ -78,6 +76,8 @@
     <hr />
     <div>
         <h3>Stats</h3>
+        <div>Contract: {{slethAddress}}</div>
+        <div>Contract Balance: {{slethBalance | number : 4}} ETH</div>
         <div>Total Spins: {{stats.total_spins}}</div>
         <div>Total Coins Won: {{stats.total_coins_won}}</div>
     </div>
