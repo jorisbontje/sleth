@@ -8,7 +8,7 @@ from pyepm import api
 from serpent import compile
 
 CONTRACT_FILE = "contracts/sleth.se"
-CONTRACT_GAS = 52000
+CONTRACT_GAS = 55000
 
 ETHER = 10 ** 18
 
@@ -80,6 +80,22 @@ def cmd_get_current_player(args):
     current_round, balance = result
     print "Current round:", current_round
     print "Balance:", balance, "ether"
+
+def cmd_get_stats(args):
+    print "Getting statistics"
+    instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
+    result = instance.call(args.contract, funid=6, data=[])
+    current_round, total_spins, total_coins_won = result
+    print "Current round:", current_round
+    print "Total spins:", total_spins
+    print "Total coins won:", total_coins_won
+
+def cmd_suicide(args):
+    print "Killing the contract"
+    instance = api.Api()
+    assert instance.is_contract_at(args.contract), "Contract not found"
+    instance.transact(args.contract, funid=10, data=[])
 
 def cmd_create(args):
     instance = api.Api()
@@ -174,6 +190,14 @@ def main():
     parser_get_current_player = subparsers.add_parser('get_current_player', help='get current player information')
     parser_get_current_player.set_defaults(func=cmd_get_current_player)
     parser_get_current_player.add_argument('contract', help='sleth contract address')
+
+    parser_get_stats = subparsers.add_parser('get_stats', help='get contract statistics')
+    parser_get_stats.set_defaults(func=cmd_get_stats)
+    parser_get_stats.add_argument('contract', help='sleth contract address')
+
+    parser_suicide = subparsers.add_parser('suicide', help='kills the contract')
+    parser_suicide.set_defaults(func=cmd_suicide)
+    parser_suicide.add_argument('contract', help='sleth contract address')
 
     parser_test = subparsers.add_parser('test', help='test simple contract')
     parser_test.set_defaults(func=cmd_test)

@@ -7,7 +7,7 @@ slow = pytest.mark.slow
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 52000
+    CONTRACT_GAS = 55000
 
     ETHER = 10 ** 18
 
@@ -24,6 +24,11 @@ class TestSlethContract(object):
 
     def test_init(self):
         assert self.c.get_stats() == [1, 0, 0]
+        assert self.s.block.get_code(self.c.address) != ''
+
+    def test_suicide(self):
+        assert self.c.suicide() == []
+        assert self.s.block.get_code(self.c.address) == ''
 
     def test_spin_bet_out_of_range(self):
         assert self.c.spin(0) == [0]

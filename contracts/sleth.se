@@ -1,3 +1,4 @@
+data owner
 data current_round
 data total_spins
 data total_coins_won
@@ -11,6 +12,7 @@ data players[2^160](last_round, balance)
 # 2 = done
 
 def init():
+    self.owner = msg.sender
     self.current_round = 1  # we'll start with 1 so we can use 0 for indicating a non-existing round
 
 def shared():
@@ -102,6 +104,7 @@ def get_current_player():
 def get_stats():
     return([self.current_round, self.total_spins, self.total_coins_won], 3)
 
+# funid=7
 def calc_line(s1, s2, s3):
     match_payout = array(11)
     match_payout[7] = 4  # 3Down
@@ -179,6 +182,7 @@ def calc_line(s1, s2, s3):
     # no reward
     return(0)
 
+# funid=8
 def get_stops(rnd):
     stops = array(REEL_COUNT)
     i = 0
@@ -188,6 +192,7 @@ def get_stops(rnd):
         i += 1
     return(stops, REEL_COUNT)
 
+# funid=9
 def calc_reward(rnd, playing_lines):
     result_0 = array(ROW_COUNT)
     result_1 = array(ROW_COUNT)
@@ -221,3 +226,8 @@ def calc_reward(rnd, playing_lines):
             payout += self.calc_line(result_0[2], result_1[1], result_2[0])
 
     return(payout)
+
+# funid=10
+def suicide():
+    if msg.sender == self.owner:
+        suicide(msg.sender)
