@@ -193,6 +193,24 @@ class TestSlethContract(object):
 
         assert self.c.claim(1, 0) == [92]
 
+    def test_withdraw_more_than_balance(self):
+        assert self.c.deposit(value=5 * self.ETHER) == [1]
+        assert self.c.spin(5) == [1]
+        assert self.c.claim(1, 31888) == [1]
+
+        current_round, balance = self.c.get_current_player()
+        assert balance == 25
+
+        balance_before = self.s.block.get_balance(tester.a0)
+        assert self.c.withdraw(25) == [0]
+
+        # no withdraw should happen
+
+        current_round, balance = self.c.get_current_player()
+        assert balance == 25
+
+        assert self.s.block.get_balance(tester.a0) == balance_before
+
     @slow
     def test_calc_reward_loop(self):
         random.seed(0)

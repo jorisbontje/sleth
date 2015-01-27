@@ -86,9 +86,10 @@ def deposit():
 
 # funid=3
 def withdraw(amount):
-    if amount <= self.players[msg.sender].balance:
+    ether_amount = amount * ETHER
+    if amount <= self.players[msg.sender].balance and ether_amount <= self.balance:
         self.players[msg.sender].balance -= amount
-        send(msg.sender, amount * ETHER)
+        send(msg.sender, ether_amount)
         return(1)
     return(0)
 
