@@ -92,6 +92,7 @@ class TestSlethContract(object):
     def test_calc_line_triple_ups(self):
         assert self.c.calc_line(1, 2, 3) == [6]
         assert self.c.calc_line(3, 2, 3) == [6]
+        assert self.c.calc_line(2, 3, 2) == [6]
 
     def test_calc_line_triple_down(self):
         assert self.c.calc_line(5, 6, 7) == [2]
@@ -130,6 +131,11 @@ class TestSlethContract(object):
         assert self.c.calc_reward(23888, 1) == [6]
         assert self.c.calc_reward(23888, 3) == [26]
         assert self.c.calc_reward(23888, 5) == [32]
+
+    def test_calc_reward_2878(self):
+        # wheel stops should wrap around
+        assert self.c.get_stops(2878) == [30, 25, 2]
+        assert self.c.calc_reward(2878, 5) == [6]
 
     def test_claim_winning(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]

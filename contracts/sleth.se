@@ -200,9 +200,9 @@ def calc_reward(rnd, playing_lines):
     stops = self.get_stops(rnd, outsz=REEL_COUNT)
     i = 0
     while i < ROW_COUNT:
-        result_0[i] = reel_0[stops[0] + i]
-        result_1[i] = reel_1[stops[1] + i]
-        result_2[i] = reel_2[stops[2] + i]
+        result_0[i] = reel_0[mod(stops[0] + i, REEL_POSITIONS)]
+        result_1[i] = reel_1[mod(stops[1] + i, REEL_POSITIONS)]
+        result_2[i] = reel_2[mod(stops[2] + i, REEL_POSITIONS)]
         i += 1
 
     # line 1
