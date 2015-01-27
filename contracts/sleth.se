@@ -1,4 +1,6 @@
 data current_round
+data total_spins
+data total_coins_won
 
 data rounds[2^160](player, block, timestamp, bet, result, entropy, status)
 data players[2^160](last_round, balance)
@@ -42,6 +44,7 @@ def spin(bet):
     self.rounds[current_round].status = 1
     self.players[msg.sender].last_round = current_round
     self.current_round = current_round + 1
+    self.total_spins += 1
 
     return(1)
 
@@ -69,6 +72,7 @@ def claim(round, entropy):
     self.rounds[round].status = 2
 
     if result > 0:
+        self.total_coins_won += result
         self.players[msg.sender].balance += result
 
     return(1)
@@ -93,6 +97,10 @@ def get_round(round):
 # funid=5
 def get_current_player():
     return([self.players[msg.sender].last_round, self.players[msg.sender].balance], 2)
+
+# funid=6
+def get_stats():
+    return([self.current_round, self.total_spins, self.total_coins_won], 3)
 
 def calc_line(s1, s2, s3):
     match_payout = array(11)

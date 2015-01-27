@@ -7,7 +7,7 @@ slow = pytest.mark.slow
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 51000
+    CONTRACT_GAS = 52000
 
     ETHER = 10 ** 18
 
@@ -21,6 +21,13 @@ class TestSlethContract(object):
 
     def profile_calc_reward(self, rnd, lines):
         return self.s.profile(tester.k0, self.c.address, 0, funid=8, abi=[rnd, lines])
+
+    def test_init(self):
+        assert self.c.get_stats() == [1, 0, 0]
+
+    def test_spin_bet_out_of_range(self):
+        assert self.c.spin(0) == [0]
+        assert self.c.spin(6) == [0]
 
     def test_create_gas_used(self):
         assert self.s.block.gas_used < self.CONTRACT_GAS
@@ -66,6 +73,8 @@ class TestSlethContract(object):
         assert result == 0
         assert entropy == 0
         assert status == 1  # spinning
+
+        assert self.c.get_stats() == [2, 1, 0]
 
     def test_calc_line_perfect_match(self):
         assert self.c.calc_line(0, 0, 0) == [50]
@@ -138,6 +147,8 @@ class TestSlethContract(object):
         current_round, balance = self.c.get_current_player()
         assert current_round == 1
         assert balance == 32
+
+        assert self.c.get_stats() == [2, 1, 32]
 
     def test_claim_losing(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]

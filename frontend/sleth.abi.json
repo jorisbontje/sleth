@@ -71,6 +71,20 @@
         "type": "uint256"
     }]
 }, {
+    "name": "get_stats",
+    "constant": true,
+    "inputs": [],
+    "outputs": [{
+        "name": "current_round",
+        "type": "uint256"
+    }, {
+        "name": "total_spins",
+        "type": "uint256"
+    }, {
+        "name": "total_coins_won",
+        "type": "uint256"
+    }]
+}, {
     "name": "calc_reward",
     "constant": true,
     "inputs": [{
