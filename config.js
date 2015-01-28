@@ -22,7 +22,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 var app = angular.module('slots.config', []);
 
 app.constant('config', {
-    FPS: 60,
+    FPS: 30,
 
     reel_count: 3,
     row_count: 3,
