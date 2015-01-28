@@ -29,7 +29,7 @@ app.constant('config', {
     reel_positions: 32,
     symbol_size: 32,
 
-    reel_scale: 2.5,
+    reel_scale: 4,
     reel_pixel_length: 1024, // reel_positions * symbol_size
     stopping_distance: 528,
     max_reel_speed: 32,

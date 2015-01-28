@@ -1,50 +1,57 @@
 <html ng-app='slots'>
-  <head>
-
+<head>
     <title>Karma Slots!</title>
     <script type="text/javascript" src="lib/angular.min.js"></script>
+    <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.2/flatly/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="slots.css" />
+</head>
+<body ng-controller="SlotsController" ng-keypress="handleKey($event)">
 
-  </head>
-  <body ng-controller="SlotsController" ng-keypress="handleKey($event)">
+<div id="container" class="container">
 
-    <div id="wrap">
-
-      <div id="game">
-        <canvas slots-reels id="slots" width="400" height="400"></canvas>
-        <button type="button" ng-click="spin(1)">1 Line</button>
-        <button type="button" ng-click="spin(3)">3 Lines</button>
-        <button type="button" ng-click="spin(5)">5 Lines</button>
-        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
-        <button type="button" ng-click="stop()">stop</button>
-      </div>
-
-      <div id="info">
-        <p id="credits">Karma ({{credits}})</p>
-        <p id="log">
+<div class="row">
+    <div class="col-md-8 text-center">
+        <div id="game" ng-style="{'width': canvasSize}">
+            <canvas slots-reels id="slots" width="{{canvasSize}}" height="{{canvasSize}}"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div id="info" ng-style="{'margin-top': infoTop}">
+            <h1 id="credits">Karma ({{credits}})</h1>
+            <p id="log" class="lead">
             <span ng-if="reward.payout">
                 You won {{reward.payout}}!<br />
             </span>
             <span ng-repeat="(line, partial_payout) in reward.partial_payouts">
                 Line {{line}} pays {{partial_payout}}<br />
             </span>
-        </p>
-      </div>
-
-      <div id="paytable">
-        <a href="paytable.html" target="_blank">Pay Table</a>
-      </div>
-
-      <div id="attribution">
-        by <a href="http://clintbellanger.net/rpg/" target="_blank">Clint Bellanger</a> and <a href="http://www.youtube.com/brandon75689" target="_blank">Brandon Morris</a>
-      </div>
-
+            </p>
+        </div>
     </div>
+</div>
 
-    <script type="text/javascript" src="config.js"></script>
-    <script type="text/javascript" src="game.js"></script>
-    <script type="text/javascript" src="reels.js"></script>
-    <script type="text/javascript" src="slots.js"></script>
+<div class="row">
+    <div class="col-md-8 text-center">
+        <button type="button" class="btn btn-info" ng-click="spin(1)" ng-disabled="credits < 1 || spinning">1 Line</button>
+        <button type="button" class="btn btn-info" ng-click="spin(3)" ng-disabled="credits < 3 || spinning">3 Lines</button>
+        <button type="button" class="btn btn-info" ng-click="spin(5)" ng-disabled="credits < 5 || spinning">5 Lines</button>
+        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
+        <button type="button" class="btn btn-success" ng-click="stop()" ng-disabled="!spinning">stop</button>
+    </div>
+    <div class="col-md-4">
+        <p><a href="paytable.html" target="_blank">Pay Table</a></p>
+        <p>by <a href="http://clintbellanger.net/rpg/" target="_blank">Clint Bellanger</a> and <a href="http://www.youtube.com/brandon75689" target="_blank">Brandon Morris</a></p>
+    </div>
+</div>
 
-  </body>
+<div id="attribution">
+          </div>
+</div>
+
+</div>
+<script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="game.js"></script>
+<script type="text/javascript" src="reels.js"></script>
+<script type="text/javascript" src="slots.js"></script>
+</body>
 </html>
