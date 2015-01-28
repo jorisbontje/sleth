@@ -1,8 +1,14 @@
 #game {
-  margin: auto;
+    margin: auto;
 
-  background-image: url("images/background.png");
-  background-position: 0px 0px;
-  background-repeat: no-repeat;
-  background-size: contain;
+    background-image: url("images/background.png");
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    image-rendering: -moz-crisp-edges;         /* Firefox */
+    image-rendering:   -o-crisp-edges;         /* Opera */
+    image-rendering: -webkit-optimize-contrast;/* Webkit (non-standard naming) */
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;  /* IE (non-standard property) */
 }
