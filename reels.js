@@ -25,8 +25,8 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
-            var reel_area_left = 32;
-            var reel_area_top = 32;
+            var reel_area_left = config.reel_scale*32;
+            var reel_area_top = config.reel_scale*32;
             var reel_area_width = 96;
             var reel_area_height = 96;
 
@@ -44,16 +44,16 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
 
             function draw_symbol(symbol_index, x, y) {
               var symbol_pixel = symbol_index * config.symbol_size;
-              ctx.drawImage(symbols, 0,symbol_pixel,config.symbol_size,config.symbol_size, x+reel_area_left,y+reel_area_top,config.symbol_size,config.symbol_size);
+              ctx.drawImage(symbols, 0,symbol_pixel,config.symbol_size,config.symbol_size,config.reel_scale*x+reel_area_left,config.reel_scale*y+reel_area_top,config.reel_scale*config.symbol_size,config.reel_scale*config.symbol_size);
             }
 
             function render_reel() {
               // clear reel
-              ctx.drawImage(reels_bg, reel_area_left, reel_area_top);
+              ctx.drawImage(reels_bg, reel_area_left, reel_area_top, config.reel_scale*reel_area_width, config.reel_scale*reel_area_height);
 
               // set clipping area
               ctx.beginPath();
-              ctx.rect(reel_area_left, reel_area_top, reel_area_width, reel_area_height);
+              ctx.rect(reel_area_left, reel_area_top, config.reel_scale*reel_area_width, config.reel_scale*reel_area_height);
               ctx.clip();
 
               var reel_index;
@@ -91,11 +91,11 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
 
             function highlight_line(line_num) {
               ctx.strokeStyle = "orange";
-              var ss = config.symbol_size;
+              var ss = config.reel_scale*config.symbol_size;
 
               // top row
               if (line_num == 2 || line_num == 4) {
-                ctx.strokeRect(reel_area_left, reel_area_top, config.symbol_size-1, config.symbol_size-1); // top left
+                ctx.strokeRect(reel_area_left, reel_area_top, ss-1, ss-1); // top left
               }
               if (line_num == 2) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top, ss-1, ss-1); // top middle
