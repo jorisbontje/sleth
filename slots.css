@@ -22,7 +22,7 @@ body {
 }
 
 button {
-  font-size: 7pt;
+  font-size: 14pt;
 }
 
 #info {
@@ -31,11 +31,11 @@ button {
   left: 450px;
   width: 100px;
   text-align: left;
-  font-size: 9pt;
+  font-size: 18pt;
 }
 
 #credits {
-  font-size: 10pt;
+  font-size: 18pt;
 }
 
 #log {
