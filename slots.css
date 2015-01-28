@@ -1,63 +1,8 @@
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #ffffff;
-  font-family: arial, helvetica, sans-serif;
-}
-
-#wrap {
-  width: 600px;
-  height: 480px;
-  overflow: hidden;
+#game {
+  margin: auto;
 
   background-image: url("images/background.png");
   background-position: 0px 0px;
   background-repeat: no-repeat;
-  background-size: 400px 400px;
+  background-size: contain;
 }
-
-#game {
-  width: 400px;
-  text-align: center;
-}
-
-button {
-  font-size: 14pt;
-}
-
-#info {
-  position: absolute;
-  top: 20px;
-  left: 450px;
-  width: 100px;
-  text-align: left;
-  font-size: 18pt;
-}
-
-#credits {
-  font-size: 18pt;
-}
-
-#log {
-  color: #666666;
-}
-
-#paytable {
-  position: absolute;
-  top: 165px;
-  left: 450px;
-  font-size: 9pt;
-}
-
-#attribution {
-  text-align: right;
-  width: 280px;
-  font-size: 7pt;
-  color: #666666;
-  margin-top: 20px;
-}
-
-#attribution a {
-  color: #6666ff;
-}
-

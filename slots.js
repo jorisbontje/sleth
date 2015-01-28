@@ -23,6 +23,9 @@ var app = angular.module('slots', ['slots.config', 'slots.game', 'slots.reels'])
 
 app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', function($scope, $interval, config, game) {
 
+    $scope.canvasSize = 160 * config.reel_scale;
+    $scope.infoTop = 16 * config.reel_scale;
+
     //  sync with blockchain
     $scope.credits = config.starting_credits;
 
@@ -57,6 +60,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
 
       $scope.credits -= line_choice;
       game.spin(line_choice);
+      $scope.spinning = true;
       $scope.generateEntropy();
     };
 
@@ -73,6 +77,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
         }*/
         $scope.credits += reward.payout;
         $scope.reward = reward;
+        $scope.spinning = false;
     });
 
 }]);

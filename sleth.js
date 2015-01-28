@@ -30,6 +30,8 @@ app.factory('web3', function() {
 
 app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$scope', 'config', 'game', 'web3', function($http, $interval, $location, $q, $scope, config, game, web3) {
 
+    $scope.canvasSize = 160 * config.reel_scale;
+
     $scope.slethAddress = $location.search().address || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
     $scope.slethBalance = 0;
     $scope.defaultGas = web3.fromDecimal(10000);

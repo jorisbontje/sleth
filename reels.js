@@ -91,6 +91,7 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
 
             function highlight_line(line_num) {
               ctx.strokeStyle = "orange";
+              ctx.lineWidth = config.reel_scale;
               var ss = config.reel_scale*config.symbol_size;
 
               // top row
