@@ -3,7 +3,7 @@ data current_round
 data total_spins
 data total_coins_won
 
-data rounds[2^160](player, block, timestamp, bet, result, entropy, status)
+data rounds[2^160](player, block, timestamp, bet, result, entropy, rnd, status)
 data players[2^160](last_round, balance)
 
 # status:
@@ -51,22 +51,32 @@ def spin(bet):
     return(1)
 
 # funid=1
-def claim(round, entropy):
-    # XXX for testing purposes the entropy is provided to function call, instead it should be returned from the entropy contract
-
+def claim(round):
     if self.rounds[round].status != 1:
         return(90)  # invalid status
 
     if self.rounds[round].player != msg.sender:
         return(91)  # you can only claim your own rounds
 
-    if entropy == 0:
-        return(92) # invalid entropy
+    target_block = self.rounds[round].block
 
-    # set entropy
-    # XXX to be replaced with actual entropy contract call
+    if block.number <= target_block:
+        return(92)  # not yet ready
+
+    if block.number > target_block + 255:
+        return(93)  # out of range
+
+    # TODO also include account and round
+    entropy = blockhash(target_block)
+
+    if entropy == 0:
+        return(94) # invalid entropy
+
+    # set entropy and rnd
     self.rounds[round].entropy = entropy
     rnd = mod(entropy, REEL_POSITIONS * REEL_POSITIONS * REEL_POSITIONS)
+    self.rounds[round].rnd = rnd
+
     playing_lines = self.rounds[round].bet
 
     result = self.calc_reward(rnd, playing_lines)
@@ -95,7 +105,7 @@ def withdraw(amount):
 
 # funid=4
 def get_round(round):
-    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].status], 7)
+    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].rnd, self.rounds[round].status], 8)
 
 # funid=5
 def get_current_player():

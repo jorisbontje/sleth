@@ -70,13 +70,14 @@ class TestSlethContract(object):
         assert current_round == 1
         assert balance == 0
 
-        player, block, timestamp, bet, result, entropy, status = self.c.get_round(current_round)
+        player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(current_round)
         assert player == int(tester.a0, 16)
         assert block == 0
         assert timestamp == self.s.block.timestamp
         assert bet == 5
         assert result == 0
         assert entropy == 0
+        assert rnd == 0
         assert status == 1  # spinning
 
         assert self.c.get_stats() == [2, 1, 0]
@@ -144,59 +145,85 @@ class TestSlethContract(object):
 
     def test_claim_winning(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
+        self.s.mine(1)
         assert self.c.spin(5) == [1]
 
-        assert self.c.claim(1, 23888) == [1]
+        self.s.mine(1)
+        assert self.c.claim(1) == [1]
 
-        player, block, timestamp, bet, result, entropy, status = self.c.get_round(1)
+        player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
         assert bet == 5
-        assert result == 32
-        assert entropy == 23888
+        assert result == 25
+        assert entropy == 21247117214489229499127664727368756521312663676433866631611806496815512017794L
+        assert rnd == 23426
         assert status == 2  # done
 
         current_round, balance = self.c.get_current_player()
         assert current_round == 1
-        assert balance == 32
+        assert balance == 25
 
-        assert self.c.get_stats() == [2, 1, 32]
+        assert self.c.get_stats() == [2, 1, 25]
 
     def test_claim_losing(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
         assert self.c.spin(5) == [1]
 
-        assert self.c.claim(1, 1606) == [1]
+        self.s.mine(1)
+        assert self.c.claim(1) == [1]
 
-        player, block, timestamp, bet, result, entropy, status = self.c.get_round(1)
+        player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
         assert bet == 5
         assert result == 0
-        assert entropy == 1606
+        assert entropy == 123
+        assert rnd == 1606
         assert status == 2  # done
 
         current_round, balance = self.c.get_current_player()
         assert current_round == 1
         assert balance == 0
 
-    def test_claim_invalid_round(self):
-        assert self.c.claim(1, 1606) == [90]
+    def test_claim_invalid_status(self):
+        assert self.c.claim(1) == [90]
 
     def test_claim_invalid_round(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
         assert self.c.spin(5) == [1]
 
-        assert self.c.claim(1, 1606, sender=tester.k1) == [91]
+        assert self.c.claim(1, sender=tester.k1) == [91]
+
+    def test_claim_not_yet_ready(self):
+        assert self.c.deposit(value=5 * self.ETHER) == [1]
+        assert self.c.spin(5) == [1]
+
+        assert self.c.claim(1) == [92]
+
+    def test_claim_not_yet_ready(self):
+        assert self.c.deposit(value=5 * self.ETHER) == [1]
+        assert self.c.spin(5) == [1]
+
+        assert self.c.claim(1) == [92]
+
+    def test_claim_block_number_out_of_range(self):
+        assert self.c.deposit(value=5 * self.ETHER) == [1]
+        assert self.c.spin(5) == [1]
+
+        self.s.mine(256)
+        assert self.c.claim(1) == [93]
 
     def test_claim_invalid_entropy(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
         assert self.c.spin(5) == [1]
 
-        assert self.c.claim(1, 0) == [92]
+        self.s.mine(1)
+        assert self.c.claim(1) == [94]
 
     def test_withdraw_more_than_balance(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
         assert self.c.spin(5) == [1]
-        assert self.c.claim(1, 31888) == [1]
+        self.s.mine(1)
+        assert self.c.claim(1) == [1]
 
         current_round, balance = self.c.get_current_player()
         assert balance == 25
