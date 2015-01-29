@@ -67,6 +67,11 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
             $scope.slethBalance = web3.toDecimal(balance) / Math.pow(10, 18) || 0;
             $scope.$apply();
         });
+
+        web3.eth.number.then(function (number) {
+            $scope.blockNumber = number;
+            $scope.$apply();
+        });
     };
 
     $scope.updatePlayer = function() {
