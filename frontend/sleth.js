@@ -108,7 +108,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                     timestamp: new Date(res[2].toNumber() * 1000),
                     bet: res[3].toNumber(),
                     result: res[4].toNumber(),
-                    entropy: res[5].toNumber(),
+                    entropy: res[5],
                     rnd: res[6].toNumber(),
                     status: res[7].toNumber()
                 };
