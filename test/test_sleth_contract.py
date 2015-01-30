@@ -155,17 +155,19 @@ class TestSlethContract(object):
 
         player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
+        assert block == 1
         assert bet == 5
-        assert result == 25
-        assert entropy == 21247117214489229499127664727368756521312663676433866631611806496815512017794L
-        assert rnd == 23426
+        assert result == 2
+        assert entropy != 0
+        print result, entropy, rnd
+        assert rnd == 28569
         assert status == 2  # done
 
         current_round, balance = self.c.get_current_player()
         assert current_round == 1
-        assert balance == 25
+        assert balance == 2
 
-        assert self.c.get_stats() == [2, 1, 25]
+        assert self.c.get_stats() == [2, 1, 2]
 
     def test_claim_losing(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
@@ -178,8 +180,8 @@ class TestSlethContract(object):
         assert player == int(tester.a0, 16)
         assert bet == 5
         assert result == 0
-        assert entropy == -53669045882980737574605973067441324862018663655629087799958787665378161080178L
-        assert rnd == 18574
+        assert entropy != 0
+        assert rnd == 17995
         assert status == 2  # done
 
         current_round, balance = self.c.get_current_player()
@@ -214,6 +216,32 @@ class TestSlethContract(object):
         self.s.mine(256)
         assert self.c.claim(1) == [93]
 
+    def test_claim_has_unique_entropy(self):
+        assert self.c.deposit(value=5 * self.ETHER) == [1]
+        assert self.c.deposit(value=5 * self.ETHER, sender=tester.k1) == [1]
+        self.s.mine(1)
+        assert self.c.spin(5) == [1]
+        assert self.c.spin(5, sender=tester.k1) == [1]
+
+        current_round, balance = self.c.get_current_player()
+        assert current_round == 1
+        assert balance == 0
+
+        current_round, balance = self.c.get_current_player(sender=tester.k1)
+        assert current_round == 2
+        assert balance == 0
+
+        self.s.mine(1)
+        assert self.c.claim(1) == [1]
+        assert self.c.claim(2, sender=tester.k1) == [1]
+
+        player1, block1, timestamp1, bet1, result1, entropy1, rnd1, status1 = self.c.get_round(1)
+        player2, block2, timestamp2, bet2, result2, entropy2, rnd2, status2 = self.c.get_round(2)
+        assert player1 == int(tester.a0, 16)
+        assert player2 == int(tester.a1, 16)
+        assert entropy1 != entropy2
+        assert rnd1 != rnd2
+
     def test_withdraw_more_than_balance(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
         self.s.mine(1)
@@ -222,18 +250,17 @@ class TestSlethContract(object):
         self.s.mine(1)
         assert self.c.claim(1) == [1]
 
-        current_round, balance = self.c.get_current_player()
-        assert balance == 25
+        current_round, balance_before = self.c.get_current_player()
+        assert balance_before == 2
 
-        balance_before = self.s.block.get_balance(tester.a0)
+        ether_balance_before = self.s.block.get_balance(tester.a0)
         assert self.c.withdraw(25) == [0]
 
         # no withdraw should happen
-
         current_round, balance = self.c.get_current_player()
-        assert balance == 25
+        assert balance == balance_before
 
-        assert self.s.block.get_balance(tester.a0) == balance_before
+        assert self.s.block.get_balance(tester.a0) == ether_balance_before
 
     @slow
     def test_calc_reward_loop(self):

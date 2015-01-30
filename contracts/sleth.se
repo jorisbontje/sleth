@@ -66,8 +66,8 @@ def claim(round):
     if block.number > target_block + 255:
         return(93)  # out of range
 
-    # TODO also include account and round
-    entropy = blockhash(target_block)
+    # calculate entropy
+    entropy = sha3([blockhash(target_block), round], 2)
 
     if entropy == 0:
         return(94) # invalid entropy
