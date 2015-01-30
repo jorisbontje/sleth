@@ -70,6 +70,9 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
         web3.eth.number.then(function (number) {
             $scope.blockNumber = number;
+            if ($scope.canClaim($scope.round)) {
+                $scope.claim($scope.round);
+            }
             $scope.$apply();
         });
     };
@@ -106,7 +109,8 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                     bet: res[3].toNumber(),
                     result: res[4].toNumber(),
                     entropy: res[5].toNumber(),
-                    status: res[6].toNumber()
+                    rnd: res[6].toNumber(),
+                    status: res[7].toNumber()
                 };
 
                 var changed = !angular.equals(round, $scope.round);
@@ -114,10 +118,16 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
                 if (changed) {
                     console.log("ROUND", round);
-                    if (round.status == 1) {
-                        console.log("Trying to claim round #" + roundNumber);
-                        $scope.claim(roundNumber, $scope.entropy);
-                    } else if (round.status == 2) {
+
+                    if ($scope.canClaim($scope.round)) {
+                        $scope.claim($scope.round);
+                    }
+
+                    if (round.status == 1 && game.state == game.STATE_REST) {
+                        // make sure we are spinning again
+                        game.spin(round.bet);
+                    } else if (round.status == 2 && game.state != game.STATE_REST) {
+                        game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
                             message += round.result + " coins :)";
@@ -176,19 +186,19 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 $scope.updatePlayer();
                 $scope.updateStats();
             });
-
-            $scope.generateEntropy();
         }
     };
 
-    $scope.claim = function(round, entropy) {
-        if (game.state != game.STATE_SPINMAX && game.state != game.STATE_REST) return;
-        if (round) {
-            game.set_stops(entropy);
+    $scope.canClaim = function(round) {
+        return round.status == 1 && $scope.blockNumber > round.block;
+    };
+
+    $scope.claim = function(round) {
+        if (round.number) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.claim(round, entropy).transact({gas: $scope.defaultGas}));
+                return(contract.claim(round.number).transact({gas: $scope.defaultGas}));
             }).then(function(res) {
-                $scope.logMessage("Claiming round #" + round + "...");
+                $scope.logMessage("Claiming round #" + round.number + "...");
                 $scope.updatePlayer();
                 $scope.updateStats();
                 $scope.updateRound();
@@ -209,10 +219,6 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.handleKey = function(e) {
         if (e.which == 32) { // spacebar
-            if (game.state == game.STATE_SPINMAX) {
-                $scope.claim($scope.player.round, $scope.entropy);
-                return;
-            }
             if (game.state != game.STATE_REST) return;
 
             if ($scope.player.coins >= 5) {
@@ -223,10 +229,6 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 $scope.spin(1);
             }
         }
-    };
-
-    $scope.generateEntropy = function() {
-        $scope.entropy = Math.floor(Math.random() * Math.pow(32, 3));
     };
 
     $scope.clearMessages = function() {
@@ -250,6 +252,5 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.updateChain();
     $scope.updatePlayer();
-    $scope.generateEntropy();
     $scope.updateStats();
 }]);

@@ -19,10 +19,6 @@
         <button type="button" ng-click="spin(1)" ng-disabled="player.coins < 1 || round.status == 1">1 Line</button>
         <button type="button" ng-click="spin(3)" ng-disabled="player.coins < 3 || round.status == 1">3 Lines</button>
         <button type="button" ng-click="spin(5)" ng-disabled="player.coins < 5 || round.status == 1">5 Lines</button><br/>
-
-        <button type="button" ng-click="claim(player.round, entropy)" ng-disabled="round.status != 1">claim #{{player.round}}</button>
-        entropy
-        <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
       </div>
 
       <div id="info">
@@ -67,6 +63,7 @@
         <div>Bet: {{round.bet}}</div>
         <div ng-if="round.status == 2">Result: {{round.result}}</div>
         <div ng-if="round.status == 2">Entropy: {{round.entropy}}</div>
+        <div ng-if="round.status == 2">RND: {{round.rnd}}</div>
         <div>Status:
             <span ng-switch on="round.status">
                 <span ng-switch-when="0">new</span>

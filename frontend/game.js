@@ -271,7 +271,6 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
       // if reels finished moving, begin rewards
       if (reel_speed[config.reel_count-1] === 0) {
-
         var reward = game.calc_reward(game.playing_lines, result);
         game.reward = reward;
         game.state = game.STATE_REST;
