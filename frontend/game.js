@@ -230,6 +230,16 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       game.state = game.STATE_SPINDOWN;
     };
 
+    game.reinit = function(line_choice) {
+      for (var i=0; i<config.reel_count; i++) {
+        reel_speed[i] = config.max_reel_speed;
+      }
+      game.playing_lines = line_choice;
+      game.reward.payout = 0;
+      game.reward.partial_payouts = {};
+      game.state = game.STATE_SPINMAX;
+    };
+
     function move_reel(i) {
       game.reel_position[i] -= reel_speed[i];
 
@@ -253,7 +263,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       }
 
       // if reels at max speed, begin spindown
-      if (reel_speed[0] == config.max_reel_speed) {
+      if (reel_speed[0] >= config.max_reel_speed) {
         game.state = game.STATE_SPINMAX;
       }
     }

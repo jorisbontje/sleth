@@ -119,14 +119,12 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 if (changed) {
                     console.log("ROUND", round);
 
-                    if ($scope.canClaim($scope.round)) {
-                        $scope.claim($scope.round);
-                    }
-
                     if (round.status == 1 && game.state == game.STATE_REST) {
-                        // make sure we are spinning again
-                        game.spin(round.bet);
-                    } else if (round.status == 2 && game.state != game.STATE_REST) {
+                        // TODO make sure we are spinning again
+                        //console.log("reinit");
+                        //game.reinit(round.bet);
+                       game.spin(round.bet);
+                    } else if (round.status == 2) {
                         game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
@@ -135,6 +133,10 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                             message += "nothing :(";
                         }
                         $scope.logMessage(message);
+                    }
+
+                    if ($scope.canClaim($scope.round)) {
+                        $scope.claim($scope.round);
                     }
                 }
             });
