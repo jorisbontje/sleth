@@ -15,9 +15,11 @@ class TestSlethContract(object):
         cls.s = tester.state()
         cls.c = cls.s.abi_contract(cls.CONTRACT)
         cls.snapshot = cls.s.snapshot()
+        cls.seed = tester.seed
 
     def setup_method(self, method):
         self.s.revert(self.snapshot)
+        tester.seed = self.seed
 
     def profile_calc_reward(self, rnd, lines):
         return self.s.profile(tester.k0, self.c.address, 0, funid=8, abi=[rnd, lines])
@@ -176,8 +178,8 @@ class TestSlethContract(object):
         assert player == int(tester.a0, 16)
         assert bet == 5
         assert result == 0
-        assert entropy == 123
-        assert rnd == 1606
+        assert entropy == -53669045882980737574605973067441324862018663655629087799958787665378161080178L
+        assert rnd == 18574
         assert status == 2  # done
 
         current_round, balance = self.c.get_current_player()
@@ -212,16 +214,11 @@ class TestSlethContract(object):
         self.s.mine(256)
         assert self.c.claim(1) == [93]
 
-    def test_claim_invalid_entropy(self):
-        assert self.c.deposit(value=5 * self.ETHER) == [1]
-        assert self.c.spin(5) == [1]
-
-        self.s.mine(1)
-        assert self.c.claim(1) == [94]
-
     def test_withdraw_more_than_balance(self):
         assert self.c.deposit(value=5 * self.ETHER) == [1]
+        self.s.mine(1)
         assert self.c.spin(5) == [1]
+
         self.s.mine(1)
         assert self.c.claim(1) == [1]
 
