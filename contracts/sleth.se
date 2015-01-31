@@ -4,7 +4,7 @@ data total_spins
 data total_coins_won
 
 data rounds[2^160](player, block, timestamp, bet, result, entropy, rnd, status)
-data players[2^160](last_round, balance)
+data players[2^160](last_round)
 
 # status:
 # 0 = new
@@ -33,10 +33,8 @@ def spin(bet):
     if bet != 1 and bet != 3 and bet != 5:
         return(0)  # invalid number of lines
 
-    if bet > self.players[msg.sender].balance:
-        return(0)  # insufficient funds
-
-    self.players[msg.sender].balance -= bet
+    if msg.value / ETHER != bet:
+        return(0)  # value doesn't match bet
 
     current_round = self.current_round
     self.rounds[current_round].player = msg.sender
@@ -85,37 +83,23 @@ def claim(round):
 
     if result > 0:
         self.total_coins_won += result
-        self.players[msg.sender].balance += result
+        send(msg.sender, result * ETHER)
 
     return(1)
 
 # funid=2
-def deposit():
-    self.players[msg.sender].balance += msg.value / ETHER
-    return(1)
-
-# funid=3
-def withdraw(amount):
-    ether_amount = amount * ETHER
-    if amount <= self.players[msg.sender].balance and ether_amount <= self.balance:
-        self.players[msg.sender].balance -= amount
-        send(msg.sender, ether_amount)
-        return(1)
-    return(0)
-
-# funid=4
 def get_round(round):
     return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].rnd, self.rounds[round].status], 8)
 
-# funid=5
-def get_current_player():
-    return([self.players[msg.sender].last_round, self.players[msg.sender].balance], 2)
+# funid=3
+def get_current_round():
+    return(self.players[msg.sender].last_round)
 
-# funid=6
+# funid=4
 def get_stats():
     return([self.current_round, self.total_spins, self.total_coins_won], 3)
 
-# funid=7
+# funid=5
 def calc_line(s1, s2, s3):
     match_payout = array(11)
     match_payout[7] = 4  # 3Down
@@ -193,7 +177,7 @@ def calc_line(s1, s2, s3):
     # no reward
     return(0)
 
-# funid=8
+# funid=6
 def get_stops(rnd):
     stops = array(REEL_COUNT)
     i = 0
@@ -203,7 +187,7 @@ def get_stops(rnd):
         i += 1
     return(stops, REEL_COUNT)
 
-# funid=9
+# funid=7
 def calc_reward(rnd, playing_lines):
     result_0 = array(ROW_COUNT)
     result_1 = array(ROW_COUNT)
@@ -238,7 +222,7 @@ def calc_reward(rnd, playing_lines):
 
     return(payout)
 
-# funid=10
+# funid=8
 def suicide():
     if msg.sender == self.owner:
         suicide(msg.sender)
