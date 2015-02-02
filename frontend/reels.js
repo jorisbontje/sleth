@@ -21,7 +21,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots.reels', []);
 
-app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, config, game) {
+app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($interval, $q, config, game) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -82,7 +82,8 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
                 }
               }
             }
-                        // render all art needed in the current frame
+
+            // render all art needed in the current frame
             function render() {
               if (game.state == game.STATE_SPINUP || game.state == game.STATE_SPINMAX || game.state == game.STATE_SPINDOWN) {
                 render_reel();
@@ -136,19 +137,18 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
                 render();
             }, 1000 / config.FPS);
 
-            scope.init = function() {
-              symbols.onload = function() {
-                symbols_loaded = true;
-                if (symbols_loaded && reels_bg_loaded) render_reel();
-              };
+            var symbolsDefer = $q.defer();
+            var reelsBgDefer = $q.defer();
 
-              reels_bg.onload = function() {
-                reels_bg_loaded = true;
-                if (symbols_loaded && reels_bg_loaded) render_reel();
-              };
+            symbols.onload = function() {
+                symbolsDefer.resolve(symbols);
             };
 
-            scope.init();
+            reels_bg.onload = function() {
+                reelsBgDefer.resolve(reels_bg);
+            };
+
+            $q.all([symbolsDefer, reelsBgDefer.promise]).then(render_reel);
         }
     };
 }]);
