@@ -45,15 +45,6 @@
         <div>Block Number: {{blockNumber}}</div>
     </div>
 
-    <div>
-        <button ng-click="deposit(depositAmount)" ng-disabled="depositAmount == 0 || depositAmount > player.balance">deposit</button>
-        <input type="number" ng-model="depositAmount" integer min="0"></input> coins
-    </div>
-    <div>
-        <button ng-click="withdraw(withdrawAmount)" ng-disabled="withdrawAmount == 0 || withdrawAmount > player.coins">withdraw</button>
-        <input type="number" ng-model="withdrawAmount" integer min="0"></input> coins
-    </div>
-
     <hr />
     <div>
         <h3>Last Round #{{round.number}}</h3>

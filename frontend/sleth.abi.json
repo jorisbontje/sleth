@@ -15,19 +15,6 @@
     }],
     "outputs": []
 }, {
-    "name": "deposit",
-    "constant": false,
-    "inputs": [],
-    "outputs": []
-}, {
-    "name": "withdraw",
-    "constant": false,
-    "inputs": [{
-        "name": "amount",
-        "type": "uint256"
-    }],
-    "outputs": []
-}, {
     "name": "get_round",
     "constant": true,
     "inputs": [{
@@ -60,14 +47,11 @@
         "type": "uint256"
     }]
 }, {
-    "name": "get_current_player",
+    "name": "get_current_round",
     "constant": true,
     "inputs": [],
     "outputs": [{
         "name": "last_round",
-        "type": "uint256"
-    }, {
-        "name": "balance",
         "type": "uint256"
     }]
 }, {

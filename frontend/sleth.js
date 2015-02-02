@@ -23,8 +23,7 @@ var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels']);
 
 app.factory('web3', function() {
     var web3 = require('web3');
-    web3.setProvider(new web3.providers.AutoProvider());
-    //web3.setProvider(new web3.providers.HttpRpcProvider("http://poc-8.ethdev.com:8080/"));
+    web3.setProvider(new web3.providers.HttpRpcProvider("http://localhost:8080/"));
     return web3;
 });
 
@@ -42,9 +41,6 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     $scope.round = {};
     $scope.messages = [];
 
-    $scope.depositAmount = 0;
-    $scope.withdrawAmount = 0;
-
     $interval(function() {
         game.logic();
     }, 1000 / config.FPS);
@@ -60,6 +56,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
             return(web3.eth.balanceAt(accounts[0]));
         }).then(function (balance) {
             $scope.player.balance = web3.toDecimal(balance) / Math.pow(10, 18) || 0;
+            $scope.player.coins = Math.floor($scope.player.balance);
             $scope.$apply();
         });
 
@@ -79,10 +76,9 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.updatePlayer = function() {
         $scope.contract.promise.then(function(contract) {
-            return(contract.get_current_player().call());
+            return(contract.get_current_round().call());
         }).then(function(res) {
             $scope.player.round = res[0].toNumber();
-            $scope.player.coins = res[1].toNumber();
         });
     };
 
@@ -143,46 +139,18 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
         }
     };
 
-    $scope.deposit = function(amount) {
-        console.log("DEPOSIT", amount);
-        if (amount) {
-            var value = web3.fromDecimal(amount * Math.pow(10, 18));
-
-            $scope.contract.promise.then(function(contract) {
-                return(contract.deposit().transact({gas: $scope.defaultGas, value: value}));
-            }).then(function(res) {
-                $scope.logMessage("Deposited " + amount + " coins");
-                $scope.updateChain();
-                $scope.updatePlayer();
-                $scope.updateStats();
-            });
-        }
-    };
-
-    $scope.withdraw = function(amount) {
-        console.log("WITHDRAW", amount);
-
-        if (amount) {
-            $scope.contract.promise.then(function(contract) {
-                return(contract.withdraw(amount).transact({gas: $scope.defaultGas}));
-            }).then(function(res) {
-                $scope.logMessage("Withdrawn " + amount + " coins");
-                $scope.updateChain();
-                $scope.updatePlayer();
-                $scope.updateStats();
-            });
-        }
-    };
-
     $scope.spin = function(bet) {
         if (bet) {
             if (game.state != game.STATE_REST) return;
             if ($scope.player.coins < bet) return;
 
             $scope.clearMessages();
+
+            var value = web3.fromDecimal(bet * Math.pow(10, 18));
             $scope.contract.promise.then(function(contract) {
-                return(contract.spin(bet).transact({gas: $scope.defaultGas}));
+                return(contract.spin(bet).transact({gas: $scope.defaultGas, value: value}));
             }).then(function(res) {
+                $scope.player.coins -= bet;
                 game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
                 $scope.updatePlayer();
