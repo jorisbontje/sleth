@@ -78,65 +78,65 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     // given an input line of symbols, determine the payout
     game.calc_line = function(s1, s2, s3) {
       // perfect match
-      if (s1 == s2 && s2 == s3) {
+      if (s1 === s2 && s2 === s3) {
         return match_payout[s1];
       }
 
       // special case #1: triple ups
-      if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-          (s2 == 1 || s2 == 2 || s2 == 3) &&
-          (s3 == 1 || s3 == 2 || s3 == 3)) {
+      if ((s1 === 1 || s1 === 2 || s1 === 3) &&
+          (s2 === 1 || s2 === 2 || s2 === 3) &&
+          (s3 === 1 || s3 === 2 || s3 === 3)) {
         return payout_ups;
       }
 
       // special case #2: triple down
-      if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-          (s2 == 5 || s2 == 6 || s2 == 7) &&
-          (s3 == 5 || s3 == 6 || s3 == 7)) {
+      if ((s1 === 5 || s1 === 6 || s1 === 7) &&
+          (s2 === 5 || s2 === 6 || s2 === 7) &&
+          (s3 === 5 || s3 === 6 || s3 === 7)) {
         return payout_downs;
       }
 
       // special case #3: bacon goes with everything
-      if (s1 == 9) {
-        if (s2 == s3) return match_payout[s2];
+      if (s1 === 9) {
+        if (s2 === s3) return match_payout[s2];
 
         // wildcard trip ups
-        if ((s2 == 1 || s2 == 2 || s2 == 3) &&
-            (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
+        if ((s2 === 1 || s2 === 2 || s2 === 3) &&
+            (s3 === 1 || s3 === 2 || s3 === 3)) return payout_ups;
 
         // wildcard trip downs
-        if ((s2 == 5 || s2 == 6 || s2 == 7) &&
-            (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
+        if ((s2 === 5 || s2 === 6 || s2 === 7) &&
+            (s3 === 5 || s3 === 6 || s3 === 7)) return payout_downs;
 
       }
-      if (s2 == 9) {
-        if (s1 == s3) return match_payout[s1];
+      if (s2 === 9) {
+        if (s1 === s3) return match_payout[s1];
 
         // wildcard trip ups
-        if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-            (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
+        if ((s1 === 1 || s1 === 2 || s1 === 3) &&
+            (s3 === 1 || s3 === 2 || s3 === 3)) return payout_ups;
 
         // wildcard trip downs
-        if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-            (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
+        if ((s1 === 5 || s1 === 6 || s1 === 7) &&
+            (s3 === 5 || s3 === 6 || s3 === 7)) return payout_downs;
 
       }
-      if (s3 == 9) {
-        if (s1 == s2) return match_payout[s1];
+      if (s3 === 9) {
+        if (s1 === s2) return match_payout[s1];
 
         // wildcard trip ups
-        if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-            (s2 == 1 || s2 == 2 || s2 == 3)) return payout_ups;
+        if ((s1 === 1 || s1 === 2 || s1 === 3) &&
+            (s2 === 1 || s2 === 2 || s2 === 3)) return payout_ups;
 
         // wildcard trip downs
-        if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-            (s2 == 5 || s2 == 6 || s2 == 7)) return payout_downs;
+        if ((s1 === 5 || s1 === 6 || s1 === 7) &&
+            (s2 === 5 || s2 === 6 || s2 === 7)) return payout_downs;
       }
 
       // check double-bacon
-      if (s2 == 9 && s3 == 9) return match_payout[s1];
-      if (s1 == 9 && s3 == 9) return match_payout[s2];
-      if (s1 == 9 && s2 == 9) return match_payout[s3];
+      if (s2 === 9 && s3 === 9) return match_payout[s1];
+      if (s1 === 9 && s3 === 9) return match_payout[s2];
+      if (s1 === 9 && s2 === 9) return match_payout[s3];
 
       // no reward
       return 0;
@@ -304,7 +304,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
           if (check_position) {
 
-            if (game.reel_position[i] == stopping_position[i]) {
+            if (game.reel_position[i] === stopping_position[i]) {
               start_slowing[i] = true;
             }
           }
@@ -329,13 +329,13 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       // SPINMAX TO SPINDOWN happens on an input event
       // REST to SPINUP happens on an input event
 
-      if (game.state == game.STATE_SPINUP) {
+      if (game.state === game.STATE_SPINUP) {
         logic_spinup();
       }
-      else if (game.state == game.STATE_SPINMAX) {
+      else if (game.state === game.STATE_SPINMAX) {
         logic_spinmax();
       }
-      else if (game.state == game.STATE_SPINDOWN) {
+      else if (game.state === game.STATE_SPINDOWN) {
         logic_spindown();
       }
     };

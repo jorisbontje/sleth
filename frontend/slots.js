@@ -40,12 +40,12 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
     //---- Input Functions ---------------------------------------------
 
     $scope.handleKey = function(evt) {
-      if (evt.keyCode == 32) { // spacebar
-        if (game.state == game.STATE_SPINMAX) {
+      if (evt.keyCode === 32) { // spacebar
+        if (game.state === game.STATE_SPINMAX) {
             $scope.stop();
             return;
         }
-        if (game.state != game.STATE_REST) return;
+        if (game.state !== game.STATE_REST) return;
 
         if ($scope.credits >= 5) $scope.spin(5);
         else if ($scope.credits >= 3) $scope.spin(3);
@@ -55,7 +55,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
     };
 
     $scope.spin = function(line_choice) {
-      if (game.state != game.STATE_REST) return;
+      if (game.state !== game.STATE_REST) return;
       if ($scope.credits < line_choice) return;
 
       $scope.credits -= line_choice;
@@ -65,7 +65,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
     };
 
     $scope.stop = function() {
-        if (game.state != game.STATE_SPINMAX) return;
+        if (game.state !== game.STATE_SPINMAX) return;
 
         // calculate the final results now, so that spindown is ready
         game.set_stops($scope.entropy);

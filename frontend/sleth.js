@@ -115,12 +115,12 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 if (changed) {
                     console.log("ROUND", round);
 
-                    if (round.status == 1 && game.state == game.STATE_REST) {
+                    if (round.status === 1 && game.state === game.STATE_REST) {
                         // TODO make sure we are spinning again
                         //console.log("reinit");
                         //game.reinit(round.bet);
                        game.spin(round.bet);
-                    } else if (round.status == 2) {
+                    } else if (round.status === 2) {
                         game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
@@ -141,7 +141,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.spin = function(bet) {
         if (bet) {
-            if (game.state != game.STATE_REST) return;
+            if (game.state !== game.STATE_REST) return;
             if ($scope.player.coins < bet) return;
 
             $scope.clearMessages();
@@ -160,7 +160,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     };
 
     $scope.canClaim = function(round) {
-        return round.status == 1 && $scope.blockNumber > round.block;
+        return round.status === 1 && ($scope.blockNumber > round.block);
     };
 
     $scope.claim = function(round) {
@@ -179,7 +179,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     $scope.$on('slots:reward', function(evt, reward) {
         $scope.reward = reward;
         // check if the locally calculated reward matches with the contract results
-        $scope.reward.verified = (reward.payout == $scope.round.result);
+        $scope.reward.verified = (reward.payout === $scope.round.result);
         if ($scope.reward.verified) {
             $scope.logMessage("Reward verified");
         } else {
@@ -188,8 +188,8 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     });
 
     $scope.handleKey = function(e) {
-        if (e.which == 32) { // spacebar
-            if (game.state != game.STATE_REST) return;
+        if (e.which === 32) { // spacebar
+            if (game.state !== game.STATE_REST) return;
 
             if ($scope.player.coins >= 5) {
                 $scope.spin(5);

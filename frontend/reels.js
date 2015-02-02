@@ -85,7 +85,7 @@ app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($inte
 
             // render all art needed in the current frame
             function render() {
-              if (game.state == game.STATE_SPINUP || game.state == game.STATE_SPINMAX || game.state == game.STATE_SPINDOWN) {
+              if (game.state === game.STATE_SPINUP || game.state === game.STATE_SPINMAX || game.state === game.STATE_SPINDOWN) {
                 render_reel();
               }
             }
@@ -96,35 +96,35 @@ app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($inte
               var ss = config.reel_scale*config.symbol_size;
 
               // top row
-              if (line_num == 2 || line_num == 4) {
+              if (line_num === 2 || line_num === 4) {
                 ctx.strokeRect(reel_area_left+1, reel_area_top+1, ss-1, ss-1); // top left
               }
-              if (line_num == 2) {
+              if (line_num === 2) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top+1, ss-1, ss-1); // top middle
               }
-              if (line_num == 2 || line_num == 5) {
+              if (line_num === 2 || line_num === 5) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top+1, ss-1, ss-1); // top right
               }
 
               // middle row
-              if (line_num == 1) {
+              if (line_num === 1) {
                 ctx.strokeRect(reel_area_left+1, reel_area_top + ss, ss-1, ss-1); // top left
               }
-              if (line_num == 1 || line_num == 4 || line_num == 5) {
+              if (line_num === 1 || line_num === 4 || line_num === 5) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top + ss, ss-1, ss-1); // top middle
               }
-              if (line_num == 1) {
+              if (line_num === 1) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top + ss, ss-1, ss-1); // top right
               }
 
               // bottom row
-              if (line_num == 3 || line_num == 5) {
+              if (line_num === 3 || line_num === 5) {
                 ctx.strokeRect(reel_area_left+1, reel_area_top + ss + ss, ss-1, ss-1); // top left
               }
-              if (line_num == 3) {
+              if (line_num === 3) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top + ss + ss, ss-1, ss-1); // top middle
               }
-              if (line_num == 3 || line_num == 4) {
+              if (line_num === 3 || line_num === 4) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top + ss + ss, ss-1, ss-1); // top right
               }
             }
