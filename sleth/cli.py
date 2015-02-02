@@ -12,57 +12,30 @@ CONTRACT_GAS = 55000
 
 ETHER = 10 ** 18
 
-def cmd_test(args):
-    instance = api.Api()
-
-    contract = compile(open(CONTRACT_FILE).read()).encode('hex')
-    contract_address = instance.create(contract, gas=CONTRACT_GAS)
-    print "Contract will be available at %s" % contract_address
-
-    if args.wait:
-        instance.wait_for_next_block(verbose=True)
-
-    assert instance.is_contract_at(contract_address)
-
-    instance.transact(contract_address, funid=2, data=[], value=10)
-
-    result = instance.call(contract_address, funid=5, data=[])
-    pprint(result)
-
-    instance.transact(contract_address, funid=3, data=[5])
-
-    result = instance.call(contract_address, funid=5, data=[])
-    pprint(result)
+FUN_SPIN = 0
+FUN_CLAIM = 1
+FUN_GET_ROUND = 2
+FUN_GET_CURRENT_ROUND = 3
+FUN_GET_STATS = 4
+FUN_SUICIDE = 8
 
 def cmd_spin(args):
     print "Spinning the slots with bet", args.bet
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=0, data=[int(args.bet)])
+    instance.transact(args.contract, funid=FUN_SPIN, data=[int(args.bet)], value=int(args.bet) * ETHER)
 
 def cmd_claim(args):
-    print "Claiming round ", args.round, "with entropy", args.entropy
+    print "Claiming round ", args.round
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=1, data=[int(args.round), int(args.entropy)])
-
-def cmd_deposit(args):
-    print "Depositing", args.amount, "ether"
-    instance = api.Api()
-    assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=2, data=[], value=int(args.amount) * ETHER)
-
-def cmd_withdraw(args):
-    print "Withdrawing", args.amount, "ether"
-    instance = api.Api()
-    assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=3, data=[int(args.amount)])
+    instance.transact(args.contract, funid=FUN_CLAIM, data=[int(args.round)])
 
 def cmd_get_round(args):
     print "Getting information about round", args.round
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, funid=4, data=[int(args.round)])
+    result = instance.call(args.contract, funid=FUN_GET_ROUND, data=[int(args.round)])
     player, block, timestamp, bet, result, entropy, status = result
     print "Player:", hex(player)
     print "Block:", block
@@ -72,20 +45,18 @@ def cmd_get_round(args):
     print "Entropy:", entropy
     print "Status:", status
 
-def cmd_get_current_player(args):
-    print "Getting information about the current player"
+def cmd_get_current_round(args):
+    print "Getting information about the current player round"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, funid=5, data=[])
-    current_round, balance = result
-    print "Current round:", current_round
-    print "Balance:", balance, "ether"
+    result = instance.call(args.contract, funid=FUN_GET_CURRENT_ROUND, data=[])
+    print "Current round:", result[0]
 
 def cmd_get_stats(args):
     print "Getting statistics"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, funid=6, data=[])
+    result = instance.call(args.contract, funid=FUN_GET_STATS, data=[])
     current_round, total_spins, total_coins_won = result
     print "Current round:", current_round
     print "Total spins:", total_spins
@@ -95,7 +66,7 @@ def cmd_suicide(args):
     print "Killing the contract"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=10, data=[])
+    instance.transact(args.contract, funid=FUN_SUICIDE, data=[])
 
 def cmd_create(args):
     instance = api.Api()
@@ -110,6 +81,9 @@ def cmd_inspect(args):
     instance = api.Api()
     result = instance.is_contract_at(args.contract)
     print "Is contract?", result
+
+    result = instance.balance_at(args.contract)
+    print "Balance", result
 
     result = instance.storage_at(args.contract)
     pprint(result)
@@ -170,26 +144,15 @@ def main():
     parser_claim.set_defaults(func=cmd_claim)
     parser_claim.add_argument('contract', help='sleth contract address')
     parser_claim.add_argument('round', help='round number to claim')
-    parser_claim.add_argument('entropy', help='your random number')  # XXX for testing purposes only
-
-    parser_deposit = subparsers.add_parser('deposit', help='make a deposit')
-    parser_deposit.set_defaults(func=cmd_deposit)
-    parser_deposit.add_argument('contract', help='sleth contract address')
-    parser_deposit.add_argument('amount', help='amount to deposit')
-
-    parser_withdraw = subparsers.add_parser('withdraw', help='make a withdraw')
-    parser_withdraw.set_defaults(func=cmd_withdraw)
-    parser_withdraw.add_argument('contract', help='sleth contract address')
-    parser_withdraw.add_argument('amount', help='amount to withdraw')
 
     parser_get_round = subparsers.add_parser('get_round', help='get round information')
     parser_get_round.set_defaults(func=cmd_get_round)
     parser_get_round.add_argument('contract', help='sleth contract address')
     parser_get_round.add_argument('round', help='round number')
 
-    parser_get_current_player = subparsers.add_parser('get_current_player', help='get current player information')
-    parser_get_current_player.set_defaults(func=cmd_get_current_player)
-    parser_get_current_player.add_argument('contract', help='sleth contract address')
+    parser_get_current_round = subparsers.add_parser('get_current_round', help='get current round')
+    parser_get_current_round.set_defaults(func=cmd_get_current_round)
+    parser_get_current_round.add_argument('contract', help='sleth contract address')
 
     parser_get_stats = subparsers.add_parser('get_stats', help='get contract statistics')
     parser_get_stats.set_defaults(func=cmd_get_stats)
@@ -198,10 +161,6 @@ def main():
     parser_suicide = subparsers.add_parser('suicide', help='kills the contract')
     parser_suicide.set_defaults(func=cmd_suicide)
     parser_suicide.add_argument('contract', help='sleth contract address')
-
-    parser_test = subparsers.add_parser('test', help='test simple contract')
-    parser_test.set_defaults(func=cmd_test)
-    parser_test.add_argument('--wait', action='store_true', help='wait for block to be mined')
 
     args = parser.parse_args()
     args.func(args)
