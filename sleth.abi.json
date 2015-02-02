@@ -12,22 +12,6 @@
     "inputs": [{
         "name": "round",
         "type": "uint256"
-    }, {
-        "name": "entropy",
-        "type": "uint256"
-    }],
-    "outputs": []
-}, {
-    "name": "deposit",
-    "constant": false,
-    "inputs": [],
-    "outputs": []
-}, {
-    "name": "withdraw",
-    "constant": false,
-    "inputs": [{
-        "name": "amount",
-        "type": "uint256"
     }],
     "outputs": []
 }, {
@@ -54,20 +38,20 @@
         "type": "uint256"
     }, {
         "name": "entropy",
+        "type": "hash"
+    }, {
+        "name": "rnd",
         "type": "uint256"
     }, {
         "name": "status",
         "type": "uint256"
     }]
 }, {
-    "name": "get_current_player",
+    "name": "get_current_round",
     "constant": true,
     "inputs": [],
     "outputs": [{
         "name": "last_round",
-        "type": "uint256"
-    }, {
-        "name": "balance",
         "type": "uint256"
     }]
 }, {
@@ -82,20 +66,6 @@
         "type": "uint256"
     }, {
         "name": "total_coins_won",
-        "type": "uint256"
-    }]
-}, {
-    "name": "calc_reward",
-    "constant": true,
-    "inputs": [{
-        "name": "rnd",
-        "type": "uint256"
-    }, {
-        "name": "playing_lines",
-        "type": "uint256"
-    }],
-    "outputs": [{
-        "name": "payout",
         "type": "uint256"
     }]
 }]
