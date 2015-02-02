@@ -1,7 +1,7 @@
 #game {
     margin: auto;
 
-    background-image: url("images/background.png");
+    background-image: url("../images/background.png");
     background-position: 0px 0px;
     background-repeat: no-repeat;
     background-size: contain;
