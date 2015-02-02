@@ -21,7 +21,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots.reels', []);
 
-app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($interval, $q, config, game) {
+app.directive('slotsReels', ['$q', 'config', 'game', function($q, config, game) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -88,6 +88,7 @@ app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($inte
               if (game.state === game.STATE_SPINUP || game.state === game.STATE_SPINMAX || game.state === game.STATE_SPINDOWN) {
                 render_reel();
               }
+              requestAnimFrame(render);
             }
 
             function highlight_line(line_num) {
@@ -133,10 +134,6 @@ app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($inte
                 reward.highlights.forEach(highlight_line);
             });
 
-            $interval(function() {
-                render();
-            }, 1000 / config.FPS);
-
             var symbolsDefer = $q.defer();
             var reelsBgDefer = $q.defer();
 
@@ -149,6 +146,19 @@ app.directive('slotsReels', ['$interval', '$q', 'config', 'game', function($inte
             };
 
             $q.all([symbolsDefer, reelsBgDefer.promise]).then(render_reel);
+
+            var requestAnimFrame = (function() {
+                return window.requestAnimationFrame ||
+                       window.webkitRequestAnimationFrame ||
+                       window.mozRequestAnimationFrame ||
+                       window.oRequestAnimationFrame ||
+                       window.msRequestAnimationFrame ||
+                       function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+                           window.setTimeout(callback, 1000/60);
+                       };
+            })();
+
+            requestAnimFrame(render);
         }
     };
 }]);
