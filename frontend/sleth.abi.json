@@ -1,14 +1,14 @@
 [{
-    "name": "spin",
-    "constant": false,
+    "name": "spin(uint256)",
+    "type": "function",
     "inputs": [{
         "name": "bet",
         "type": "uint256"
     }],
     "outputs": []
 }, {
-    "name": "claim",
-    "constant": false,
+    "name": "claim(uint256)",
+    "type": "function",
     "inputs": [{
         "name": "round",
         "type": "uint256"
@@ -16,7 +16,7 @@
     "outputs": []
 }, {
     "name": "get_round",
-    "constant": true,
+    "type": "function",
     "inputs": [{
         "name": "round",
         "type": "uint256"
@@ -47,16 +47,16 @@
         "type": "uint256"
     }]
 }, {
-    "name": "get_current_round",
-    "constant": true,
+    "name": "get_current_round()",
+    "type": "function",
     "inputs": [],
     "outputs": [{
         "name": "last_round",
         "type": "uint256"
     }]
 }, {
-    "name": "get_stats",
-    "constant": true,
+    "name": "get_stats()",
+    "type": "function",
     "inputs": [],
     "outputs": [{
         "name": "current_round",

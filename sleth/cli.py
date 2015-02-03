@@ -12,51 +12,45 @@ CONTRACT_GAS = 55000
 
 ETHER = 10 ** 18
 
-FUN_SPIN = 0
-FUN_CLAIM = 1
-FUN_GET_ROUND = 2
-FUN_GET_CURRENT_ROUND = 3
-FUN_GET_STATS = 4
-FUN_SUICIDE = 8
-
 def cmd_spin(args):
     print "Spinning the slots with bet", args.bet
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=FUN_SPIN, data=[int(args.bet)], value=int(args.bet) * ETHER)
+    instance.transact(args.contract, fun_name='spin', sig='i', data=[int(args.bet)], value=int(args.bet) * ETHER)
 
 def cmd_claim(args):
     print "Claiming round ", args.round
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=FUN_CLAIM, data=[int(args.round)])
+    instance.transact(args.contract, fun_name='claim', sig='i', data=[int(args.round)])
 
 def cmd_get_round(args):
     print "Getting information about round", args.round
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, funid=FUN_GET_ROUND, data=[int(args.round)])
-    player, block, timestamp, bet, result, entropy, status = result
+    result = instance.call(args.contract, fun_name='get_round', sig='i', data=[int(args.round)])
+    player, block, timestamp, bet, result, entropy, rnd, status = result
     print "Player:", hex(player)
     print "Block:", block
     print "Timestamp:", timestamp
     print "Bet:", bet
     print "Result:", result
     print "Entropy:", entropy
+    print "RND:", rnd
     print "Status:", status
 
 def cmd_get_current_round(args):
     print "Getting information about the current player round"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, funid=FUN_GET_CURRENT_ROUND, data=[])
+    result = instance.call(args.contract, fun_name='get_current_round', data=[])
     print "Current round:", result[0]
 
 def cmd_get_stats(args):
     print "Getting statistics"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, funid=FUN_GET_STATS, data=[])
+    result = instance.call(args.contract, fun_name='get_stats', data=[])
     current_round, total_spins, total_coins_won = result
     print "Current round:", current_round
     print "Total spins:", total_spins
@@ -66,7 +60,7 @@ def cmd_suicide(args):
     print "Killing the contract"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, funid=FUN_SUICIDE, data=[])
+    instance.transact(args.contract, fun_name='suicide', data=[])
 
 def cmd_create(args):
     instance = api.Api()
