@@ -129,39 +129,44 @@ class TestSlethContract(object):
         self.s.mine(1)
         balance_before = self.s.block.get_balance(tester.a0)
         assert self.c.claim(1) == [1]
-        balance_after = self.s.block.get_balance(tester.a0)
-        assert balance_after - balance_before == 2 * self.ETHER
+
+        expected_result = 6
 
         player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
         assert block == 1
         assert bet == 5
-        assert result == 2
+        assert result == expected_result
         assert entropy != 0
-        assert rnd == 28561
+        assert rnd == 24419
         assert status == 2  # done
+
+        balance_after = self.s.block.get_balance(tester.a0)
+        assert balance_after - balance_before == expected_result * self.ETHER
 
         current_round = self.c.get_current_round()[0]
         assert current_round == 1
 
-        assert self.c.get_stats() == [2, 1, 2]
+        assert self.c.get_stats() == [2, 1, expected_result]
 
     def test_claim_losing(self):
+        self.s.mine(3)
         assert self.c.spin(5, value=5 * self.ETHER) == [1]
 
         self.s.mine(1)
         balance_before = self.s.block.get_balance(tester.a0)
         assert self.c.claim(1) == [1]
-        balance_after = self.s.block.get_balance(tester.a0)
-        assert balance_after == balance_before
 
         player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
         assert bet == 5
         assert result == 0
         assert entropy != 0
-        assert rnd == 21558
+        assert rnd == 4649
         assert status == 2  # done
+
+        balance_after = self.s.block.get_balance(tester.a0)
+        assert balance_after == balance_before
 
         current_round = self.c.get_current_round()[0]
         assert current_round == 1
