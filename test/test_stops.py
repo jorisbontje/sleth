@@ -14,10 +14,10 @@ def get_stops(rnd):
         stops[i] = rnd % REEL_POSITIONS
         rnd = rnd / REEL_POSITIONS
         i += 1
-    return(stops, REEL_COUNT)
+    return(stops, items=REEL_COUNT)
 
 def pass_(rnd):
-    return(self.get_stops(rnd, outsz=REEL_COUNT), REEL_COUNT)
+    return(self.get_stops(rnd, outsz=REEL_COUNT), items=REEL_COUNT)
 """
 
     def setup_class(cls):

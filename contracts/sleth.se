@@ -65,7 +65,7 @@ def claim(round):
         return(93)  # out of range
 
     # calculate entropy
-    entropy = sha3([blockhash(target_block), round], 2)
+    entropy = sha3([blockhash(target_block), round], items=2)
 
     if entropy == 0:
         return(94) # invalid entropy
@@ -89,7 +89,7 @@ def claim(round):
 
 # funid=2
 def get_round(round):
-    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].rnd, self.rounds[round].status], 8)
+    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].rnd, self.rounds[round].status], items=8)
 
 # funid=3
 def get_current_round():
@@ -97,7 +97,7 @@ def get_current_round():
 
 # funid=4
 def get_stats():
-    return([self.current_round, self.total_spins, self.total_coins_won], 3)
+    return([self.current_round, self.total_spins, self.total_coins_won], items=3)
 
 # funid=5
 def calc_line(s1, s2, s3):
@@ -123,56 +123,56 @@ def calc_line(s1, s2, s3):
 
     # special case #1: triple ups
     if ((s1 == 1 or s1 == 2 or s1 == 3) and (s2 == 1 or s2 == 2 or s2 == 3) and (s3 == 1 or s3 == 2 or s3 == 3)):
-        return payout_ups
+        return(payout_ups)
 
     # special case #2: triple down
     if ((s1 == 5 or s1 == 6 or s1 == 7) and (s2 == 5 or s2 == 6 or s2 == 7) and (s3 == 5 or s3 == 6 or s3 == 7)):
-        return payout_downs
+        return(payout_downs)
 
     # special case #3: bacon goes with everything
     if s1 == 9:
         if s2 == s3:
-            return match_payout[s2]
+            return(match_payout[s2])
 
         # wildcard trip ups
         if ((s2 == 1 or s2 == 2 or s2 == 3) and (s3 == 1 or s3 == 2 or s3 == 3)):
-            return payout_ups
+            return(payout_ups)
 
         # wildcard trip downs
         if ((s2 == 5 or s2 == 6 or s2 == 7) and (s3 == 5 or s3 == 6 or s3 == 7)):
-            return payout_downs
+            return(payout_downs)
 
     if s2 == 9:
         if s1 == s3:
-            return match_payout[s1]
+            return(match_payout[s1])
 
         # wildcard trip ups
         if ((s1 == 1 or s1 == 2 or s1 == 3) and (s3 == 1 or s3 == 2 or s3 == 3)):
-            return payout_ups
+            return(payout_ups)
 
         # wildcard trip downs
         if ((s1 == 5 or s1 == 6 or s1 == 7) and (s3 == 5 or s3 == 6 or s3 == 7)):
-            return payout_downs
+            return(payout_downs)
 
     if s3 == 9:
         if s1 == s2:
-            return match_payout[s1]
+            return(match_payout[s1])
 
         # wildcard trip ups
         if ((s1 == 1 or s1 == 2 or s1 == 3) and (s2 == 1 or s2 == 2 or s2 == 3)):
-            return payout_ups
+            return(payout_ups)
 
         # wildcard trip downs
         if ((s1 == 5 or s1 == 6 or s1 == 7) and (s2 == 5 or s2 == 6 or s2 == 7)):
-            return payout_downs
+            return(payout_downs)
 
     # check double-bacon
     if s2 == 9 and s3 == 9:
-        return match_payout[s1]
+        return(match_payout[s1])
     if s1 == 9 and s3 == 9:
-        return match_payout[s2]
+        return(match_payout[s2])
     if s1 == 9 and s2 == 9:
-        return match_payout[s3]
+        return(match_payout[s3])
 
     # no reward
     return(0)
@@ -185,7 +185,7 @@ def get_stops(rnd):
         stops[i] = mod(rnd, REEL_POSITIONS)
         rnd = div(rnd, REEL_POSITIONS)
         i += 1
-    return(stops, REEL_COUNT)
+    return(stops, items=REEL_COUNT)
 
 # funid=7
 def calc_reward(rnd, playing_lines):

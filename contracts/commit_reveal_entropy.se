@@ -53,7 +53,7 @@ def request_entropy():
     eta = target + QUIET_WINDOW + REVEAL_WINDOW
 
     # return ticket_id and eta
-    return([ticket_id, eta], 2)
+    return([ticket_id, eta], items=2)
 
 # Get your entropy
 #
@@ -65,23 +65,23 @@ def request_entropy():
 # entropy - your random number
 def get_entropy(ticket_id):
     if msg.sender != self.tickets[ticket_id].owner:
-        return([3, 0], 2)  # not yours / not found
+        return([3, 0], items=2)  # not yours / not found
 
     status = self.tickets[ticket_id].status
     if status == 1:
-        return([1, self.tickets[ticket_id].random], 2)  # ready
+        return([1, self.tickets[ticket_id].random], items=2)  # ready
     else:
         if block.number > self.tickets[ticket_id].target + REVEAL_WINDOW:
-            return([2, 0], 2)  # expired
+            return([2, 0], items=2)  # expired
         else:
-            return([0, 0], 2)  # pending
+            return([0, 0], items=2)  # pending
 
 # Returns entropy ticket as-is
 #
 # Parameter:
 # ticket_id - the ID of your entropy ticket
 def get_entropy_ticket(ticket_id):
-    return([self.tickets[ticket_id].owner, self.tickets[ticket_id].status, self.tickets[ticket_id].target, self.tickets[ticket_id].random], 4)
+    return([self.tickets[ticket_id].owner, self.tickets[ticket_id].status, self.tickets[ticket_id].target, self.tickets[ticket_id].random], items=4)
 
 # Commit your random contribution to a future block
 # There is a deposit cost associated with this, which will be returned upon
@@ -178,7 +178,7 @@ def reveal(target, value):
             send(self.blocks[target].commits[c].sender, committer_payout)
             c += 1
 
-        seed = sha3(values, commit_count * 2)
+        seed = sha3(values, items=commit_count * 2)
         self.blocks[target].seed = seed
 
         # calculate randomness for individual tickets
@@ -202,7 +202,7 @@ def reveal(target, value):
 # Parameter:
 # target - the target block number
 def get_block(target):
-    return([self.blocks[target].seed, self.blocks[target].commit_count, self.blocks[target].reveal_count, self.blocks[target].ticket_count], 4)
+    return([self.blocks[target].seed, self.blocks[target].commit_count, self.blocks[target].reveal_count, self.blocks[target].ticket_count], items=4)
 
 # Calculate sha3 hash on the value, for testing purposes
 def hash(value):
