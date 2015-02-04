@@ -8,7 +8,8 @@
     <script type="text/javascript" src="lib/moment.min.js"></script>
     <script type="text/javascript" src="lib/bignumber.min.js"></script>
     <script type="text/javascript" src="lib/ethereum.js"></script>
-    <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.2/flatly/bootstrap.min.css" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.2/flatly/bootstrap.min.css" rel="stylesheet" />
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="css/slots.css" />
 </head>
 <body ng-controller="SlethController" ng-keypress="handleKey($event)">
@@ -52,61 +53,62 @@
                     'other': '{} Coins'}">
             </ng-pluralize>
             <span ng-if="bet">
-                (- bet {{bet}})
+                (- {{bet}})
             </span>
         </h1>
 
-        <div class="jumbotron" ng-if="state == 0">
-            <h3>Place your bet!</h3>
-        </div>
+        <div ng-switch on="state">
+            <div class="jumbotron" ng-switch-when="0">
+                <h3>Place your bet!</h3>
+            </div>
 
-        <div class="list-group" ng-if="state == 1">
-            <li class="list-group-item" ng-repeat="(line, partial_payout) in reward.partial_payouts">
-                Line {{line}} pays {{partial_payout}}
-            </li>
-            <li class="list-group-item list-group-item-success" ng-if="reward.payout">
-                You won {{reward.payout}}!
-                <span class="badge" ng-if="reward.verified">verified</span>
-            </li>
-            <li class="list-group-item list-group-item" ng-if="!reward.payout">
-                You won nothing :(
-                <span class="badge" ng-if="reward.verified">verified</span>
-            </li>
-        </div>
+            <div class="list-group" ng-switch-when="1">
+                <li class="list-group-item" ng-repeat="(line, partial_payout) in reward.partial_payouts">
+                    Line {{line}} pays {{partial_payout}}
+                </li>
+                <li class="list-group-item list-group-item-success" ng-if="reward.payout">
+                    You won {{reward.payout}}!
+                    <span class="badge" ng-if="reward.verified">verified</span>
+                </li>
+                <li class="list-group-item list-group-item" ng-if="!reward.payout">
+                    You won nothing :(
+                    <span class="badge" ng-if="reward.verified">verified</span>
+                </li>
+            </div>
 
-        <div class="list-group" ng-if="state == 2">
-            <li class="list-group-item list-group-item">
-                <p class="lead">Spinning...</p>
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" style="width: 33%">
-                        <span class="sr-only">spinning...</span>
+            <div class="list-group" ng-switch-when="2">
+                <li class="list-group-item list-group-item">
+                    <p class="lead">Spinning...</p>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" style="width: 33%">
+                            <span class="sr-only">spinning...</span>
+                        </div>
                     </div>
-                </div>
-            </li>
-        </div>
+                </li>
+            </div>
 
-        <div class="list-group" ng-if="state == 3">
-            <li class="list-group-item list-group-item">
-                <p class="lead">Spinning...</p>
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100" style="width: 66%">
-                        <span class="sr-only">spinning...</span>
+            <div class="list-group" ng-switch-when="3">
+                <li class="list-group-item list-group-item">
+                    <p class="lead">Spinning...</p>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100" style="width: 66%">
+                            <span class="sr-only">spinning...</span>
+                        </div>
                     </div>
-                </div>
-            </li>
-        </div>
+                </li>
+            </div>
 
-        <div class="list-group" ng-if="state == 4">
-            <li class="list-group-item list-group-item">
-                <p class="lead">Claiming results...</p>
-                <div class="progress">
-                    <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
-                        <span class="sr-only">claiming results...</span>
+            <div class="list-group" ng-switch-when="4">
+                <li class="list-group-item list-group-item">
+                    <p class="lead">Claiming results...</p>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+                            <span class="sr-only">claiming results...</span>
+                        </div>
                     </div>
-                </div>
-            </li>
+                </li>
+            </div>
         </div>
-
     </div>
 </div>
 
