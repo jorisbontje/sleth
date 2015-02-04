@@ -44,7 +44,13 @@
     </div>
     <div class="col-md-4">
         <div id="info">
-            <h1 id="credits">Coins ({{player.coins}})</h1>
+            <h1 id="credits">
+                <ng-pluralize count="player.coins"
+                 when="{'0': 'No Coins',
+                        'one': '1 Coin',
+                        'other': '{} Coins'}">
+                </ng-pluralize>
+            </h1>
             <p id="log" class="lead">
                 <span ng-if="reward.payout">
                     You won {{reward.payout}}!<br />
