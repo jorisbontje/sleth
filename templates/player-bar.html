@@ -1,0 +1,18 @@
+<div class="row player-bar">
+    <div class="col-sm-3">
+        Player <span class="label label-default">{{player.address | limitTo : 10}}</span>
+    </div>
+    <div class="col-sm-3 text-center">
+        Balance <span class="label label-default value-change" ng-class="['value-'+player.balance]">{{player.balance | number : 4}} ETH</span>
+    </div>
+    <div class="col-sm-3 text-center">
+        Block <span class="label label-default value-change" ng-class="['value-'+web3.blockNumber]">{{web3.blockNumber}}</span>
+    </div>
+    <div class="col-sm-3 text-right">
+        Network
+        <span ng-switch on="web3.available">
+            <span ng-switch-when="true" class="label label-success">online</span>
+            <span ng-switch-when="false" class="label label-danger">offline</span>
+        </span>
+    </div>
+</div>

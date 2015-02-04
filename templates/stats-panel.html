@@ -1,0 +1,11 @@
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3 class="panel-title">Stats</h3>
+    </div>
+    <table class="table table-condensed">
+        <tr><th>Contract</th><td>{{contract | limitTo : 10}}</td></tr>
+        <tr><th>Contract Balance</th><td>{{stats.slethBalance | number : 4}} ETH</td></tr>
+        <tr><th>Total Spins</th><td>{{stats.total_spins}}</td></tr>
+        <tr><th>Total Coins Won</th><td>{{stats.total_coins_won}}</td></tr>
+    </table>
+</div>

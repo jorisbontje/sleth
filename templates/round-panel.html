@@ -1,0 +1,21 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">Last Round #{{round.number}}</h3>
+    </div>
+    <table class="table table-condensed">
+        <tr><th>Player</th><td>{{round.player | limitTo : 10}}</td></tr>
+        <tr><th>Block</th><td>{{round.block}}</td></tr>
+        <tr><th>Time</th><td>{{round.time}}</td></tr>
+        <tr><th>Bet</th><td>{{round.bet}}</td></tr>
+        <tr ng-if="round.status == 2 && state < 2"><th>Result</th><td>{{round.result}}</td></tr>
+        <tr ng-if="round.status == 2 && state < 2"><th>Entropy</th><td>{{round.entropy | limitTo : 10}}</td></tr>
+        <tr ng-if="round.status == 2 && state < 2"><th>RND</th><td>{{round.rnd}}</td></tr>
+        <tr><th>Status:
+            <td ng-switch on="round.status">
+                <span ng-switch-when="0">NEW</span>
+                <span ng-switch-when="1">SPINNING</span>
+                <span ng-switch-when="2">DONE</span>
+            </td>
+        </tr>
+    </table>
+</div>
