@@ -103,8 +103,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
                 $scope.round = round;
 
                 if (changed) {
-                    console.log("ROUND", round);
-
                     if (round.status === 1 && game.state === game.STATE_REST) {
                         // TODO make sure we are spinning again
                         //console.log("reinit");
@@ -200,16 +198,27 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
         $scope.messages.push(message);
     };
 
-    $scope.$watch('player.round', $scope.updateRound);
+    // test if web3 is available
+    $scope.web3Available = false;
+    try {
+        $scope.web3Available = web3.eth.coinbase !== "";
+    } catch(e) {
+        $log.error(e);
+        $scope.web3Error = e;
+    }
 
-    web3.eth.watch('chain').changed(function(res) {
+    if ($scope.web3Available) {
+        $scope.$watch('player.round', $scope.updateRound);
+
+        web3.eth.watch('chain').changed(function(res) {
+            $scope.updateChain();
+            $scope.updatePlayer();
+            $scope.updateRound();
+            $scope.updateStats();
+        });
+
         $scope.updateChain();
         $scope.updatePlayer();
-        $scope.updateRound();
         $scope.updateStats();
-    });
-
-    $scope.updateChain();
-    $scope.updatePlayer();
-    $scope.updateStats();
+    }
 }]);

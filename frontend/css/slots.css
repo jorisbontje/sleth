@@ -12,3 +12,13 @@
     image-rendering: crisp-edges;
     -ms-interpolation-mode: nearest-neighbor;  /* IE (non-standard property) */
 }
+
+.top-buffer {
+    margin-top:20px;
+}
+
+.player-bar {
+    background-color: #ecf0f1;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
