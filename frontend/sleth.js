@@ -40,6 +40,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     $scope.round = {};
     $scope.messages = [];
     $scope.web3 = {};
+    $scope.state = game.STATE_NEW;
 
     $interval(function() {
         game.logic();
@@ -103,12 +104,12 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
                 $scope.round = round;
 
                 if (changed) {
-                    if (round.status === 1 && game.state === game.STATE_REST) {
+                    if (round.status === 1 && (game.state === game.STATE_NEW)) {
                         // TODO make sure we are spinning again
                         //console.log("reinit");
                         //game.reinit(round.bet);
                        game.spin(round.bet);
-                    } else if (round.status === 2) {
+                    } else if (round.status === 2 && (game.state !== game.STATE_NEW)) {
                         game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
@@ -129,7 +130,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
 
     $scope.spin = function(bet) {
         if (bet) {
-            if (game.state !== game.STATE_REST) return;
+            if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
             if ($scope.player.coins < bet) return;
 
             $scope.clearMessages();
@@ -177,7 +178,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
 
     $scope.handleKey = function(e) {
         if (e.which === 32) { // spacebar
-            if (game.state !== game.STATE_REST) return;
+            if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
 
             if ($scope.player.coins >= 5) {
                 $scope.spin(5);
@@ -205,6 +206,10 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
         $log.error(e);
         $scope.web3.error = e;
     }
+
+    $scope.$on('slots:state', function(evt, state) {
+        $scope.state = state;
+    });
 
     if ($scope.web3.available) {
         $scope.$watch('player.round', $scope.updateRound);

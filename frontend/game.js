@@ -42,12 +42,13 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     var game = {};
 
 
-    game.STATE_REST = 0;
-    game.STATE_SPINUP = 1;
-    game.STATE_SPINMAX = 2;
-    game.STATE_SPINDOWN = 3;
+    game.STATE_NEW = 0;
+    game.STATE_REST = 1;
+    game.STATE_SPINUP = 2;
+    game.STATE_SPINMAX = 3;
+    game.STATE_SPINDOWN = 4;
 
-    game.state = game.STATE_REST;
+    game.state = game.STATE_NEW;
 
     game.reward = {
         payout: 0,
@@ -184,6 +185,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
         game.reward.payout = 0;
         game.reward.partial_payouts = {};
         game.state = game.STATE_SPINUP;
+        $rootScope.$broadcast('slots:state', game.state);
     };
 
     game.set_stops = function(entropy) {
@@ -212,6 +214,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       }
 
       game.state = game.STATE_SPINDOWN;
+      $rootScope.$broadcast('slots:state', game.state);
     };
 
     game.reinit = function(line_choice) {
@@ -222,6 +225,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       game.reward.payout = 0;
       game.reward.partial_payouts = {};
       game.state = game.STATE_SPINMAX;
+      $rootScope.$broadcast('slots:state', game.state);
     };
 
     function move_reel(i) {
@@ -249,6 +253,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       // if reels at max speed, begin spindown
       if (reel_speed[0] >= config.max_reel_speed) {
         game.state = game.STATE_SPINMAX;
+        $rootScope.$broadcast('slots:state', game.state);
       }
     }
 
@@ -268,7 +273,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
         var reward = game.calc_reward(game.playing_lines, result);
         game.reward = reward;
         game.state = game.STATE_REST;
-
+        $rootScope.$broadcast('slots:state', game.state);
         $rootScope.$broadcast('slots:reward', reward);
         return;
       }
@@ -311,7 +316,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     game.logic = function() {
 
       // SPINMAX TO SPINDOWN happens on an input event
-      // REST to SPINUP happens on an input event
+      // NEW or REST to SPINUP happens on an input event
 
       if (game.state === game.STATE_SPINUP) {
         logic_spinup();
