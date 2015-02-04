@@ -19,7 +19,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 "use strict";
 
-var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels', 'ngAnimate']);
+var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels', 'slots.directives', 'ngAnimate']);
 
 app.factory('web3', function() {
     var web3 = require('web3');
@@ -68,6 +68,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
 
         var slethBalance = web3.eth.balanceAt($scope.slethAddress);
         $scope.stats.slethBalance = web3.toDecimal(slethBalance) / Math.pow(10, 18) || 0;
+        $scope.stats.slethAddress = $scope.slethAddress;
 
         $scope.web3.blockNumber = web3.eth.number;
         if ($scope.canClaim($scope.round)) {
