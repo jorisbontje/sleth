@@ -23,11 +23,11 @@ var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels']);
 
 app.factory('web3', function() {
     var web3 = require('web3');
-    web3.setProvider(new web3.providers.HttpRpcProvider("http://localhost:8080/"));
+    web3.setProvider(new web3.providers.HttpSyncProvider("http://localhost:8080/"));
     return web3;
 });
 
-app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$scope', 'config', 'game', 'web3', function($http, $interval, $location, $q, $scope, config, game, web3) {
+app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$q', '$scope', 'config', 'game', 'web3', function($http, $interval, $log, $location, $q, $scope, config, game, web3) {
 
     $scope.canvasSize = 160 * config.reel_scale;
 
@@ -46,46 +46,37 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     }, 1000 / config.FPS);
 
     $http.get('sleth.abi.json').then(function(res) {
-        $scope.contract.resolve(web3.eth.contract($scope.slethAddress, res.data));
+        var contract = web3.eth.contract($scope.slethAddress, res.data);
+        $scope.contract.resolve(contract);
     });
 
     $scope.updateChain = function() {
-        web3.eth.accounts.then(function (accounts) {
-            $scope.player.address = accounts[0];
-            $scope.$apply();
-            return(web3.eth.balanceAt(accounts[0]));
-        }).then(function (balance) {
-            $scope.player.balance = web3.toDecimal(balance) / Math.pow(10, 18) || 0;
-            $scope.player.coins = Math.floor($scope.player.balance);
-            $scope.$apply();
-        });
+        var accounts = web3.eth.accounts;
+        $scope.player.address = accounts[0];
 
-        web3.eth.balanceAt($scope.slethAddress).then(function (balance) {
-            $scope.slethBalance = web3.toDecimal(balance) / Math.pow(10, 18) || 0;
-            $scope.$apply();
-        });
+        var playerBalance = web3.eth.balanceAt(accounts[0]);
+        $scope.player.balance = web3.toDecimal(playerBalance) / Math.pow(10, 18) || 0;
+        $scope.player.coins = Math.floor($scope.player.balance);
 
-        web3.eth.number.then(function (number) {
-            $scope.blockNumber = number;
-            if ($scope.canClaim($scope.round)) {
-                $scope.claim($scope.round);
-            }
-            $scope.$apply();
-        });
+        var slethBalance = web3.eth.balanceAt($scope.slethAddress);
+        $scope.slethBalance = web3.toDecimal(slethBalance) / Math.pow(10, 18) || 0;
+
+        $scope.blockNumber = web3.eth.number;
+        if ($scope.canClaim($scope.round)) {
+            $scope.claim($scope.round);
+        }
     };
 
     $scope.updatePlayer = function() {
         $scope.contract.promise.then(function(contract) {
-            return(contract.get_current_round().call());
-        }).then(function(res) {
-            $scope.player.round = res[0].toNumber();
+            var res = contract.call().get_current_round();
+            $scope.player.round = res.toNumber();
         });
     };
 
     $scope.updateStats = function() {
         $scope.contract.promise.then(function(contract) {
-            return(contract.get_stats().call());
-        }).then(function(res) {
+            var res = contract.call().get_stats();
             $scope.stats.total_spins = res[1].toNumber();
             $scope.stats.total_coins_won = res[2].toNumber();
         });
@@ -95,8 +86,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
         var roundNumber = $scope.player.round;
         if(roundNumber) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.get_round(roundNumber).call());
-            }).then(function(res) {
+                var res = contract.call().get_round(roundNumber);
                 var round = {
                     number: roundNumber,
                     player: res[0],
@@ -115,12 +105,12 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
                 if (changed) {
                     console.log("ROUND", round);
 
-                    if (round.status == 1 && game.state == game.STATE_REST) {
+                    if (round.status === 1 && game.state === game.STATE_REST) {
                         // TODO make sure we are spinning again
                         //console.log("reinit");
                         //game.reinit(round.bet);
                        game.spin(round.bet);
-                    } else if (round.status == 2) {
+                    } else if (round.status === 2) {
                         game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";
                         if (round.result) {
@@ -141,15 +131,15 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
 
     $scope.spin = function(bet) {
         if (bet) {
-            if (game.state != game.STATE_REST) return;
+            if (game.state !== game.STATE_REST) return;
             if ($scope.player.coins < bet) return;
 
             $scope.clearMessages();
 
             var value = web3.fromDecimal(bet * Math.pow(10, 18));
             $scope.contract.promise.then(function(contract) {
-                return(contract.spin(bet).transact({gas: $scope.defaultGas, value: value}));
-            }).then(function(res) {
+                contract.transact({gas: $scope.defaultGas, value: value}).spin(bet);
+
                 $scope.player.coins -= bet;
                 game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
@@ -160,14 +150,14 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     };
 
     $scope.canClaim = function(round) {
-        return round.status == 1 && $scope.blockNumber > round.block;
+        return round.status === 1 && ($scope.blockNumber > round.block);
     };
 
     $scope.claim = function(round) {
         if (round.number) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.claim(round.number).transact({gas: $scope.defaultGas}));
-            }).then(function(res) {
+                contract.transact({gas: $scope.defaultGas}).claim(round.number);
+
                 $scope.logMessage("Claiming round #" + round.number + "...");
                 $scope.updatePlayer();
                 $scope.updateStats();
@@ -179,7 +169,7 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     $scope.$on('slots:reward', function(evt, reward) {
         $scope.reward = reward;
         // check if the locally calculated reward matches with the contract results
-        $scope.reward.verified = (reward.payout == $scope.round.result);
+        $scope.reward.verified = (reward.payout === $scope.round.result);
         if ($scope.reward.verified) {
             $scope.logMessage("Reward verified");
         } else {
@@ -188,8 +178,8 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     });
 
     $scope.handleKey = function(e) {
-        if (e.which == 32) { // spacebar
-            if (game.state != game.STATE_REST) return;
+        if (e.which === 32) { // spacebar
+            if (game.state !== game.STATE_REST) return;
 
             if ($scope.player.coins >= 5) {
                 $scope.spin(5);
@@ -206,14 +196,13 @@ app.controller("SlethController", ['$http', '$interval', '$location', '$q', '$sc
     };
 
     $scope.logMessage = function(message) {
-        console.log("MESSAGE", message);
+        $log.info(message);
         $scope.messages.push(message);
     };
 
     $scope.$watch('player.round', $scope.updateRound);
 
     web3.eth.watch('chain').changed(function(res) {
-        console.log("CHAIN UPDATED", res);
         $scope.updateChain();
         $scope.updatePlayer();
         $scope.updateRound();

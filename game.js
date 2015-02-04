@@ -23,7 +23,7 @@ var app = angular.module('slots.game', []);
 
 app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     var symbol_count = 11;
-    var match_payout = new Array(symbol_count);
+    var match_payout = [];
     match_payout[7] = 4; // 3Down
     match_payout[6] = 6; // 2Down
     match_payout[5] = 8; // 1Down
@@ -56,87 +56,87 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     };
 
     // set up reels
-    game.reels = new Array(config.reel_count);
-    game.reels[0] = new Array(2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4);
-    game.reels[1] = new Array(6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4);
-    game.reels[2] = new Array(1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3);
+    game.reels = [];
+    game.reels[0] = [2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4];
+    game.reels[1] = [6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4];
+    game.reels[2] = [1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3];
 
     // config
-    game.reel_position = new Array(config.reel_count);
+    game.reel_position = [];
 
-    var stopping_position = new Array(config.reel_count);
-    var start_slowing = new Array(config.reel_count);
-    var reel_speed = new Array(config.reel_count);  // reel spin speed in pixels per frame
-    var result = new Array(config.reel_count);
+    var stopping_position = [];
+    var start_slowing = [];
+    var reel_speed = [];  // reel spin speed in pixels per frame
+    var result = [];
 
     for (var i=0; i<config.reel_count; i++) {
         game.reel_position[i] = Math.floor(Math.random() * config.reel_positions) * config.symbol_size;
         reel_speed[i] = 0;
-        result[i] = new Array(config.row_count);
+        result[i] = [];
     }
 
     // given an input line of symbols, determine the payout
     game.calc_line = function(s1, s2, s3) {
       // perfect match
-      if (s1 == s2 && s2 == s3) {
+      if (s1 === s2 && s2 === s3) {
         return match_payout[s1];
       }
 
       // special case #1: triple ups
-      if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-          (s2 == 1 || s2 == 2 || s2 == 3) &&
-          (s3 == 1 || s3 == 2 || s3 == 3)) {
+      if ((s1 === 1 || s1 === 2 || s1 === 3) &&
+          (s2 === 1 || s2 === 2 || s2 === 3) &&
+          (s3 === 1 || s3 === 2 || s3 === 3)) {
         return payout_ups;
       }
 
       // special case #2: triple down
-      if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-          (s2 == 5 || s2 == 6 || s2 == 7) &&
-          (s3 == 5 || s3 == 6 || s3 == 7)) {
+      if ((s1 === 5 || s1 === 6 || s1 === 7) &&
+          (s2 === 5 || s2 === 6 || s2 === 7) &&
+          (s3 === 5 || s3 === 6 || s3 === 7)) {
         return payout_downs;
       }
 
       // special case #3: bacon goes with everything
-      if (s1 == 9) {
-        if (s2 == s3) return match_payout[s2];
+      if (s1 === 9) {
+        if (s2 === s3) return match_payout[s2];
 
         // wildcard trip ups
-        if ((s2 == 1 || s2 == 2 || s2 == 3) &&
-            (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
+        if ((s2 === 1 || s2 === 2 || s2 === 3) &&
+            (s3 === 1 || s3 === 2 || s3 === 3)) return payout_ups;
 
         // wildcard trip downs
-        if ((s2 == 5 || s2 == 6 || s2 == 7) &&
-            (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
+        if ((s2 === 5 || s2 === 6 || s2 === 7) &&
+            (s3 === 5 || s3 === 6 || s3 === 7)) return payout_downs;
 
       }
-      if (s2 == 9) {
-        if (s1 == s3) return match_payout[s1];
+      if (s2 === 9) {
+        if (s1 === s3) return match_payout[s1];
 
         // wildcard trip ups
-        if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-            (s3 == 1 || s3 == 2 || s3 == 3)) return payout_ups;
+        if ((s1 === 1 || s1 === 2 || s1 === 3) &&
+            (s3 === 1 || s3 === 2 || s3 === 3)) return payout_ups;
 
         // wildcard trip downs
-        if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-            (s3 == 5 || s3 == 6 || s3 == 7)) return payout_downs;
+        if ((s1 === 5 || s1 === 6 || s1 === 7) &&
+            (s3 === 5 || s3 === 6 || s3 === 7)) return payout_downs;
 
       }
-      if (s3 == 9) {
-        if (s1 == s2) return match_payout[s1];
+      if (s3 === 9) {
+        if (s1 === s2) return match_payout[s1];
 
         // wildcard trip ups
-        if ((s1 == 1 || s1 == 2 || s1 == 3) &&
-            (s2 == 1 || s2 == 2 || s2 == 3)) return payout_ups;
+        if ((s1 === 1 || s1 === 2 || s1 === 3) &&
+            (s2 === 1 || s2 === 2 || s2 === 3)) return payout_ups;
 
         // wildcard trip downs
-        if ((s1 == 5 || s1 == 6 || s1 == 7) &&
-            (s2 == 5 || s2 == 6 || s2 == 7)) return payout_downs;
+        if ((s1 === 5 || s1 === 6 || s1 === 7) &&
+            (s2 === 5 || s2 === 6 || s2 === 7)) return payout_downs;
       }
 
       // check double-bacon
-      if (s2 == 9 && s3 == 9) return match_payout[s1];
-      if (s1 == 9 && s3 == 9) return match_payout[s2];
-      if (s1 == 9 && s2 == 9) return match_payout[s3];
+      if (s2 === 9 && s3 === 9) return match_payout[s1];
+      if (s1 === 9 && s3 === 9) return match_payout[s2];
+      if (s1 === 9 && s2 === 9) return match_payout[s3];
 
       // no reward
       return 0;
@@ -304,7 +304,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
 
           if (check_position) {
 
-            if (game.reel_position[i] == stopping_position[i]) {
+            if (game.reel_position[i] === stopping_position[i]) {
               start_slowing[i] = true;
             }
           }
@@ -329,13 +329,13 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       // SPINMAX TO SPINDOWN happens on an input event
       // REST to SPINUP happens on an input event
 
-      if (game.state == game.STATE_SPINUP) {
+      if (game.state === game.STATE_SPINUP) {
         logic_spinup();
       }
-      else if (game.state == game.STATE_SPINMAX) {
+      else if (game.state === game.STATE_SPINMAX) {
         logic_spinmax();
       }
-      else if (game.state == game.STATE_SPINDOWN) {
+      else if (game.state === game.STATE_SPINDOWN) {
         logic_spindown();
       }
     };

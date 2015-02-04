@@ -21,7 +21,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots.reels', []);
 
-app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, config, game) {
+app.directive('slotsReels', ['$q', 'config', 'game', function($q, config, game) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -82,11 +82,13 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
                 }
               }
             }
-                        // render all art needed in the current frame
+
+            // render all art needed in the current frame
             function render() {
-              if (game.state == game.STATE_SPINUP || game.state == game.STATE_SPINMAX || game.state == game.STATE_SPINDOWN) {
+              if (game.state === game.STATE_SPINUP || game.state === game.STATE_SPINMAX || game.state === game.STATE_SPINDOWN) {
                 render_reel();
               }
+              requestAnimFrame(render);
             }
 
             function highlight_line(line_num) {
@@ -95,35 +97,35 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
               var ss = config.reel_scale*config.symbol_size;
 
               // top row
-              if (line_num == 2 || line_num == 4) {
+              if (line_num === 2 || line_num === 4) {
                 ctx.strokeRect(reel_area_left+1, reel_area_top+1, ss-1, ss-1); // top left
               }
-              if (line_num == 2) {
+              if (line_num === 2) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top+1, ss-1, ss-1); // top middle
               }
-              if (line_num == 2 || line_num == 5) {
+              if (line_num === 2 || line_num === 5) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top+1, ss-1, ss-1); // top right
               }
 
               // middle row
-              if (line_num == 1) {
+              if (line_num === 1) {
                 ctx.strokeRect(reel_area_left+1, reel_area_top + ss, ss-1, ss-1); // top left
               }
-              if (line_num == 1 || line_num == 4 || line_num == 5) {
+              if (line_num === 1 || line_num === 4 || line_num === 5) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top + ss, ss-1, ss-1); // top middle
               }
-              if (line_num == 1) {
+              if (line_num === 1) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top + ss, ss-1, ss-1); // top right
               }
 
               // bottom row
-              if (line_num == 3 || line_num == 5) {
+              if (line_num === 3 || line_num === 5) {
                 ctx.strokeRect(reel_area_left+1, reel_area_top + ss + ss, ss-1, ss-1); // top left
               }
-              if (line_num == 3) {
+              if (line_num === 3) {
                 ctx.strokeRect(reel_area_left + ss, reel_area_top + ss + ss, ss-1, ss-1); // top middle
               }
-              if (line_num == 3 || line_num == 4) {
+              if (line_num === 3 || line_num === 4) {
                 ctx.strokeRect(reel_area_left + ss + ss, reel_area_top + ss + ss, ss-1, ss-1); // top right
               }
             }
@@ -132,23 +134,31 @@ app.directive('slotsReels', ['$interval', 'config', 'game', function($interval, 
                 reward.highlights.forEach(highlight_line);
             });
 
-            $interval(function() {
-                render();
-            }, 1000 / config.FPS);
+            var symbolsDefer = $q.defer();
+            var reelsBgDefer = $q.defer();
 
-            scope.init = function() {
-              symbols.onload = function() {
-                symbols_loaded = true;
-                if (symbols_loaded && reels_bg_loaded) render_reel();
-              };
-
-              reels_bg.onload = function() {
-                reels_bg_loaded = true;
-                if (symbols_loaded && reels_bg_loaded) render_reel();
-              };
+            symbols.onload = function() {
+                symbolsDefer.resolve(symbols);
             };
 
-            scope.init();
+            reels_bg.onload = function() {
+                reelsBgDefer.resolve(reels_bg);
+            };
+
+            $q.all([symbolsDefer, reelsBgDefer.promise]).then(render_reel);
+
+            var requestAnimFrame = (function() {
+                return window.requestAnimationFrame ||
+                       window.webkitRequestAnimationFrame ||
+                       window.mozRequestAnimationFrame ||
+                       window.oRequestAnimationFrame ||
+                       window.msRequestAnimationFrame ||
+                       function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+                           window.setTimeout(callback, 1000/60);
+                       };
+            })();
+
+            requestAnimFrame(render);
         }
     };
 }]);
