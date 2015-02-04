@@ -19,7 +19,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 "use strict";
 
-var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels']);
+var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels', 'ngAnimate']);
 
 app.factory('web3', function() {
     var web3 = require('web3');

@@ -3,6 +3,7 @@
 <head>
     <title>sleth - Ethereum Slots</title>
     <script type="text/javascript" src="lib/angular.min.js"></script>
+    <script type="text/javascript" src="lib/angular-animate.min.js"></script>
     <script type="text/javascript" src="lib/promise.min.js"></script>
     <script type="text/javascript" src="lib/bignumber.min.js"></script>
     <script type="text/javascript" src="lib/ethereum.js"></script>
@@ -18,10 +19,10 @@
         Player <span class="label label-default">{{player.address | limitTo : 10}}</span>
     </div>
     <div class="col-sm-3 text-center">
-        Balance <span class="label label-default">{{player.balance | number : 4}} ETH</span>
+        Balance <span class="label label-default value-change" ng-class="['value-'+player.balance]">{{player.balance | number : 4}} ETH</span>
     </div>
     <div class="col-sm-3 text-center">
-        Block <span class="label label-default">{{web3.blockNumber}}</span>
+        Block <span class="label label-default value-change" ng-class="['value-'+web3.blockNumber]">{{web3.blockNumber}}</span>
     </div>
     <div class="col-sm-3 text-right">
         Network

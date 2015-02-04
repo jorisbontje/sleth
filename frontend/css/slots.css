@@ -22,3 +22,14 @@
     padding-top: 5px;
     padding-bottom: 5px;
 }
+
+/*
+ * highlight value change using ngAnimate
+ * <span class="value-change" ng-class="['value-'+data]">
+ */
+.value-change {
+    transition: background-color 0.26s linear 0s;
+}
+.value-change[class*="-add"] {
+    background-color: yellow;
+}
