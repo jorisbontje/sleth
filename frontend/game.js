@@ -142,6 +142,15 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       return 0;
     };
 
+    game.calc_reward_line = function(reward, line, s1, s2, s3) {
+        var partial_payout = game.calc_line(s1, s2, s3);
+        if (partial_payout > 0) {
+            reward.partial_payouts[line] = partial_payout;
+            reward.payout += partial_payout;
+            reward.highlights.push(line);
+        }
+    };
+
     // calculate the reward
     game.calc_reward = function(playing_lines, result) {
       var reward = {
@@ -150,48 +159,23 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
           highlights: []
       };
 
-      var partial_payout;
-
       // Line 1
-      partial_payout = game.calc_line(result[0][1], result[1][1], result[2][1]);
-      if (partial_payout > 0) {
-        reward.partial_payouts[1] = partial_payout;
-        reward.payout += partial_payout;
-      }
+      game.calc_reward_line(reward, 1, result[0][1], result[1][1], result[2][1]);
 
       if (playing_lines > 1) {
         // Line 2
-        partial_payout = game.calc_line(result[0][0], result[1][0], result[2][0]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[2] = partial_payout;
-          reward.payout += partial_payout;
-        }
-
+        game.calc_reward_line(reward, 2, result[0][0], result[1][0], result[2][0]);
         // Line 3
-        partial_payout = game.calc_line(result[0][2], result[1][2], result[2][2]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[3] = partial_payout;
-          reward.payout += partial_payout;
-        }
+        game.calc_reward_line(reward, 3, result[0][2], result[1][2], result[2][2]);
       }
 
       if (playing_lines > 3) {
         // Line 4
-        partial_payout = game.calc_line(result[0][0], result[1][1], result[2][2]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[4] = partial_payout;
-          reward.payout += partial_payout;
-        }
-
+        game.calc_reward_line(reward, 4, result[0][0], result[1][1], result[2][2]);
         // Line 5
-        partial_payout = game.calc_line(result[0][2], result[1][1], result[2][0]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[5] = partial_payout;
-          reward.payout += partial_payout;
-        }
+        game.calc_reward_line(reward, 5, result[0][2], result[1][1], result[2][0]);
       }
 
-      reward.highlights = Object.keys(reward.partial_payouts);
       return reward;
     };
 
