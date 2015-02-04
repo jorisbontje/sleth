@@ -1,6 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/jorisbontje/sleth.png?label=ready&title=Ready)](https://waffle.io/jorisbontje/sleth)
 
-<img src="https://i.imgur.com/YWWsMNz.png" />
+<img src="https://i.imgur.com/OgFHoHD.png" />
 
 ## First game of sleth
 
