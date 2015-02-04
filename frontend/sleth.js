@@ -70,7 +70,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     $scope.updatePlayer = function() {
         $scope.contract.promise.then(function(contract) {
             var res = contract.call().get_current_round();
-            $log.info("updatePlayer", res.toNumber());
             $scope.player.round = res.toNumber();
         });
     };
@@ -80,8 +79,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
             var res = contract.call().get_stats();
             $scope.stats.total_spins = res[1].toNumber();
             $scope.stats.total_coins_won = res[2].toNumber();
-
-            $log.info("get_stats", res[0].toNumber(), res[1].toNumber(), res[2].toNumber());
         });
     };
 
@@ -89,8 +86,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
         var roundNumber = $scope.player.round;
         if(roundNumber) {
             $scope.contract.promise.then(function(contract) {
-                return(contract.get_round(roundNumber).call());
-            }).then(function(res) {
+                var res = contract.call().get_round(roundNumber);
                 var round = {
                     number: roundNumber,
                     player: res[0],
@@ -200,14 +196,13 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     };
 
     $scope.logMessage = function(message) {
-        console.log("MESSAGE", message);
+        $log.info(message);
         $scope.messages.push(message);
     };
 
     $scope.$watch('player.round', $scope.updateRound);
 
     web3.eth.watch('chain').changed(function(res) {
-        console.log("CHAIN UPDATED", res);
         $scope.updateChain();
         $scope.updatePlayer();
         $scope.updateRound();
