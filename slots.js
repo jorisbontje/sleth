@@ -45,7 +45,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
             $scope.stop();
             return;
         }
-        if (game.state !== game.STATE_REST) return;
+        if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
 
         if ($scope.credits >= 5) $scope.spin(5);
         else if ($scope.credits >= 3) $scope.spin(3);
@@ -55,7 +55,7 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
     };
 
     $scope.spin = function(line_choice) {
-      if (game.state !== game.STATE_REST) return;
+      if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
       if ($scope.credits < line_choice) return;
 
       $scope.credits -= line_choice;

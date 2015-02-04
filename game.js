@@ -42,12 +42,13 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     var game = {};
 
 
-    game.STATE_REST = 0;
-    game.STATE_SPINUP = 1;
-    game.STATE_SPINMAX = 2;
-    game.STATE_SPINDOWN = 3;
+    game.STATE_NEW = 0;
+    game.STATE_REST = 1;
+    game.STATE_SPINUP = 2;
+    game.STATE_SPINMAX = 3;
+    game.STATE_SPINDOWN = 4;
 
-    game.state = game.STATE_REST;
+    game.state = game.STATE_NEW;
 
     game.reward = {
         payout: 0,
@@ -142,6 +143,15 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       return 0;
     };
 
+    game.calc_reward_line = function(reward, line, s1, s2, s3) {
+        var partial_payout = game.calc_line(s1, s2, s3);
+        if (partial_payout > 0) {
+            reward.partial_payouts[line] = partial_payout;
+            reward.payout += partial_payout;
+            reward.highlights.push(line);
+        }
+    };
+
     // calculate the reward
     game.calc_reward = function(playing_lines, result) {
       var reward = {
@@ -150,48 +160,23 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
           highlights: []
       };
 
-      var partial_payout;
-
       // Line 1
-      partial_payout = game.calc_line(result[0][1], result[1][1], result[2][1]);
-      if (partial_payout > 0) {
-        reward.partial_payouts[1] = partial_payout;
-        reward.payout += partial_payout;
-      }
+      game.calc_reward_line(reward, 1, result[0][1], result[1][1], result[2][1]);
 
       if (playing_lines > 1) {
         // Line 2
-        partial_payout = game.calc_line(result[0][0], result[1][0], result[2][0]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[2] = partial_payout;
-          reward.payout += partial_payout;
-        }
-
+        game.calc_reward_line(reward, 2, result[0][0], result[1][0], result[2][0]);
         // Line 3
-        partial_payout = game.calc_line(result[0][2], result[1][2], result[2][2]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[3] = partial_payout;
-          reward.payout += partial_payout;
-        }
+        game.calc_reward_line(reward, 3, result[0][2], result[1][2], result[2][2]);
       }
 
       if (playing_lines > 3) {
         // Line 4
-        partial_payout = game.calc_line(result[0][0], result[1][1], result[2][2]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[4] = partial_payout;
-          reward.payout += partial_payout;
-        }
-
+        game.calc_reward_line(reward, 4, result[0][0], result[1][1], result[2][2]);
         // Line 5
-        partial_payout = game.calc_line(result[0][2], result[1][1], result[2][0]);
-        if (partial_payout > 0) {
-          reward.partial_payouts[5] = partial_payout;
-          reward.payout += partial_payout;
-        }
+        game.calc_reward_line(reward, 5, result[0][2], result[1][1], result[2][0]);
       }
 
-      reward.highlights = Object.keys(reward.partial_payouts);
       return reward;
     };
 
@@ -200,6 +185,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
         game.reward.payout = 0;
         game.reward.partial_payouts = {};
         game.state = game.STATE_SPINUP;
+        $rootScope.$broadcast('slots:state', game.state);
     };
 
     game.set_stops = function(entropy) {
@@ -228,6 +214,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       }
 
       game.state = game.STATE_SPINDOWN;
+      $rootScope.$broadcast('slots:state', game.state);
     };
 
     game.reinit = function(line_choice) {
@@ -238,6 +225,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       game.reward.payout = 0;
       game.reward.partial_payouts = {};
       game.state = game.STATE_SPINMAX;
+      $rootScope.$broadcast('slots:state', game.state);
     };
 
     function move_reel(i) {
@@ -265,6 +253,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       // if reels at max speed, begin spindown
       if (reel_speed[0] >= config.max_reel_speed) {
         game.state = game.STATE_SPINMAX;
+        $rootScope.$broadcast('slots:state', game.state);
       }
     }
 
@@ -284,7 +273,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
         var reward = game.calc_reward(game.playing_lines, result);
         game.reward = reward;
         game.state = game.STATE_REST;
-
+        $rootScope.$broadcast('slots:state', game.state);
         $rootScope.$broadcast('slots:reward', reward);
         return;
       }
@@ -327,7 +316,7 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
     game.logic = function() {
 
       // SPINMAX TO SPINDOWN happens on an input event
-      // REST to SPINUP happens on an input event
+      // NEW or REST to SPINUP happens on an input event
 
       if (game.state === game.STATE_SPINUP) {
         logic_spinup();
