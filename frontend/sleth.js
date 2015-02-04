@@ -32,7 +32,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     $scope.canvasSize = 160 * config.reel_scale;
 
     $scope.slethAddress = $location.search().address || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
-    $scope.slethBalance = 0;
     $scope.defaultGas = web3.fromDecimal(10000);
     $scope.contract = $q.defer();
 
@@ -40,6 +39,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     $scope.stats = {};
     $scope.round = {};
     $scope.messages = [];
+    $scope.web3 = {};
 
     $interval(function() {
         game.logic();
@@ -59,9 +59,9 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
         $scope.player.coins = Math.floor($scope.player.balance);
 
         var slethBalance = web3.eth.balanceAt($scope.slethAddress);
-        $scope.slethBalance = web3.toDecimal(slethBalance) / Math.pow(10, 18) || 0;
+        $scope.stats.slethBalance = web3.toDecimal(slethBalance) / Math.pow(10, 18) || 0;
 
-        $scope.blockNumber = web3.eth.number;
+        $scope.web3.blockNumber = web3.eth.number;
         if ($scope.canClaim($scope.round)) {
             $scope.claim($scope.round);
         }
@@ -148,7 +148,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     };
 
     $scope.canClaim = function(round) {
-        return round.status === 1 && ($scope.blockNumber > round.block);
+        return round.status === 1 && ($scope.web3.blockNumber > round.block);
     };
 
     $scope.claim = function(round) {
@@ -199,15 +199,14 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
     };
 
     // test if web3 is available
-    $scope.web3Available = false;
     try {
-        $scope.web3Available = web3.eth.coinbase !== "";
+        $scope.web3.available = (web3.eth.coinbase !== "");
     } catch(e) {
         $log.error(e);
-        $scope.web3Error = e;
+        $scope.web3.error = e;
     }
 
-    if ($scope.web3Available) {
+    if ($scope.web3.available) {
         $scope.$watch('player.round', $scope.updateRound);
 
         web3.eth.watch('chain').changed(function(res) {

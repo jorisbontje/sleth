@@ -21,19 +21,19 @@
         Balance <span class="label label-default">{{player.balance | number : 4}} ETH</span>
     </div>
     <div class="col-sm-3 text-center">
-        Block <span class="label label-default">{{blockNumber}}</span>
+        Block <span class="label label-default">{{web3.blockNumber}}</span>
     </div>
     <div class="col-sm-3 text-right">
         Network
-        <span ng-switch on="web3Available">
+        <span ng-switch on="web3.available">
             <span ng-switch-when="true" class="label label-success">online</span>
             <span ng-switch-when="false" class="label label-danger">offline</span>
         </span>
     </div>
 </div>
 
-<div class="alert alert-danger top-buffer" role="alert" ng-if="web3Error">
-    <strong>{{web3Error.name}}</strong> {{web3Error.message}}
+<div class="alert alert-danger top-buffer" role="alert" ng-if="web3.error">
+    <strong>{{web3.error.name}}</strong> {{web3.error.message}}
 </div>
 
 <div class="row">
@@ -52,12 +52,19 @@
                 </ng-pluralize>
             </h1>
             <p id="log" class="lead">
-                <span ng-if="reward.payout">
-                    You won {{reward.payout}}!<br />
-                </span>
-                <span ng-repeat="(line, partial_payout) in reward.partial_payouts">
-                    Line {{line}} pays {{partial_payout}}<br />
-                </span>
+                <div class="list-group">
+                    <li class="list-group-item" ng-repeat="(line, partial_payout) in reward.partial_payouts">
+                        Line {{line}} pays {{partial_payout}}
+                    </li>
+                    <li class="list-group-item list-group-item-success" ng-if="reward.payout">
+                        You won {{reward.payout}}!
+                        <span class="badge" ng-if="reward.verified">verified</span>
+                    </li>
+                    <li class="list-group-item list-group-item" ng-if="!reward.payout">
+                        You won nothing :(
+                        <span class="badge" ng-if="reward.verified">verified</span>
+                    </li>
+                </div>
             </p>
         </div>
     </div>
@@ -106,25 +113,10 @@
             </div>
             <table class="table table-condensed">
                 <tr><th>Contract</th><td>{{slethAddress | limitTo : 10}}</td></tr>
-                <tr><th>Contract Balance</th><td>{{slethBalance | number : 4}} ETH</td></tr>
+                <tr><th>Contract Balance</th><td>{{stats.slethBalance | number : 4}} ETH</td></tr>
                 <tr><th>Total Spins</th><td>{{stats.total_spins}}</td></tr>
                 <tr><th>Total Coins Won</th><td>{{stats.total_coins_won}}</td></tr>
             </table>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Messages</h3>
-            </div>
-            <ul class="list-group">
-                <li class="list-group-item" ng-repeat="message in messages track by $index">
-                    {{message}}
-                </li>
-            </ul>
         </div>
     </div>
 </div>
