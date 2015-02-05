@@ -1,0 +1,16 @@
+<div class="jumbotron">
+    <h3>Welcome to Sleth!</h3>
+
+    <p>Are you ready to play some slots? Please enter the Sleth contract address below so we can connect you to your slot machine!</p>
+
+    <form name="form" ng-submit="play()">
+      <div class="form-group" ng-class="{'has-error': form.address.$dirty && form.address.$invalid, 'has-success': form.address.$dirty && !form.address.$invalid}">
+        <label for="address">Contract address</label>
+        <input name="address" ng-class="{'has-error': form.address.$invalid}" ng-model="address" type="text" class="form-control" id="address" placeholder="Contract address" required ng-pattern="/^(0x)?[a-fA-F\d]{40}$/" />
+        <p class="help-block error" ng-show="form.address.$dirty && form.address.$error.required">please a contract address</p>
+        <p class="help-block error" ng-show="form.address.$error.pattern">please enter valid contract address</p>
+      </div>
+      <button type="submit" class="btn btn-primary" ng-disabled='!form.$valid'>Play!</button>
+    </form>
+
+</div>

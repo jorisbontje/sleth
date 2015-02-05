@@ -19,7 +19,7 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 "use strict";
 
-var app = angular.module('sleth',['slots.config', 'slots.game', 'slots.reels', 'slots.directives', 'ngAnimate']);
+var app = angular.module('slethController', ['slots.config', 'slots.game', 'slots.reels', 'slots.directives', 'ngAnimate']);
 
 app.factory('web3', function() {
     var web3 = require('web3');
@@ -33,11 +33,11 @@ app.factory('moment', function() {
     return moment;
 });
 
-app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$q', '$scope', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $location, $q, $scope, config, game, moment, web3) {
+app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routeParams', '$scope', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $q, $routeParams, $scope, config, game, moment, web3) {
 
     $scope.canvasSize = 160 * config.reel_scale;
 
-    $scope.slethAddress = $location.search().address || "0x23a2df087d6ade86338d6cf881da0f12f6b9257a";
+    $scope.slethAddress = $routeParams.contractAddress;
     $scope.defaultGas = web3.fromDecimal(10000);
     $scope.contract = $q.defer();
 
@@ -113,8 +113,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$location', '$
 
                 if (changed) {
                     if (round.status === 1 && (game.state === game.STATE_NEW)) {
-                        $scope.bet = round.bet
-                       game.spin(round.bet);
+                        $scope.bet = round.bet;
+                        game.spin(round.bet);
                     } else if (round.status === 2 && (game.state !== game.STATE_NEW)) {
                         $scope.bet = 0;
                         game.set_stops(round.rnd);
