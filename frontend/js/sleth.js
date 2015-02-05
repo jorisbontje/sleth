@@ -113,8 +113,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
                 if (changed) {
                     if (round.status === 1 && (game.state === game.STATE_NEW)) {
-                        $scope.bet = round.bet
-                       game.spin(round.bet);
+                        $scope.bet = round.bet;
+                        game.spin(round.bet);
                     } else if (round.status === 2 && (game.state !== game.STATE_NEW)) {
                         $scope.bet = 0;
                         game.set_stops(round.rnd);
