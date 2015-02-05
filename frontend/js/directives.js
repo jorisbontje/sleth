@@ -43,6 +43,17 @@ app.directive('progressBar', function() {
   };
 });
 
+app.directive('revealValue', function() {
+  return {
+    restrict: 'E',
+    scope: {
+      on: '=on',
+      value: '=value'
+    },
+    templateUrl: 'templates/reveal-value.html'
+  };
+});
+
 app.directive('roundPanel', function() {
   return {
     restrict: 'E',

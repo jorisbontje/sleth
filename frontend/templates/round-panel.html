@@ -3,13 +3,21 @@
         <h3 class="panel-title">Last Round #{{round.number}}</h3>
     </div>
     <table class="table table-condensed">
-        <tr><th>Player</th><td>{{round.player | limitTo : 10}}</td></tr>
-        <tr><th>Block</th><td>{{round.block}}</td></tr>
-        <tr><th>Time</th><td>{{round.time}}</td></tr>
-        <tr><th>Bet</th><td>{{round.bet}}</td></tr>
-        <tr ng-if="round.status == 2 && state < 2"><th>Result</th><td>{{round.result}}</td></tr>
-        <tr ng-if="round.status == 2 && state < 2"><th>Entropy</th><td>{{round.entropy | limitTo : 10}}</td></tr>
-        <tr ng-if="round.status == 2 && state < 2"><th>RND</th><td>{{round.rnd}}</td></tr>
+        <tr>
+            <th class="col-md-2">Block</th><td class="col-md-4">{{round.block}}</td>
+            <th class="col-md-2">Time</th><td class="col-md-4">{{round.time}}</td>
+        </tr>
+        <tr>
+            <th>Bet</th><td>{{round.bet}}</td>
+            <th>Result</th>
+            <td><reveal-value on="round.status == 2 && state < 2" value="round.result"></reveal-value></td>
+        </tr>
+        <tr>
+            <th>Entropy</th><td>
+                <reveal-value on="round.status == 2 && state < 2" value="round.entropy | limitTo : 10"></reveal-value>
+            </td>
+            <th>RND</th><td><reveal-value on="round.status == 2 && state < 2" value="round.rnd"></reveal-value></td>
+        </tr>
         <tr><th>Status:
             <td ng-switch on="round.status">
                 <span ng-switch-when="0">NEW</span>
