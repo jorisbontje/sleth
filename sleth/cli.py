@@ -64,6 +64,12 @@ def cmd_suicide(args):
 
 def cmd_create(args):
     instance = api.Api()
+    creator_address = "0x%s" % instance.address
+    if instance.balance_at(creator_address) < CONTRACT_GAS * 1e+13:
+        print "Insufficient balance to cover gas for contract creation."
+        print "You need at least %d wei in account %s (current balance is %d wei)." % \
+            (CONTRACT_GAS * 1e+13, creator_address, instance.balance_at(creator_address))
+        return
     contract = compile(open(CONTRACT_FILE).read()).encode('hex')
     contract_address = instance.create(contract, gas=CONTRACT_GAS)
     print "Contract will be available at %s" % contract_address
