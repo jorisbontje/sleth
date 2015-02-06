@@ -122,23 +122,22 @@ class TestSlethContract(object):
         assert self.c.get_stops(2878) == [30, 25, 2]
         assert self.c.calc_reward(2878, 5) == [6]
 
-    def test_claim_winning(self):
-        self.s.mine(1)
-        assert self.c.spin(5, value=5 * self.ETHER) == [1]
+    def _spin_mine_claim(self, amount, premine, expected_result, expected_rnd):
+        self.s.mine(premine)
+        assert self.c.spin(amount, value=amount * self.ETHER) == [1]
 
         self.s.mine(1)
         balance_before = self.s.block.get_balance(tester.a0)
         assert self.c.claim(1) == [1]
 
-        expected_result = 6
 
         player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
-        assert block == 1
-        assert bet == 5
+        assert block == premine
+        assert bet == amount
         assert result == expected_result
         assert entropy != 0
-        assert rnd == 24419
+        assert rnd == expected_rnd
         assert status == 2  # done
 
         balance_after = self.s.block.get_balance(tester.a0)
@@ -149,27 +148,11 @@ class TestSlethContract(object):
 
         assert self.c.get_stats() == [2, 1, expected_result]
 
+    def test_claim_winning(self):
+        self._spin_mine_claim(amount=5, premine=3, expected_result=2, expected_rnd=24813)
+
     def test_claim_losing(self):
-        self.s.mine(3)
-        assert self.c.spin(5, value=5 * self.ETHER) == [1]
-
-        self.s.mine(1)
-        balance_before = self.s.block.get_balance(tester.a0)
-        assert self.c.claim(1) == [1]
-
-        player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
-        assert player == int(tester.a0, 16)
-        assert bet == 5
-        assert result == 0
-        assert entropy != 0
-        assert rnd == 4649
-        assert status == 2  # done
-
-        balance_after = self.s.block.get_balance(tester.a0)
-        assert balance_after == balance_before
-
-        current_round = self.c.get_current_round()[0]
-        assert current_round == 1
+        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=7631)
 
     def test_claim_invalid_status(self):
         assert self.c.claim(1) == [90]
