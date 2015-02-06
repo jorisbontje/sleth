@@ -184,8 +184,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         }
     });
 
-    $scope.handleKey = function(e) {
-        if (e.which === 32) { // spacebar
+    $scope.$on('keypress', function (evt, obj) {
+        if (obj.which === 32) { // spacebar
             if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
 
             if ($scope.player.coins >= 5) {
@@ -196,7 +196,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 $scope.spin(1);
             }
         }
-    };
+    });
 
     $scope.clearMessages = function() {
         $scope.messages = [];
