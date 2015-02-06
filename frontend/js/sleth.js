@@ -210,6 +210,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     // test if web3 is available
     try {
         $scope.web3.available = (web3.eth.coinbase !== "");
+        $scope.contractExists = (web3.eth.codeAt($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
     } catch(e) {
         $log.error(e);
         $scope.web3.error = e;
@@ -219,7 +220,12 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.state = state;
     });
 
-    if ($scope.web3.available) {
+    function init() {
+        if (!$scope.contractExists) {
+            $scope.web3.error = {'name': "Contract Not Found", 'message': "The specified contract couldn't be found on the blockchain"};
+            return;
+        }
+
         $scope.$watch('player.round', $scope.updateRound);
 
         web3.eth.watch('chain').changed(function(res) {
@@ -232,5 +238,9 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.updateChain();
         $scope.updatePlayer();
         $scope.updateStats();
+    }
+
+    if ($scope.web3.available) {
+        init();
     }
 }]);
