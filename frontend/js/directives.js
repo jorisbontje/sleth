@@ -76,6 +76,16 @@ app.directive('roundPanel', function() {
   };
 });
 
+app.directive('prevRoundsPanel', function() {
+  return {
+    restrict: 'E',
+    scope: {
+      rounds: '=rounds'
+    },
+    templateUrl: 'templates/prev-rounds-panel.html'
+  };
+});
+
 app.directive('statsPanel', function() {
   return {
     restrict: 'E',

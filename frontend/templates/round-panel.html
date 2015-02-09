@@ -5,7 +5,7 @@
     <table class="table table-condensed">
         <tr>
             <th class="col-md-2">Block</th><td class="col-md-4">{{round.block}}</td>
-            <th class="col-md-2">Time</th><td class="col-md-4">{{round.time}}</td>
+            <th class="col-md-2">Time</th><td class="col-md-4" am-time-ago="round.time" am-preprocess="unix"></td>
         </tr>
         <tr>
             <th>Bet</th><td>{{round.bet}}</td>

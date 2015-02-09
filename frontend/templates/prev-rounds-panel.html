@@ -1,0 +1,21 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">Previous Rounds</h3>
+    </div>
+    <table class="table table-condensed">
+        <tr>
+            <th>Block</th>
+            <th>Player</th>
+            <th>Time</th>
+            <th>Bet</th>
+            <th>Prize</th>
+        </tr>
+        <tr ng-repeat="(nr, round) in rounds">
+            <td>{{round.number}}</td>
+            <td>{{round.player | limitTo : 10}}</td>
+            <td am-time-ago="round.time" am-preprocess="unix"></td>
+            <td>{{round.bet}}</td>
+            <td>{{round.result}}</td>
+        </tr>
+    </table>
+</div>
