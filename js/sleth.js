@@ -19,18 +19,18 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 "use strict";
 
-var app = angular.module('slethController', ['slots.config', 'slots.game', 'slots.reels', 'slots.directives', 'ngAnimate']);
-
-app.factory('web3', function() {
-    var web3 = require('web3');
-    web3.setProvider(new web3.providers.HttpSyncProvider("http://localhost:8080/"));
-    return web3;
-});
+var app = angular.module('slethController', ['slots.config', 'slots.game', 'slots.reels', 'slots.directives', 'ngAnimate', 'angular-lodash', 'angularMoment']);
 
 app.factory('moment', function() {
     var moment = window.moment;
     window.monent = undefined;
     return moment;
+});
+
+app.factory('web3', function() {
+    var web3 = require('web3');
+    web3.setProvider(new web3.providers.HttpSyncProvider("http://localhost:8080/"));
+    return web3;
 });
 
 app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routeParams', '$scope', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $q, $routeParams, $scope, config, game, moment, web3) {
@@ -48,6 +48,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.messages = [];
     $scope.web3 = {};
     $scope.state = game.STATE_NEW;
+
+    $scope.rounds = [];
 
     $interval(function() {
         game.logic();
@@ -100,7 +102,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                     number: roundNumber,
                     player: res[0],
                     block: res[1].toNumber(),
-                    time: moment.unix(res[2].toNumber()).fromNow(),
+                    time: res[2].toNumber(),
                     bet: res[3].toNumber(),
                     result: res[4].toNumber(),
                     entropy: res[5],
@@ -125,6 +127,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                             message += "nothing :(";
                         }
                         $scope.logMessage(message);
+                        $scope.rounds.unshift(round);
                     }
 
                     if ($scope.canClaim($scope.round)) {
@@ -184,8 +187,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         }
     });
 
-    $scope.handleKey = function(e) {
-        if (e.which === 32) { // spacebar
+    $scope.$on('keypress', function (evt, obj) {
+        if (obj.which === 32) { // spacebar
             if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
 
             if ($scope.player.coins >= 5) {
@@ -196,7 +199,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 $scope.spin(1);
             }
         }
-    };
+    });
 
     $scope.clearMessages = function() {
         $scope.messages = [];

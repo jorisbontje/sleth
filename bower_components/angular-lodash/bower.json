@@ -1,0 +1,16 @@
+{
+  "name": "angular-lodash",
+  "main": "angular-lodash.js",
+  "version": "0.1.2",
+  "homepage": "https://github.com/cabrel/angular-lodash",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "~2.4.1"
+  }
+}

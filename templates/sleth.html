@@ -4,7 +4,7 @@
     <strong>{{web3.error.name}}</strong> {{web3.error.message}}
 </div>
 
-<div class="row">
+<div class="row" keypress-events>
     <div class="col-md-8 text-center">
         <div id="game" ng-style="{'width': canvasSize}">
             <canvas slots-reels id="slots" width="{{canvasSize}}" height="{{canvasSize}}"></canvas>
@@ -87,5 +87,11 @@
 
     <div class="col-md-4">
         <stats-panel contract="slethAddress" stats="stats"></stats-panel>
+    </div>
+</div>
+
+<div class="row top-buffer">
+    <div class="col-md-8">
+        <prev-rounds-panel rounds="rounds" current-round="player.round"></prev-rounds-panel>
     </div>
 </div>

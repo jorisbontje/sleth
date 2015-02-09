@@ -21,6 +21,17 @@ Art by Clint Bellanger (CC-BY 3.0)
 
 var app = angular.module('slots.directives', []);
 
+app.directive('keypressEvents', function ($document, $rootScope) {
+    return {
+        restrict: 'A',
+        link: function () {
+            $document.bind('keypress', function (e) {
+                $rootScope.$broadcast('keypress', e);
+            });
+        }
+    };
+});
+
 app.directive('playerBar', function() {
   return {
     restrict: 'E',
@@ -62,6 +73,17 @@ app.directive('roundPanel', function() {
       state: '=state'
     },
     templateUrl: 'templates/round-panel.html'
+  };
+});
+
+app.directive('prevRoundsPanel', function() {
+  return {
+    restrict: 'E',
+    scope: {
+      rounds: '=rounds',
+      currentRound: '=currentRound'
+    },
+    templateUrl: 'templates/prev-rounds-panel.html'
   };
 });
 
