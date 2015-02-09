@@ -49,7 +49,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.web3 = {};
     $scope.state = game.STATE_NEW;
 
-    $scope.rounds = {};
+    $scope.rounds = [];
 
     $interval(function() {
         game.logic();
@@ -127,7 +127,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                             message += "nothing :(";
                         }
                         $scope.logMessage(message);
-                        $scope.rounds[round.number] = round;
+                        $scope.rounds.unshift(round);
                     }
 
                     if ($scope.canClaim($scope.round)) {

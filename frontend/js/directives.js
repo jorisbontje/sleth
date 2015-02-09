@@ -80,7 +80,8 @@ app.directive('prevRoundsPanel', function() {
   return {
     restrict: 'E',
     scope: {
-      rounds: '=rounds'
+      rounds: '=rounds',
+      currentRound: '=currentRound'
     },
     templateUrl: 'templates/prev-rounds-panel.html'
   };
