@@ -5,37 +5,55 @@ import logging
 from pprint import pprint
 
 from pyepm import api
-from serpent import compile
+from pyethereum import abi
+import serpent
 
 CONTRACT_FILE = "contracts/sleth.se"
 CONTRACT_GAS = 55000
 
 ETHER = 10 ** 18
 
+def load_abi_translator():
+    serpent_code = open(CONTRACT_FILE).read()
+    return abi.ContractTranslator(serpent.mk_full_signature(serpent_code))
+
+CONTRACT_TRANSLATOR = load_abi_translator()
+
+def abi_call(instance, contract, translator, fun_name, args):
+    data = translator.encode(fun_name, args).encode('hex')
+    result = instance.call(contract, data=data)
+    output = translator.decode(fun_name, result[2:].decode('hex'))
+    return output[0]
+
+def abi_transact(instance, contract, translator, fun_name, args, value=0):
+    data = translator.encode(fun_name, args).encode('hex')
+    result = instance.transact(contract, data=data, value=value)
+    return
+
 def cmd_spin(args):
     print "Spinning the slots with bet", args.bet
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, fun_name='spin', sig='i', data=[int(args.bet)], value=int(args.bet) * ETHER)
+    abi_transact(instance, args.contract, CONTRACT_TRANSLATOR, 'spin', [int(args.bet)], value=int(args.bet) * ETHER)
 
 def cmd_claim(args):
     print "Claiming round ", args.round
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, fun_name='claim', sig='i', data=[int(args.round)])
+    abi_transact(instance, args.contract, CONTRACT_TRANSLATOR, 'claim', [int(args.round)])
 
 def cmd_get_round(args):
     print "Getting information about round", args.round
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, fun_name='get_round', sig='i', data=[int(args.round)])
+    result = abi_call(instance, args.contract, CONTRACT_TRANSLATOR, 'get_round', [int(args.round)])
     player, block, timestamp, bet, result, entropy, rnd, status = result
     print "Player:", hex(player)
     print "Block:", block
     print "Timestamp:", timestamp
     print "Bet:", bet
     print "Result:", result
-    print "Entropy:", entropy
+    print "Entropy:", hex(entropy)
     print "RND:", rnd
     print "Status:", status
 
@@ -43,14 +61,14 @@ def cmd_get_current_round(args):
     print "Getting information about the current player round"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, fun_name='get_current_round', data=[])
-    print "Current round:", result[0]
+    result = abi_call(instance, args.contract, CONTRACT_TRANSLATOR, 'get_current_round', [])
+    print "Current round:", result
 
 def cmd_get_stats(args):
     print "Getting statistics"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    result = instance.call(args.contract, fun_name='get_stats', data=[])
+    result = abi_call(instance, args.contract, CONTRACT_TRANSLATOR, 'get_stats', [])
     current_round, total_spins, total_coins_won = result
     print "Current round:", current_round
     print "Total spins:", total_spins
@@ -60,7 +78,7 @@ def cmd_suicide(args):
     print "Killing the contract"
     instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, fun_name='suicide', data=[])
+    abi_transact(instance, args.contract, CONTRACT_TRANSLATOR, 'suicide', data=[])
 
 def cmd_create(args):
     instance = api.Api()
