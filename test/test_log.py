@@ -33,7 +33,7 @@ def test_log_topics_and_data():
         self.s.revert(self.snapshot)
 
     def test_log_topics(self):
-        assert self.c.test_log_topics() == []
+        assert self.c.test_log_topics() is None
         assert self._last_logs() == [
             dict(address=self.c.address, topics=['0000000000000000000000000000000000000000000000000000000000000001'], data='0x'),
             dict(address=self.c.address, topics=['0000000000000000000000000000000000000000000000000000000000000001',
@@ -47,11 +47,11 @@ def test_log_topics_and_data():
                                          '0000000000000000000000000000000000000000000000000000000000000004'], data='0x')]
 
     def test_log_data(self):
-        assert self.c.test_log_data() == []
+        assert self.c.test_log_data() is None
         assert self._last_logs() == [dict(address=self.c.address, topics=[], data=self.EXPECTED_DATA)]
 
     def test_log_topics_and_data(self):
-        assert self.c.test_log_topics_and_data() == []
+        assert self.c.test_log_topics_and_data() is None
         assert self._last_logs() == [
             dict(address=self.c.address, topics=['0000000000000000000000000000000000000000000000000000000000000001'], data=self.EXPECTED_DATA),
             dict(address=self.c.address, topics=['0000000000000000000000000000000000000000000000000000000000000001',

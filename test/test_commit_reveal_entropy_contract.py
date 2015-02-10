@@ -75,40 +75,40 @@ class TestCommitRevealEntropyContract(object):
 
     def test_hash_sha3(self):
         value = 'cow'
-        assert self.c.hash(self.COW_INT) == [hash_value(value)]
+        assert self.c.hash(self.COW_INT) == hash_value(value)
 
     def test_commit(self):
-        assert self.c.commit(1, self.COW_HASH, value=self.DEPOSIT_COST) == [1]
+        assert self.c.commit(1, self.COW_HASH, value=self.DEPOSIT_COST) == 1
         assert self.c.get_block(1) == [0, 1, 0, 0]
 
         assert self.s.block.get_balance(tester.a0) == 10 ** 24 - self.DEPOSIT_COST
 
     def test_commit_insufficient_deposit(self):
-        assert self.c.commit(4, self.COW_HASH, cost=0) == [0]
+        assert self.c.commit(4, self.COW_HASH, cost=0) == 0
         assert self.c.get_block(4) == [0, 0, 0, 0]
 
     def test_commit_invalid_target(self):
-        assert self.c.commit(0, self.COW_HASH, value=self.DEPOSIT_COST) == [0]
+        assert self.c.commit(0, self.COW_HASH, value=self.DEPOSIT_COST) == 0
         assert self.c.get_block(0) == [0, 0, 0, 0]
 
         self.s.mine(4)
-        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == [0]
+        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == 0
         assert self.c.get_block(4) == [0, 0, 0, 0]
 
     def test_commit_twice(self):
-        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == [1]
+        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == 1
         assert self.c.get_block(4) == [0, 1, 0, 0]
 
-        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == [0]
+        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == 0
         assert self.c.get_block(4) == [0, 1, 0, 0]
 
     def test_commit_twice_different_senders(self):
-        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == [1]
-        assert self.c.commit(4, self.COW_HASH, sender=tester.k1, value=self.DEPOSIT_COST) == [1]
+        assert self.c.commit(4, self.COW_HASH, value=self.DEPOSIT_COST) == 1
+        assert self.c.commit(4, self.COW_HASH, sender=tester.k1, value=self.DEPOSIT_COST) == 1
         assert self.c.get_block(4) == [0, 2, 0, 0]
 
     def test_commit_invalid_hash(self):
-        assert self.c.commit(1, 0, value=self.DEPOSIT_COST) == [0]
+        assert self.c.commit(1, 0, value=self.DEPOSIT_COST) == 0
         assert self.c.get_block(0) == [0, 0, 0, 0]
 
     def test_reveal(self):
@@ -116,51 +116,51 @@ class TestCommitRevealEntropyContract(object):
         self.s.mine(2)
 
         balance = self.s.block.get_balance(tester.a0)
-        assert self.c.reveal(1, self.COW_INT) == [1]
+        assert self.c.reveal(1, self.COW_INT) == 1
         assert self.c.get_block(1) == [0x6d8d9b450dd77c907e2bc2b6612699789c3464ea8757c2c154621057582287a3, 1, 1, 0]
         assert self.s.block.get_balance(tester.a0) - balance == self.DEPOSIT_COST  # deposit return
 
     def test_reveal_not_yet_allowed(self):
         self.test_commit()
 
-        assert self.c.reveal(1, self.COW_INT) == [90]
+        assert self.c.reveal(1, self.COW_INT) == 90
 
     def test_reveal_window_expired(self):
         self.test_commit()
         self.s.mine(5)
 
-        assert self.c.reveal(1, self.COW_INT) == [91]
+        assert self.c.reveal(1, self.COW_INT) == 91
 
     def test_reveal_not_committed(self):
         self.s.mine(2)
 
-        assert self.c.reveal(1, self.COW_INT) == [92]
+        assert self.c.reveal(1, self.COW_INT) == 92
 
     def test_reveal_already_revealed(self):
         self.test_commit()
         self.s.mine(2)
 
-        assert self.c.reveal(1, self.COW_INT) == [1]
-        assert self.c.reveal(1, self.COW_INT) == [93]
+        assert self.c.reveal(1, self.COW_INT) == 1
+        assert self.c.reveal(1, self.COW_INT) == 93
 
     def test_reveal_hash_mismatch(self):
         self.test_commit()
         self.s.mine(2)
 
-        assert self.c.reveal(1, self.MONKEY_INT) == [94]
+        assert self.c.reveal(1, self.MONKEY_INT) == 94
 
     def test_reveal_calculates_seed_when_all_reveals_are_in(self):
-        assert self.c.commit(1, self.COW_HASH, value=self.DEPOSIT_COST) == [1]
-        assert self.c.commit(1, self.COW_HASH, sender=tester.k1, value=self.DEPOSIT_COST) == [1]
+        assert self.c.commit(1, self.COW_HASH, value=self.DEPOSIT_COST) == 1
+        assert self.c.commit(1, self.COW_HASH, sender=tester.k1, value=self.DEPOSIT_COST) == 1
         self.s.mine(2)
 
-        assert self.c.reveal(1, self.COW_INT) == [1]
+        assert self.c.reveal(1, self.COW_INT) == 1
         assert self.c.get_block(1) == [0, 2, 1, 0]
-        assert self.c.reveal(1, self.COW_INT, sender=tester.k1) == [1]
+        assert self.c.reveal(1, self.COW_INT, sender=tester.k1) == 1
         assert self.c.get_block(1) == [0x2c996eb68c74cec2b2acd81abe0f75fe67b2b941702b8dc25e96a106800eb922, 2, 2, 0]
 
     def test_reveal_returns_entropy(self):
-        assert self.c.commit(1, self.COW_HASH, value=self.DEPOSIT_COST) == [1]
+        assert self.c.commit(1, self.COW_HASH, value=self.DEPOSIT_COST) == 1
         assert self.c.request_entropy(sender=tester.k1, value=self.ENTROPY_COST) == [0, 4]
         assert self.c.get_block(self.s.block.number + 1) == [0, 1, 0, 1]
 
@@ -170,7 +170,7 @@ class TestCommitRevealEntropyContract(object):
         COW_HASH_1 = utils.big_endian_to_int(utils.sha3(utils.int_to_big_endian(COW_SEED)))
 
         balance = self.s.block.get_balance(tester.a0)
-        assert self.c.reveal(1, self.COW_INT) == [1]
+        assert self.c.reveal(1, self.COW_INT) == 1
         assert self.s.block.get_balance(tester.a0) - balance == self.DEPOSIT_COST + self.ENTROPY_COST  # deposit return + payout of committer share
 
         assert self.c.get_block(1) == [COW_SEED, 1, 1, 1]

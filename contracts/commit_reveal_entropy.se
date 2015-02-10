@@ -35,7 +35,7 @@ def shared():
 # or 0 if the required cost wasn't met.
 def request_entropy():
     if msg.value < ENTROPY_COST:
-        return(0)  # insufficient fee
+        return([0], items=1)  # insufficient fee
 
     target = block.number + 1
 
