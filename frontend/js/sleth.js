@@ -35,6 +35,9 @@ app.factory('web3', function() {
 
 app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routeParams', '$scope', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $q, $routeParams, $scope, config, game, moment, web3) {
 
+    /* global BigNumber:false */
+    var two_256 = new BigNumber(2).toPower(256);
+
     $scope.canvasSize = 160 * config.reel_scale;
 
     $scope.slethAddress = $routeParams.contractAddress;
@@ -100,12 +103,12 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 var res = contract.call().get_round(roundNumber);
                 var round = {
                     number: roundNumber,
-                    player: res[0],
+                    player: '0x' + (res[0].isNeg() ? res[0].plus(two_256) : res[0]).toString(16),
                     block: res[1].toNumber(),
                     time: res[2].toNumber(),
                     bet: res[3].toNumber(),
                     result: res[4].toNumber(),
-                    entropy: res[5],
+                    entropy: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
                     rnd: res[6].toNumber(),
                     status: res[7].toNumber()
                 };

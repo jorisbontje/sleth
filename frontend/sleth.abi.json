@@ -1,17 +1,17 @@
 [{
-    "name": "spin(uint256)",
+    "name": "spin(int256)",
     "type": "function",
     "inputs": [{
         "name": "bet",
-        "type": "uint256"
+        "type": "int256"
     }],
     "outputs": []
 }, {
-    "name": "claim(uint256)",
+    "name": "claim(int256)",
     "type": "function",
     "inputs": [{
         "name": "round",
-        "type": "uint256"
+        "type": "int256"
     }],
     "outputs": []
 }, {
@@ -19,32 +19,11 @@
     "type": "function",
     "inputs": [{
         "name": "round",
-        "type": "uint256"
+        "type": "int256"
     }],
     "outputs": [{
-        "name": "player",
-        "type": "address"
-    }, {
-        "name": "block",
-        "type": "uint256"
-    }, {
-        "name": "timestamp",
-        "type": "uint256"
-    }, {
-        "name": "bet",
-        "type": "uint256"
-    }, {
-        "name": "result",
-        "type": "uint256"
-    }, {
-        "name": "entropy",
-        "type": "hash"
-    }, {
-        "name": "rnd",
-        "type": "uint256"
-    }, {
-        "name": "status",
-        "type": "uint256"
+        "name": "out",
+        "type": "int256[]"
     }]
 }, {
     "name": "get_current_round()",
@@ -52,20 +31,14 @@
     "inputs": [],
     "outputs": [{
         "name": "last_round",
-        "type": "uint256"
+        "type": "int256"
     }]
 }, {
     "name": "get_stats()",
     "type": "function",
     "inputs": [],
     "outputs": [{
-        "name": "current_round",
-        "type": "uint256"
-    }, {
-        "name": "total_spins",
-        "type": "uint256"
-    }, {
-        "name": "total_coins_won",
-        "type": "uint256"
+        "name": "out",
+        "type": "int256[]"
     }]
 }]
