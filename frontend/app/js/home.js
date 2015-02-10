@@ -1,12 +1,12 @@
-"use strict";
+(function() {
 
-var app = angular.module('homeController', []);
-
-app.factory('localStorage', function() {
+'use strict';
+angular
+.module('homeController', [])
+.factory('localStorage', function() {
     return window.localStorage;
-});
-
-app.controller("HomeController", ['$location', '$scope', 'localStorage', function($location, $scope, localStorage) {
+})
+.controller("HomeController", ['$location', '$scope', 'localStorage', function($location, $scope, localStorage) {
 
     $scope.address = localStorage['sleth:address'];
 
@@ -20,3 +20,5 @@ app.controller("HomeController", ['$location', '$scope', 'localStorage', functio
     };
 
 }]);
+
+})();
