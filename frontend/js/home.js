@@ -3,7 +3,7 @@
 var app = angular.module('homeController', []);
 
 app.factory('localStorage', function() {
-    return window.localStorage;
+    return window.localStorage || {};
 });
 
 app.controller("HomeController", ['$location', '$scope', 'localStorage', function($location, $scope, localStorage) {
