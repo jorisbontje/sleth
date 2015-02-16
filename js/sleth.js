@@ -35,6 +35,13 @@ app.factory('web3', function() {
 
 app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routeParams', '$scope', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $q, $routeParams, $scope, config, game, moment, web3) {
 
+    var ROUND_NEW = 0;
+    var ROUND_SPINNING = 1;
+    var ROUND_DONE = 2;
+    var ROUND_EXPIRED = 2;
+
+    var MAX_BLOCK_AGE = 255;
+
     /* global BigNumber:false */
     var two_256 = new BigNumber(2).toPower(256);
 
@@ -113,14 +120,18 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                     status: res[7].toNumber()
                 };
 
+                if (round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block + MAX_BLOCK_AGE)) {
+                    round.status = ROUND_EXPIRED;
+                }
+
                 var changed = !angular.equals(round, $scope.round);
                 $scope.round = round;
 
                 if (changed) {
-                    if (round.status === 1 && (game.state === game.STATE_NEW)) {
+                    if (round.status === ROUND_SPINNING && (game.state === game.STATE_NEW)) {
                         $scope.bet = round.bet;
                         game.spin(round.bet);
-                    } else if (round.status === 2 && (game.state !== game.STATE_NEW)) {
+                    } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
                         $scope.bet = 0;
                         game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";
@@ -163,7 +174,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.canClaim = function(round) {
-        return round.status === 1 && ($scope.web3.blockNumber > round.block);
+        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
     };
 
     $scope.claim = function(round) {
