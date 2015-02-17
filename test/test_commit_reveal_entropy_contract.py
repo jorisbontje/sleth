@@ -84,7 +84,7 @@ class TestCommitRevealEntropyContract(object):
         assert self.s.block.get_balance(tester.a0) == 10 ** 24 - self.DEPOSIT_COST
 
     def test_commit_insufficient_deposit(self):
-        assert self.c.commit(4, self.COW_HASH, cost=0) == 0
+        assert self.c.commit(4, self.COW_HASH, value=0) == 0
         assert self.c.get_block(4) == [0, 0, 0, 0]
 
     def test_commit_invalid_target(self):
