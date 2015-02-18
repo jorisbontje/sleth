@@ -86,9 +86,10 @@ def cmd_status(instance, args):
     print "Listening? %s" % instance.is_listening()
     print "Mining? %s" % instance.is_mining()
     print "Peer count: %d" % instance.peer_count()
-    print "Number: %d" % instance.number()
+    block_number = instance.number()
+    print "Number: %d" % block_number
 
-    last_block = instance.last_block()
+    last_block = instance.block(block_number)
     print "Last Block:"
     pprint(last_block)
 
