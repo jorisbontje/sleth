@@ -1,6 +1,3 @@
--e git+https://github.com/ethereum/serpent.git@develop#egg=ethereum-serpent
--e git+https://github.com/ethereum/pyethereum.git@develop#egg=pyethereum
--e git+https://github.com/etherex/pyepm.git#egg=pyepm
-flake8==2.2.5
-pytest==2.6.4
-pytest-xdist==1.11
+https://github.com/ethereum/serpent/tarball/develop
+https://github.com/ethereum/pyethereum/tarball/develop
+pyepm
