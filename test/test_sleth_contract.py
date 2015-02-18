@@ -7,7 +7,7 @@ slow = pytest.mark.slow
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 55000
+    CONTRACT_GAS = 56000
 
     ETHER = 10 ** 18
 
@@ -48,12 +48,13 @@ class TestSlethContract(object):
         current_round = self.c.get_current_round()
         assert current_round == 1
 
-        player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(current_round)
+        player, block, timestamp, bet, result, hash, entropy, rnd, status = self.c.get_round(current_round)
         assert player == int(tester.a0, 16)
         assert block == 0
         assert timestamp == self.s.block.timestamp
         assert bet == 5
         assert result == 0
+        assert hash == 0
         assert entropy == 0
         assert rnd == 0
         assert status == 1  # spinning
@@ -129,11 +130,12 @@ class TestSlethContract(object):
         balance_before = self.s.block.get_balance(tester.a0)
         assert self.c.claim(1) == 1
 
-        player, block, timestamp, bet, result, entropy, rnd, status = self.c.get_round(1)
+        player, block, timestamp, bet, result, hash, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
         assert block == premine
         assert bet == amount
         assert result == expected_result
+        assert hash != 0
         assert entropy != 0
         assert rnd == expected_rnd
         assert status == 2  # done
@@ -147,10 +149,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=2, expected_result=6, expected_rnd=1423)
+        self._spin_mine_claim(amount=5, premine=2, expected_result=2, expected_rnd=3798)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=0, expected_rnd=27688)
+        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=5570)
 
     def test_claim_invalid_status(self):
         assert self.c.claim(1) == 90
@@ -184,10 +186,11 @@ class TestSlethContract(object):
         assert self.c.claim(1) == 1
         assert self.c.claim(2, sender=tester.k1) == 1
 
-        player1, block1, timestamp1, bet1, result1, entropy1, rnd1, status1 = self.c.get_round(1)
-        player2, block2, timestamp2, bet2, result2, entropy2, rnd2, status2 = self.c.get_round(2)
+        player1, block1, timestamp1, bet1, result1, hash1, entropy1, rnd1, status1 = self.c.get_round(1)
+        player2, block2, timestamp2, bet2, result2, hash2, entropy2, rnd2, status2 = self.c.get_round(2)
         assert player1 == int(tester.a0, 16)
         assert player2 == int(tester.a1, 16)
+        assert hash1 == hash2
         assert entropy1 != entropy2
         assert rnd1 != rnd2
 

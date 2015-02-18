@@ -7,7 +7,7 @@ from pyepm import api, config
 import serpent
 
 CONTRACT_FILE = "contracts/sleth.se"
-CONTRACT_GAS = 55000
+CONTRACT_GAS = 56000
 
 ETHER = 10 ** 18
 
@@ -25,12 +25,13 @@ def cmd_get_round(instance, args):
     print "Getting information about round", args.round
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_round', sig='i', data=[int(args.round)])
-    array_len, player, block, timestamp, bet, result, entropy, rnd, status = result
+    array_len, player, block, timestamp, bet, result, hash, entropy, rnd, status = result
     print "Player:", hex(player)
     print "Block:", block
     print "Timestamp:", timestamp
     print "Bet:", bet
     print "Result:", result
+    print "BlockHash:", hex(hash)
     print "Entropy:", hex(entropy)
     print "RND:", rnd
     print "Status:", status

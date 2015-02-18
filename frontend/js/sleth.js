@@ -115,9 +115,10 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                     time: res[2].toNumber(),
                     bet: res[3].toNumber(),
                     result: res[4].toNumber(),
-                    entropy: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
-                    rnd: res[6].toNumber(),
-                    status: res[7].toNumber()
+                    hash: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
+                    entropy: '0x' + (res[6].isNeg() ? res[6].plus(two_256) : res[6]).toString(16),
+                    rnd: res[7].toNumber(),
+                    status: res[8].toNumber()
                 };
 
                 if (round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block + MAX_BLOCK_AGE)) {
@@ -132,6 +133,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                         $scope.bet = round.bet;
                         game.spin(round.bet);
                     } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
+                        console.log("DONE", game.state);
                         $scope.bet = 0;
                         game.set_stops(round.rnd);
                         var message = "Results for round #" + roundNumber + ": you won ";

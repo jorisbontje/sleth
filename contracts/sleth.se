@@ -3,7 +3,7 @@ data current_round
 data total_spins
 data total_coins_won
 
-data rounds[2^160](player, block, timestamp, bet, result, entropy, rnd, status)
+data rounds[2^160](player, block, timestamp, bet, result, hash, entropy, rnd, status)
 data players[2^160](last_round)
 
 # status:
@@ -65,12 +65,14 @@ def claim(round):
         return(93)  # out of range
 
     # calculate entropy
+    hash = blockhash(target_block)
     entropy = sha3([blockhash(target_block), round], items=2)
 
     if entropy == 0:
         return(94) # invalid entropy
 
     # set entropy and rnd
+    self.rounds[round].hash = hash
     self.rounds[round].entropy = entropy
     rnd = mod(entropy, REEL_POSITIONS * REEL_POSITIONS * REEL_POSITIONS)
     self.rounds[round].rnd = rnd
@@ -89,7 +91,7 @@ def claim(round):
 
 # funid=2
 def get_round(round):
-    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].rnd, self.rounds[round].status], items=8)
+    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].timestamp, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].hash, self.rounds[round].entropy, self.rounds[round].rnd, self.rounds[round].status], items=9)
 
 # funid=3
 def get_current_round():
