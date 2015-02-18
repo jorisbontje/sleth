@@ -3,7 +3,7 @@
 import argparse
 from pprint import pprint
 
-from pyepm import api
+from pyepm import api, config
 import serpent
 
 CONTRACT_FILE = "contracts/sleth.se"
@@ -11,21 +11,18 @@ CONTRACT_GAS = 55000
 
 ETHER = 10 ** 18
 
-def cmd_spin(args):
+def cmd_spin(instance, args):
     print "Spinning the slots with bet", args.bet
-    instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, fun_name='spin', sig='i', data=[int(args.bet)], value=int(args.bet) * ETHER)
 
-def cmd_claim(args):
+def cmd_claim(instance, args):
     print "Claiming round ", args.round
-    instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, fun_name='claim', sig='i', data=[int(args.round)])
 
-def cmd_get_round(args):
+def cmd_get_round(instance, args):
     print "Getting information about round", args.round
-    instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_round', sig='i', data=[int(args.round)])
     array_len, player, block, timestamp, bet, result, entropy, rnd, status = result
@@ -38,16 +35,14 @@ def cmd_get_round(args):
     print "RND:", rnd
     print "Status:", status
 
-def cmd_get_current_round(args):
+def cmd_get_current_round(instance, args):
     print "Getting information about the current player round"
-    instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_current_round', sig='', data=[])
     print "Current round:", result[0]
 
-def cmd_get_stats(args):
+def cmd_get_stats(instance, args):
     print "Getting statistics"
-    instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_stats', sig='', data=[])
     array_len, current_round, total_spins, total_coins_won = result
@@ -55,14 +50,12 @@ def cmd_get_stats(args):
     print "Total spins:", total_spins
     print "Total coins won:", total_coins_won
 
-def cmd_suicide(args):
+def cmd_suicide(instance, args):
     print "Killing the contract"
-    instance = api.Api()
     assert instance.is_contract_at(args.contract), "Contract not found"
     instance.transact(args.contract, fun_name='suicide', sig='', data=[])
 
-def cmd_create(args):
-    instance = api.Api()
+def cmd_create(instance, args):
     creator_address = instance.accounts()[0]
     creator_balance = instance.balance_at(creator_address)
     if creator_balance < CONTRACT_GAS * 1e+13:
@@ -77,8 +70,7 @@ def cmd_create(args):
         instance.wait_for_next_block(verbose=True)
     print "Is contract?", instance.is_contract_at(contract_address)
 
-def cmd_inspect(args):
-    instance = api.Api()
+def cmd_inspect(instance, args):
     result = instance.is_contract_at(args.contract)
     print "Is contract?", result
 
@@ -88,9 +80,7 @@ def cmd_inspect(args):
     result = instance.storage_at(args.contract)
     pprint(result)
 
-def cmd_status(args):
-    instance = api.Api()
-
+def cmd_status(instance, args):
     print "Coinbase: %s" % instance.coinbase()
     print "Listening? %s" % instance.is_listening()
     print "Mining? %s" % instance.is_mining()
@@ -107,9 +97,7 @@ def cmd_status(args):
         balance = instance.balance_at(address)
         print "- %s %.4e" % (address, balance)
 
-def cmd_transact(args):
-    instance = api.Api()
-
+def cmd_transact(instance, args):
     instance.transact(args.dest, value=args.value * ETHER)
     if args.wait:
         instance.wait_for_next_block(verbose=True)
@@ -163,7 +151,11 @@ def main():
     parser_suicide.add_argument('contract', help='sleth contract address')
 
     args = parser.parse_args()
-    args.func(args)
+
+    api_config = config.read_config()
+    instance = api.Api(api_config)
+
+    args.func(instance, args)
 
 if __name__ == '__main__':
     main()
