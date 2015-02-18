@@ -10,7 +10,7 @@ def test_position_symbols():
     assert position_symbols(REELS, (4, 4, 4, 0, 6)) == ('pJL', 'gvS', 'LHp', 'vpl', 'pgv')
 
 def test_find_paylines():
-    assert find_paylines(('gyp', 'gHl', 'JgH', 'ygH', 'LSg')) ==  [(6, 'g', 3, 0.12), (19, 'g', 3, 0.12)]
+    assert find_paylines(('gyp', 'gHl', 'JgH', 'ygH', 'LSg')) == [(6, 'g', 3, 0.12), (19, 'g', 3, 0.12)]
 
 def test_round_321416():
     rnd = 1149376
@@ -34,6 +34,3 @@ def test_round_329897():
 
 def test_round_329777():
     assert outcome(10999484) == 0
-
-#def test_round_329779_wilds():
-#    assert outcome(6484281) == 3.92

@@ -13,7 +13,7 @@ class TestSlethContract(object):
 
     def setup_class(cls):
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000*cls.ETHER)
+        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000 * cls.ETHER)
         cls.snapshot = cls.s.snapshot()
 
     def setup_method(self, method):
@@ -157,17 +157,10 @@ class TestSlethContract(object):
 
     def test_claim_invalid_round(self):
         assert self.c.spin(5, value=5 * self.ETHER) == 1
-
         assert self.c.claim(1, sender=tester.k1) == 91
 
     def test_claim_not_yet_ready(self):
         assert self.c.spin(5, value=5 * self.ETHER) == 1
-
-        assert self.c.claim(1) == 92
-
-    def test_claim_not_yet_ready(self):
-        assert self.c.spin(5, value=5 * self.ETHER) == 1
-
         assert self.c.claim(1) == 92
 
     def test_claim_block_number_out_of_range(self):

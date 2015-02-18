@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import logging
 from pprint import pprint
 
 from pyepm import api
