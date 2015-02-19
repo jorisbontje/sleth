@@ -24,7 +24,7 @@ def test_log_topics_and_data():
                     '0000000000000000000000000000000000000000000000000000000000000003'
 
     def _last_logs(self):
-        return [log.to_dict() for log in self.s.last_tx.logs]
+        return [log.to_dict() for log in self.s.block.get_receipt(0).logs]
 
     def setup_class(cls):
         cls.s = tester.state()
