@@ -176,7 +176,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.canClaim = function(round) {
-        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
+        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber >= round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
     };
 
     $scope.claim = function(round) {
