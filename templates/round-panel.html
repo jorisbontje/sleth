@@ -9,7 +9,7 @@
         </tr>
         <tr>
             <th>Bet</th><td>{{round.bet}}</td>
-            <th>Status:
+            <th>Status</th>
             <td ng-switch on="round.status">
                 <span ng-switch-when="0">NEW</span>
                 <span ng-switch-when="1">SPINNING</span>
@@ -21,7 +21,7 @@
             <th>Entropy</th><td>
                 <reveal-value on="round.status == 2 && state < 2" value="round.entropy | limitTo : 10"></reveal-value>
             </td>
-            <th>Hash</th><td>
+            <th>Block Hash</th><td>
                 <reveal-value on="round.status == 2 && state < 2" value="round.hash | limitTo : 10"></reveal-value>
             </td>
         </tr>

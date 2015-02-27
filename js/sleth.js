@@ -48,7 +48,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.canvasSize = 160 * config.reel_scale;
 
     $scope.slethAddress = $routeParams.contractAddress;
-    $scope.defaultGas = web3.fromDecimal(10000);
+    $scope.defaultGas = web3.fromDecimal(100000);
     $scope.contract = $q.defer();
 
     $scope.bet = 0;
@@ -66,23 +66,23 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     }, 1000 / config.FPS);
 
     $http.get('sleth.abi.json').then(function(res) {
-        var contract = web3.eth.contract($scope.slethAddress, res.data);
-        $scope.contract.resolve(contract);
+        var Contract = web3.eth.contract(res.data);
+        $scope.contract.resolve(new Contract($scope.slethAddress));
     });
 
     $scope.updateChain = function() {
         var accounts = web3.eth.accounts;
         $scope.player.address = accounts[0];
 
-        var playerBalance = web3.eth.balanceAt(accounts[0]);
-        $scope.player.balance = web3.toDecimal(playerBalance) / Math.pow(10, 18) || 0;
+        var playerBalance = web3.eth.getBalance(accounts[0]);
+        $scope.player.balance = playerBalance.toNumber() / Math.pow(10, 18) || 0;
         $scope.player.coins = Math.floor($scope.player.balance);
 
-        var slethBalance = web3.eth.balanceAt($scope.slethAddress);
-        $scope.stats.slethBalance = web3.toDecimal(slethBalance) / Math.pow(10, 18) || 0;
+        var slethBalance = web3.eth.getBalance($scope.slethAddress);
+        $scope.stats.slethBalance = slethBalance.toNumber() / Math.pow(10, 18) || 0;
         $scope.stats.slethAddress = $scope.slethAddress;
 
-        $scope.web3.blockNumber = web3.eth.number;
+        $scope.web3.blockNumber = web3.eth.blockNumber;
         if ($scope.canClaim($scope.round)) {
             $scope.claim($scope.round);
         }
@@ -163,7 +163,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
             var value = web3.fromDecimal(bet * Math.pow(10, 18));
             $scope.contract.promise.then(function(contract) {
-                contract.transact({gas: $scope.defaultGas, value: value}).spin(bet);
+                contract.sendTransaction({gas: $scope.defaultGas, value: value}).spin(bet);
 
                 $scope.bet = bet;
 
@@ -176,13 +176,13 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.canClaim = function(round) {
-        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
+        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber >= round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
     };
 
     $scope.claim = function(round) {
         if (round.number) {
             $scope.contract.promise.then(function(contract) {
-                contract.transact({gas: $scope.defaultGas}).claim(round.number);
+                contract.sendTransaction({gas: $scope.defaultGas}).claim(round.number);
 
                 $scope.logMessage("Claiming round #" + round.number + "...");
                 $scope.updatePlayer();
@@ -229,7 +229,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     // test if web3 is available
     try {
         $scope.web3.available = (web3.eth.coinbase !== "");
-        $scope.contractExists = (web3.eth.codeAt($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
+        $scope.contractExists = (web3.eth.getData($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
     } catch(e) {
         $log.error(e);
         $scope.web3.error = e;
@@ -247,7 +247,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
         $scope.$watch('player.round', $scope.updateRound);
 
-        web3.eth.watch('chain').changed(function(res) {
+        web3.eth.filter('chain').watch(function(res) {
             $scope.updateChain();
             $scope.updatePlayer();
             $scope.updateRound();
