@@ -70,8 +70,7 @@ def cmd_create(instance, args):
     contract = serpent.compile(open(CONTRACT_FILE).read()).encode('hex')
     contract_address = instance.create(contract, gas=CONTRACT_GAS)
     print "Contract will be available at %s" % contract_address
-    if args.wait:
-        instance.wait_for_next_block(verbose=True)
+    instance.wait_for_contract(contract_address, verbose=True)
     print "Is contract?", instance.is_contract_at(contract_address)
 
 def cmd_inspect(instance, args):
@@ -103,9 +102,9 @@ def cmd_status(instance, args):
         print "- %s %.4e" % (address, balance)
 
 def cmd_transact(instance, args):
+    tx_count = instance.transaction_count()
     instance.transact(args.dest, value=args.value * ETHER)
-    if args.wait:
-        instance.wait_for_next_block(verbose=True)
+    instance.wait_for_transaction(tx_count, verbose=True)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -113,7 +112,6 @@ def main():
     subparsers = parser.add_subparsers(help='sub-command help')
     parser_create = subparsers.add_parser('create', help='create the contract')
     parser_create.set_defaults(func=cmd_create)
-    parser_create.add_argument('--wait', action='store_true', help='wait for block to be mined')
 
     parser_inspect = subparsers.add_parser('inspect', help='inspect the contract')
     parser_inspect.set_defaults(func=cmd_inspect)
@@ -126,7 +124,6 @@ def main():
     parser_transact.set_defaults(func=cmd_transact)
     parser_transact.add_argument('dest', help='destination')
     parser_transact.add_argument('--value', type=int, default=1, help='value to transfer in ether')
-    parser_transact.add_argument('--wait', action='store_true', help='wait for block to be mined')
 
     parser_spin = subparsers.add_parser('spin', help='make a spin')
     parser_spin.set_defaults(func=cmd_spin)
