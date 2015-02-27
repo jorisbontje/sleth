@@ -48,7 +48,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.canvasSize = 160 * config.reel_scale;
 
     $scope.slethAddress = $routeParams.contractAddress;
-    $scope.defaultGas = web3.fromDecimal(10000);
+    $scope.defaultGas = web3.fromDecimal(100000);
     $scope.contract = $q.defer();
 
     $scope.bet = 0;
