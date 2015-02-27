@@ -2,7 +2,7 @@
   deploy:
     sleth:
       contract: sleth.se
-      gas: 50000
+      gas: 60000
 #
 #-
 #  deploy:

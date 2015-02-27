@@ -7,7 +7,7 @@ slow = pytest.mark.slow
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 56000
+    CONTRACT_GAS = 60000
 
     ETHER = 10 ** 18
 
