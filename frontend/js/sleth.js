@@ -33,7 +33,7 @@ app.factory('web3', function() {
     return web3;
 });
 
-app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routeParams', '$scope', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $q, $routeParams, $scope, config, game, moment, web3) {
+app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routeParams', '$scope', '$timeout', 'config', 'game', 'moment', 'web3', function($http, $interval, $log, $q, $routeParams, $scope, $timeout, config, game, moment, web3) {
 
     var ROUND_NEW = 0;
     var ROUND_SPINNING = 1;
@@ -204,6 +204,27 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         }
     };
 
+    $scope.spinBest = function() {
+        if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
+
+        if ($scope.player.coins >= 5) {
+            $scope.spin(5);
+        } else if ($scope.player.coins >= 3) {
+            $scope.spin(3);
+        } else if ($scope.player.coins >= 1) {
+            $scope.spin(1);
+        } else if ($scope.autoplay) {
+            $scope.logMessage("Out of funds, disabling autoplay");
+            $scope.autoplay = false;
+        }
+    };
+
+    $scope.autoplaySpin = function() {
+        if ($scope.autoplay) {
+            $scope.spinBest();
+        }
+    };
+
     $scope.$on('slots:reward', function(evt, reward) {
         $scope.reward = reward;
         // check if the locally calculated reward matches with the contract results
@@ -213,19 +234,16 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         } else {
             $scope.logMessage("Reward NOT verified");
         }
+
+        if ($scope.autoplay) {
+            $scope.logMessage("Autoplay enabled, playing next round in " + config.autoplay_delay / 1000 + " seconds...");
+            $timeout($scope.autoplaySpin, config.autoplay_delay);
+        }
     });
 
     $scope.$on('keypress', function (evt, obj) {
         if (obj.which === 32) { // spacebar
-            if (game.state !== game.STATE_NEW && game.state !== game.STATE_REST) return;
-
-            if ($scope.player.coins >= 5) {
-                $scope.spin(5);
-            } else if ($scope.player.coins >= 3) {
-                $scope.spin(3);
-            } else if ($scope.player.coins >= 1) {
-                $scope.spin(1);
-            }
+            $scope.spinBest();
         }
     });
 

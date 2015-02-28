@@ -70,6 +70,11 @@
         <button type="button" class="btn btn-info" ng-click="spin(1)" ng-disabled="player.coins < 1 || state > 1">Bet 1</button>
         <button type="button" class="btn btn-info" ng-click="spin(3)" ng-disabled="player.coins < 3 || state > 1">Bet 3</button>
         <button type="button" class="btn btn-info" ng-click="spin(5)" ng-disabled="player.coins < 5 || state > 1">Bet 5</button>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" ng-model="autoplay" ng-change="autoplaySpin()"> Autoplay
+            </label>
+        </div>
     </div>
     <div class="col-md-4">
         <p>
