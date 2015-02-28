@@ -217,6 +217,10 @@ app.factory('game', ['$rootScope', 'config', function($rootScope, config) {
       $rootScope.$broadcast('slots:state', game.state);
     };
 
+    game.get_result = function() {
+        return result;
+    };
+
     game.reinit = function(line_choice) {
       for (var i=0; i<config.reel_count; i++) {
         reel_speed[i] = config.max_reel_speed;

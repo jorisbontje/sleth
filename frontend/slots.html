@@ -37,6 +37,7 @@
         <button type="button" class="btn btn-info" ng-click="spin(5)" ng-disabled="credits < 5 || spinning">5 Lines</button>
         <input type="number" ng-model="entropy" integer min="0" max="32767"></input>
         <button type="button" class="btn btn-success" ng-click="stop()" ng-disabled="!spinning">stop</button>
+        <button type="button" class="btn btn-success" ng-click="calc_payout_percentage()">Calc Payout %</button>
     </div>
     <div class="col-md-4">
         <p><a href="paytable.html" target="_blank">Pay Table</a></p>
