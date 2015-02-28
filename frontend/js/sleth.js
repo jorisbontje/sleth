@@ -102,7 +102,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.updateStats = function() {
         $scope.contract.promise.then(function(contract) {
             var res = contract.call().get_stats();
-            if (res) {
+            if (res.length) {
                 $scope.stats.total_spins = res[1].toNumber();
                 $scope.stats.total_coins_won = res[2].toNumber();
             } else {
@@ -116,7 +116,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         if(roundNumber) {
             $scope.contract.promise.then(function(contract) {
                 var res = contract.call().get_round(roundNumber);
-                if (res) {
+                if (res.length) {
                     var round = {
                         number: roundNumber,
                         player: '0x' + (res[0].isNeg() ? res[0].plus(two_256) : res[0]).toString(16),
@@ -142,7 +142,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                             $scope.bet = round.bet;
                             game.spin(round.bet);
                         } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
-                            console.log("DONE", game.state);
                             $scope.bet = 0;
                             game.set_stops(round.rnd);
                             var message = "Results for round #" + roundNumber + ": you won ";
