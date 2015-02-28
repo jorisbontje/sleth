@@ -59,6 +59,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.web3 = {};
     $scope.state = game.STATE_NEW;
 
+    $scope.maxPayout = 250;
+
     $scope.rounds = [];
 
     $interval(function() {
@@ -104,7 +106,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
             var res = contract.call().get_stats();
             if (res.length) {
                 $scope.stats.total_spins = res[1].toNumber();
-                $scope.stats.total_coins_won = res[2].toNumber();
+                $scope.stats.total_coins_bet = res[2].toNumber();
+                $scope.stats.total_coins_won = res[3].toNumber();
             } else {
                 $log.warn("get_stats: Empty response");
             }

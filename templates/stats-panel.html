@@ -6,6 +6,8 @@
         <tr><th>Contract</th><td>{{contract | limitTo : 10}}</td></tr>
         <tr><th>Contract Balance</th><td>{{stats.slethBalance | number : 4}} ETH</td></tr>
         <tr><th>Total Spins</th><td>{{stats.total_spins}}</td></tr>
+        <tr><th>Total Coins Bet</th><td>{{stats.total_coins_bet}}</td></tr>
         <tr><th>Total Coins Won</th><td>{{stats.total_coins_won}}</td></tr>
+        <tr><th>Payout Percentage</th><td>{{stats.total_coins_won / stats.total_coins_bet * 100| number :2}} %</td></tr>
     </table>
 </div>
