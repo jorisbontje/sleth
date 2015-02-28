@@ -65,13 +65,16 @@ def cmd_suicide(instance, args):
 def cmd_create(instance, args):
     creator_address = instance.accounts()[0]
     creator_balance = instance.balance_at(creator_address)
-    if creator_balance < CONTRACT_GAS * 1e+13:
+    balance_required = CONTRACT_GAS * 1e+13 + args.endowment * ETHER
+    if creator_balance < balance_required:
         print "Insufficient balance to cover gas for contract creation."
         print "You need at least %d wei in account %s (current balance is %d wei)." % \
-            (CONTRACT_GAS * 1e+13, creator_address, creator_balance)
+            (balance_required, creator_address, creator_balance)
         return
+
     contract = serpent.compile(open(CONTRACT_FILE).read()).encode('hex')
-    contract_address = instance.create(contract, gas=CONTRACT_GAS)
+    contract_address = instance.create(contract, gas=CONTRACT_GAS, endowment=args.endowment * ETHER)
+
     print "Contract will be available at %s" % contract_address
     instance.wait_for_contract(contract_address, verbose=True)
     print "Is contract?", instance.is_contract_at(contract_address)
@@ -115,6 +118,7 @@ def main():
     subparsers = parser.add_subparsers(help='sub-command help')
     parser_create = subparsers.add_parser('create', help='create the contract')
     parser_create.set_defaults(func=cmd_create)
+    parser_create.add_argument('--endowment', type=int, default=500, help='value to endow in ether')
 
     parser_inspect = subparsers.add_parser('inspect', help='inspect the contract')
     parser_inspect.set_defaults(func=cmd_inspect)
