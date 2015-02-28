@@ -295,11 +295,19 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
         $scope.contract.promise.then(function(contract) {
             web3.eth.filter({'address': $scope.slethAddress, 'max': 10}).watch(function(res) {
+                if (res.address !== $scope.slethAddress) {
+                    $log.warn("watch: invalid address returned");
+                    return;
+                }
                 var roundNumber = web3.toDecimal(res.data);
-                console.log("filter.watch", roundNumber);
-                if (!(roundNumber in $scope.rounds)) {
+                $log.debug("filter.watch", roundNumber);
+                if (roundNumber > 0 && !(roundNumber in $scope.rounds)) {
                     var round = $scope.getRound(contract, roundNumber);
-                    $scope.rounds[roundNumber] = round;
+                    if (round) {
+                        $scope.rounds[roundNumber] = round;
+                    } else {
+                        $log.warn("watch: empty response received for round", roundNumber);
+                    }
                 }
             });
         });
