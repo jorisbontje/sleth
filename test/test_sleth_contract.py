@@ -134,11 +134,10 @@ class TestSlethContract(object):
         assert player == int(tester.a0, 16)
         assert block == premine
         assert bet == amount
-        assert result == expected_result
         assert hash != 0
         assert entropy != 0
-        assert rnd == expected_rnd
         assert status == 2  # done
+        assert (result, rnd) == (expected_result, expected_rnd)
 
         balance_after = self.s.block.get_balance(tester.a0)
         assert balance_after - balance_before == expected_result * self.ETHER
@@ -149,10 +148,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=10, expected_rnd=32073)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=2, expected_rnd=23522)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=2, expected_result=0, expected_rnd=32704)
+        self._spin_mine_claim(amount=5, premine=4, expected_result=0, expected_rnd=32127)
 
     def test_claim_invalid_status(self):
         assert self.c.claim(1) == 90

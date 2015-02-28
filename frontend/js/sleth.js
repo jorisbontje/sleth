@@ -114,55 +114,62 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         });
     };
 
+    $scope.getRound = function(contract, roundNumber) {
+        var res = contract.call().get_round(roundNumber);
+        if (res.length) {
+            var round = {
+                number: roundNumber,
+                player: '0x' + (res[0].isNeg() ? res[0].plus(two_256) : res[0]).toString(16),
+                block: res[1].toNumber(),
+                time: res[2].toNumber(),
+                bet: res[3].toNumber(),
+                result: res[4].toNumber(),
+                hash: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
+                entropy: '0x' + (res[6].isNeg() ? res[6].plus(two_256) : res[6]).toString(16),
+                rnd: res[7].toNumber(),
+                status: res[8].toNumber()
+            };
+            return round;
+        }
+    };
+
     $scope.updateRound = function() {
         var roundNumber = $scope.player.round;
         if(roundNumber) {
             $scope.contract.promise.then(function(contract) {
-                var res = contract.call().get_round(roundNumber);
-                if (res.length) {
-                    var round = {
-                        number: roundNumber,
-                        player: '0x' + (res[0].isNeg() ? res[0].plus(two_256) : res[0]).toString(16),
-                        block: res[1].toNumber(),
-                        time: res[2].toNumber(),
-                        bet: res[3].toNumber(),
-                        result: res[4].toNumber(),
-                        hash: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
-                        entropy: '0x' + (res[6].isNeg() ? res[6].plus(two_256) : res[6]).toString(16),
-                        rnd: res[7].toNumber(),
-                        status: res[8].toNumber()
-                    };
-
-                    if (round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block + MAX_BLOCK_AGE)) {
-                        round.status = ROUND_EXPIRED;
-                    }
-
-                    var changed = !angular.equals(round, $scope.round);
-                    $scope.round = round;
-
-                    if (changed) {
-                        if (round.status === ROUND_SPINNING && (game.state === game.STATE_NEW)) {
-                            $scope.bet = round.bet;
-                            game.spin(round.bet);
-                        } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
-                            $scope.bet = 0;
-                            game.set_stops(round.rnd);
-                            var message = "Results for round #" + roundNumber + ": you won ";
-                            if (round.result) {
-                                message += round.result + " coins :)";
-                            } else {
-                                message += "nothing :(";
-                            }
-                            $scope.logMessage(message);
-                            $scope.rounds.unshift(round);
-                        }
-
-                        if ($scope.canClaim($scope.round)) {
-                            $scope.claim($scope.round);
-                        }
-                    }
-                } else {
+                var round = $scope.getRound(contract, roundNumber);
+                if (!round) {
                     $log.warn("get_round: Empty response");
+                    return;
+                }
+
+                if (round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block + MAX_BLOCK_AGE)) {
+                    round.status = ROUND_EXPIRED;
+                }
+
+                var changed = !angular.equals(round, $scope.round);
+                $scope.round = round;
+
+                if (changed) {
+                    if (round.status === ROUND_SPINNING && (game.state === game.STATE_NEW)) {
+                        $scope.bet = round.bet;
+                        game.spin(round.bet);
+                    } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
+                        $scope.bet = 0;
+                        game.set_stops(round.rnd);
+                        var message = "Results for round #" + roundNumber + ": you won ";
+                        if (round.result) {
+                            message += round.result + " coins :)";
+                        } else {
+                            message += "nothing :(";
+                        }
+                        $scope.logMessage(message);
+                        $scope.rounds.unshift(round);
+                    }
+
+                    if ($scope.canClaim($scope.round)) {
+                        $scope.claim($scope.round);
+                    }
                 }
             });
         }
@@ -285,6 +292,18 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
             $scope.updateRound();
             $scope.updateStats();
         });
+
+        /*
+         * load history
+        $scope.contract.promise.then(function(contract) {
+            web3.eth.filter({'address': $scope.slethAddress, 'max': 10}).watch(function(res) {
+                var roundNumber = web3.toDecimal(res.data);
+                console.log("ROUND", roundNumber);
+                var round = $scope.getRound(contract, roundNumber);
+                $scope.rounds.unshift(round);
+            });
+        });
+        */
 
         $scope.updateChain();
         $scope.updatePlayer();

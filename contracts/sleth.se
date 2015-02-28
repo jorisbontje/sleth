@@ -89,6 +89,8 @@ def claim(round):
         self.total_coins_won += result
         send(msg.sender, result * ETHER)
 
+    log(msg.sender, data=[round])
+
     return(1)
 
 # funid=2
