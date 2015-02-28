@@ -23,6 +23,7 @@ var app = angular.module('slots.config', []);
 
 app.constant('config', {
     FPS: 30,
+    autoplay_delay: 3000,
 
     reel_count: 3,
     row_count: 3,
