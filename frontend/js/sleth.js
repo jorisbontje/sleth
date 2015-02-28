@@ -61,7 +61,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
     $scope.maxPayout = 250;
 
-    $scope.rounds = [];
+    $scope.rounds = {};
 
     $interval(function() {
         game.logic();
@@ -164,7 +164,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                             message += "nothing :(";
                         }
                         $scope.logMessage(message);
-                        $scope.rounds.unshift(round);
+                        $scope.rounds[roundNumber] = round;
                     }
 
                     if ($scope.canClaim($scope.round)) {
@@ -293,17 +293,16 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
             $scope.updateStats();
         });
 
-        /*
-         * load history
         $scope.contract.promise.then(function(contract) {
             web3.eth.filter({'address': $scope.slethAddress, 'max': 10}).watch(function(res) {
                 var roundNumber = web3.toDecimal(res.data);
-                console.log("ROUND", roundNumber);
-                var round = $scope.getRound(contract, roundNumber);
-                $scope.rounds.unshift(round);
+                console.log("filter.watch", roundNumber);
+                if (!(roundNumber in $scope.rounds)) {
+                    var round = $scope.getRound(contract, roundNumber);
+                    $scope.rounds[roundNumber] = round;
+                }
             });
         });
-        */
 
         $scope.updateChain();
         $scope.updatePlayer();
