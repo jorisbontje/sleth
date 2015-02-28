@@ -49,10 +49,13 @@ def cmd_get_stats(instance, args):
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_stats', sig='', data=[])
     assert result, "No result returned to call"
-    array_len, current_round, total_spins, total_coins_won = result
+    array_len, current_round, total_spins, total_coins_bet, total_coins_won = result
     print "Current round:", current_round
     print "Total spins:", total_spins
+    print "Total coins bet:", total_coins_bet
     print "Total coins won:", total_coins_won
+    if total_coins_bet > 0:
+        print "Payout percentage: %.2f" % (total_coins_won / total_coins_bet)
 
 def cmd_suicide(instance, args):
     print "Killing the contract"

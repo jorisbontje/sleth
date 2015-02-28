@@ -24,7 +24,7 @@ class TestSlethContract(object):
         return self.s.profile(tester.k0, self.c.address, 0, funid=8, abi=[rnd, lines])
 
     def test_init(self):
-        assert self.c.get_stats() == [1, 0, 0]
+        assert self.c.get_stats() == [1, 0, 0, 0]
         assert self.s.block.get_code(self.c.address) != ''
 
     def test_suicide(self):
@@ -59,7 +59,7 @@ class TestSlethContract(object):
         assert rnd == 0
         assert status == 1  # spinning
 
-        assert self.c.get_stats() == [2, 1, 0]
+        assert self.c.get_stats() == [2, 1, 5, 0]
 
     def test_calc_line_perfect_match(self):
         assert self.c.calc_line(0, 0, 0) == 50
@@ -146,13 +146,13 @@ class TestSlethContract(object):
         current_round = self.c.get_current_round()
         assert current_round == 1
 
-        assert self.c.get_stats() == [2, 1, expected_result]
+        assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=2, expected_result=2, expected_rnd=3798)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=10, expected_rnd=32073)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=5570)
+        self._spin_mine_claim(amount=5, premine=2, expected_result=0, expected_rnd=32704)
 
     def test_claim_invalid_status(self):
         assert self.c.claim(1) == 90
