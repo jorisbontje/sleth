@@ -59,6 +59,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.web3 = {};
     $scope.state = game.STATE_NEW;
 
+    $scope.maxPayout = 250;
+
     $scope.rounds = [];
 
     $interval(function() {
