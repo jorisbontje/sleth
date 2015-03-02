@@ -1,0 +1,12 @@
+data owner
+data counter
+
+def init():
+    self.owner = msg.sender
+    self.counter = 1
+
+def incr():
+    self.counter += 1
+
+def get_counter():
+    return(self.counter)
