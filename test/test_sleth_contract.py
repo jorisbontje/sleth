@@ -7,13 +7,13 @@ slow = pytest.mark.slow
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 60000
+    CONTRACT_GAS = 1370000
 
     ETHER = 10 ** 18
 
     def setup_class(cls):
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000 * cls.ETHER)
+        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000 * cls.ETHER, gas=cls.CONTRACT_GAS)
         cls.snapshot = cls.s.snapshot()
 
     def setup_method(self, method):
@@ -148,10 +148,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=4, expected_rnd=14957)
+        self._spin_mine_claim(amount=5, premine=3, expected_result=2, expected_rnd=2837)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=2, expected_result=0, expected_rnd=13440)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=0, expected_rnd=5468)
 
     def test_claim_invalid_status(self):
         assert self.c.claim(1) == 90

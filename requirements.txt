@@ -1,5 +1,3 @@
 https://github.com/ethereum/serpent/tarball/develop
 https://github.com/ethereum/pyethereum/tarball/develop
-# pyethereum locked to pre poc-9 commit
-# git+git://github.com/ethereum/pyethereum.git@dc53ec4695a13371e6f16cda8e6441ab7a686cf2#egg=pyethereum
 pyepm
