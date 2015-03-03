@@ -1,8 +1,16 @@
+from contextlib import contextmanager
 from pyethereum import tester
 
 import random
 import pytest
 slow = pytest.mark.slow
+
+@contextmanager
+def assert_max_gas_cost(block, max_gas):
+    start_gas = block.gas_used
+    yield
+    gas_cost = block.gas_used - start_gas
+    assert gas_cost < max_gas, "Maximum gas cost exceeded. gas_cost = %d, max_gas = %d" % (gas_cost, max_gas)
 
 class TestSlethContract(object):
 
@@ -37,27 +45,22 @@ class TestSlethContract(object):
         assert self.s.block.gas_used < self.CONTRACT_GAS
 
     def test_spin_bet_out_of_range(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(0) == 0
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(0) == 0
 
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(6, value=6 * self.ETHER) == 0
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(6, value=6 * self.ETHER) == 0
 
     def test_spin_invalid_funds(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5) == 0
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5) == 0
 
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, value=3 * self.ETHER) == 0
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, value=3 * self.ETHER) == 0
 
     def test_spin_valid_bet(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, value=5 * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, value=5 * self.ETHER) == 1
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -139,16 +142,14 @@ class TestSlethContract(object):
     def _spin_mine_claim(self, amount, premine, expected_result, expected_rnd):
         self.s.mine(premine)
 
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(amount, value=amount * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(amount, value=amount * self.ETHER) == 1
 
         self.s.mine(1)
         balance_before = self.s.block.get_balance(tester.a0)
 
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(1) == 1
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(1) == 1
 
         player, block, timestamp, bet, result, hash, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
@@ -174,48 +175,39 @@ class TestSlethContract(object):
         self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=20905)
 
     def test_claim_invalid_status(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(1) == 90
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(1) == 90
 
     def test_claim_invalid_round(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, value=5 * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, value=5 * self.ETHER) == 1
 
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(1, sender=tester.k1) == 91
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(1, sender=tester.k1) == 91
 
     def test_claim_not_yet_ready(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, value=5 * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, value=5 * self.ETHER) == 1
 
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(1) == 92
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(1) == 92
 
     def test_claim_block_number_out_of_range(self):
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, value=5 * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, value=5 * self.ETHER) == 1
 
         self.s.mine(256)
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(1) == 93
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(1) == 93
 
     def test_claim_has_unique_entropy(self):
         self.s.mine(1)
 
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, value=5 * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, value=5 * self.ETHER) == 1
 
-        start_gas = self.s.block.gas_used
-        assert self.c.spin(5, sender=tester.k1, value=5 * self.ETHER) == 1
-        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+            assert self.c.spin(5, sender=tester.k1, value=5 * self.ETHER) == 1
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -225,13 +217,11 @@ class TestSlethContract(object):
 
         self.s.mine(1)
 
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(1) == 1
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(1) == 1
 
-        start_gas = self.s.block.gas_used
-        assert self.c.claim(2, sender=tester.k1) == 1
-        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+            assert self.c.claim(2, sender=tester.k1) == 1
 
         player1, block1, timestamp1, bet1, result1, hash1, entropy1, rnd1, status1 = self.c.get_round(1)
         player2, block2, timestamp2, bet2, result2, hash2, entropy2, rnd2, status2 = self.c.get_round(2)
