@@ -7,7 +7,9 @@ slow = pytest.mark.slow
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 1370000
+    CONTRACT_GAS = 1330000
+    SPIN_GAS = 188000
+    CLAIM_GAS = 155000
 
     ETHER = 10 ** 18
 
@@ -35,15 +37,27 @@ class TestSlethContract(object):
         assert self.s.block.gas_used < self.CONTRACT_GAS
 
     def test_spin_bet_out_of_range(self):
+        start_gas = self.s.block.gas_used
         assert self.c.spin(0) == 0
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+
+        start_gas = self.s.block.gas_used
         assert self.c.spin(6, value=6 * self.ETHER) == 0
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
 
     def test_spin_invalid_funds(self):
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5) == 0
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, value=3 * self.ETHER) == 0
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
 
     def test_spin_valid_bet(self):
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, value=5 * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -124,11 +138,17 @@ class TestSlethContract(object):
 
     def _spin_mine_claim(self, amount, premine, expected_result, expected_rnd):
         self.s.mine(premine)
+
+        start_gas = self.s.block.gas_used
         assert self.c.spin(amount, value=amount * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
 
         self.s.mine(1)
         balance_before = self.s.block.get_balance(tester.a0)
+
+        start_gas = self.s.block.gas_used
         assert self.c.claim(1) == 1
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
 
         player, block, timestamp, bet, result, hash, entropy, rnd, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
@@ -148,32 +168,54 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=3, expected_result=2, expected_rnd=2837)
+        self._spin_mine_claim(amount=5, premine=3, expected_result=6, expected_rnd=26862)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=0, expected_rnd=5468)
+        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=20905)
 
     def test_claim_invalid_status(self):
+        start_gas = self.s.block.gas_used
         assert self.c.claim(1) == 90
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
 
     def test_claim_invalid_round(self):
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, value=5 * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+
+        start_gas = self.s.block.gas_used
         assert self.c.claim(1, sender=tester.k1) == 91
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
 
     def test_claim_not_yet_ready(self):
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, value=5 * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+
+        start_gas = self.s.block.gas_used
         assert self.c.claim(1) == 92
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
 
     def test_claim_block_number_out_of_range(self):
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, value=5 * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
 
         self.s.mine(256)
+        start_gas = self.s.block.gas_used
         assert self.c.claim(1) == 93
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
 
     def test_claim_has_unique_entropy(self):
         self.s.mine(1)
+
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, value=5 * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
+
+        start_gas = self.s.block.gas_used
         assert self.c.spin(5, sender=tester.k1, value=5 * self.ETHER) == 1
+        assert self.s.block.gas_used - start_gas < self.SPIN_GAS
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -182,8 +224,14 @@ class TestSlethContract(object):
         assert current_round == 2
 
         self.s.mine(1)
+
+        start_gas = self.s.block.gas_used
         assert self.c.claim(1) == 1
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
+
+        start_gas = self.s.block.gas_used
         assert self.c.claim(2, sender=tester.k1) == 1
+        assert self.s.block.gas_used - start_gas < self.CLAIM_GAS
 
         player1, block1, timestamp1, bet1, result1, hash1, entropy1, rnd1, status1 = self.c.get_round(1)
         player2, block2, timestamp2, bet2, result2, hash2, entropy2, rnd2, status2 = self.c.get_round(2)
