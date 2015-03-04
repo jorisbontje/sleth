@@ -10,7 +10,7 @@ def assert_max_gas_cost(block, max_gas):
     start_gas = block.gas_used
     yield
     gas_cost = block.gas_used - start_gas
-    assert gas_cost < max_gas, "Maximum gas cost exceeded. gas_cost = %d, max_gas = %d" % (gas_cost, max_gas)
+    assert gas_cost <= max_gas, "Maximum gas cost exceeded. gas_cost = %d, max_gas = %d" % (gas_cost, max_gas)
 
 class TestSlethContract(object):
 
@@ -169,10 +169,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=3, expected_result=6, expected_rnd=26862)
+        self._spin_mine_claim(amount=5, premine=3, expected_result=26, expected_rnd=30881)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=20905)
+        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=30352)
 
     def test_claim_invalid_status(self):
         with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
