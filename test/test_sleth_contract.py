@@ -15,7 +15,7 @@ def assert_max_gas_cost(block, max_gas):
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 1330000
+    CONTRACT_GAS = 1420000
     SPIN_GAS = 188000
     CLAIM_GAS = 155000
 
@@ -169,10 +169,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=3, expected_result=26, expected_rnd=30881)
+        self._spin_mine_claim(amount=5, premine=3, expected_result=2, expected_rnd=28389)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=30352)
+        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=10251)
 
     def test_claim_invalid_status(self):
         with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
