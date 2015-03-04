@@ -86,8 +86,13 @@ def cmd_inspect(instance, args):
     result = instance.balance_at(args.contract)
     print "Balance", result
 
+    print "Storage:"
     result = instance.storage_at(args.contract)
     pprint(result)
+
+    print "Logs:"
+    logs = instance.logs({'address': args.contract})
+    pprint(logs)
 
 def cmd_status(instance, args):
     print "Coinbase: %s" % instance.coinbase()
