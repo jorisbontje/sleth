@@ -71,6 +71,19 @@ app.controller("SlotsController", ['$scope', '$interval', 'config', 'game', func
         game.set_stops($scope.entropy);
     };
 
+    $scope.calc_payout_percentage = function() {
+        var totalPayout = 0;
+        var bet = 5;
+        var total_positions = 32768;
+        for (var entropy = 0; entropy < total_positions; entropy++) {
+            game.set_stops(entropy);
+            var result = game.get_result();
+            var reward = game.calc_reward(bet, result);
+            totalPayout += reward.payout;
+        }
+        console.log("payout percentage = ", totalPayout / (bet * total_positions) * 100);
+    };
+
     $scope.$on('slots:reward', function(evt, reward) {
         /*if (reward.payout > 0) {
             sounds.playWin();
