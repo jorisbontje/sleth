@@ -170,10 +170,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [2, 1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=6, expected_rnd=31065)
+        self._spin_mine_claim(amount=5, premine=1, expected_result=4, expected_rnd=4757)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=1, expected_result=0, expected_rnd=23973)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=0, expected_rnd=7664)
 
     def test_claim_invalid_status(self):
         with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):

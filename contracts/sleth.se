@@ -127,6 +127,14 @@ macro PAYOUT_UPS():
 macro PAYOUT_DOWNS():
     2  # Any 3 Downs
 
+# checks if symbol is 1Up, 2Up or 3Up
+macro IS_UP($s):
+    ($s == 1 or $s == 2 or $s == 3)
+
+# checks if symbol is 1Down, 2Down or 3Down
+macro IS_DOWN($s):
+    ($s == 5 or $s == 6 or $s == 7)
+
 # funid=5
 def calc_line(s1, s2, s3):
     # perfect match
@@ -134,11 +142,11 @@ def calc_line(s1, s2, s3):
         return(MATCH_PAYOUT(s1))
 
     # special case #1: triple ups
-    if ((s1 == 1 or s1 == 2 or s1 == 3) and (s2 == 1 or s2 == 2 or s2 == 3) and (s3 == 1 or s3 == 2 or s3 == 3)):
+    if IS_UP(s1) and IS_UP(s2) and IS_UP(s3):
         return(PAYOUT_UPS())
 
     # special case #2: triple down
-    if ((s1 == 5 or s1 == 6 or s1 == 7) and (s2 == 5 or s2 == 6 or s2 == 7) and (s3 == 5 or s3 == 6 or s3 == 7)):
+    if IS_DOWN(s1) and IS_DOWN(s2) and IS_DOWN(s3):
         return(PAYOUT_DOWNS())
 
     # special case #3: bacon goes with everything
@@ -147,11 +155,11 @@ def calc_line(s1, s2, s3):
             return(MATCH_PAYOUT(s2))
 
         # wildcard trip ups
-        if ((s2 == 1 or s2 == 2 or s2 == 3) and (s3 == 1 or s3 == 2 or s3 == 3)):
+        if IS_UP(s2) and IS_UP(s3):
             return(PAYOUT_UPS())
 
         # wildcard trip downs
-        if ((s2 == 5 or s2 == 6 or s2 == 7) and (s3 == 5 or s3 == 6 or s3 == 7)):
+        if IS_DOWN(s2) and IS_DOWN(s3):
             return(PAYOUT_DOWNS())
 
     if s2 == 9:
@@ -159,11 +167,11 @@ def calc_line(s1, s2, s3):
             return(MATCH_PAYOUT(s1))
 
         # wildcard trip ups
-        if ((s1 == 1 or s1 == 2 or s1 == 3) and (s3 == 1 or s3 == 2 or s3 == 3)):
+        if IS_UP(s1) and IS_UP(s3):
             return(PAYOUT_UPS())
 
         # wildcard trip downs
-        if ((s1 == 5 or s1 == 6 or s1 == 7) and (s3 == 5 or s3 == 6 or s3 == 7)):
+        if IS_DOWN(s1) and IS_DOWN(s3):
             return(PAYOUT_DOWNS())
 
     if s3 == 9:
@@ -171,11 +179,11 @@ def calc_line(s1, s2, s3):
             return(MATCH_PAYOUT(s1))
 
         # wildcard trip ups
-        if ((s1 == 1 or s1 == 2 or s1 == 3) and (s2 == 1 or s2 == 2 or s2 == 3)):
+        if IS_UP(s1) and IS_UP(s2):
             return(PAYOUT_UPS())
 
         # wildcard trip downs
-        if ((s1 == 5 or s1 == 6 or s1 == 7) and (s2 == 5 or s2 == 6 or s2 == 7)):
+        if IS_DOWN(s1) and IS_DOWN(s2):
             return(PAYOUT_DOWNS())
 
     # check double-bacon
