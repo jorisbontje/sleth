@@ -207,23 +207,30 @@ def get_stops(rnd):
         i += 1
     return(stops, items=REEL_COUNT())
 
+macro REEL_0($pos):
+    # 2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4
+    byte($pos, 0x0201070102070607030a0106010703040302040500060a050605080300090504)
+
+macro REEL_1($pos):
+    # 6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4
+    byte($pos, 0x06000a0306070902050203010502010a04050804070600010706030105090704)
+
+macro REEL_2($pos):
+    # 1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3
+    byte($pos, 0x010402070506040a0705020006040a0107060300050702030903050601080103)
+
 # funid=7
 def calc_reward(rnd, playing_lines):
     result_0 = array(ROW_COUNT())
     result_1 = array(ROW_COUNT())
     result_2 = array(ROW_COUNT())
 
-    # TODO refactor for less gas (200k!)
-    reel_0 = [2,1,7,1,2,7,6,7,3,10,1,6,1,7,3,4,3,2,4,5,0,6,10,5,6,5,8,3,0,9,5,4]
-    reel_1 = [6,0,10,3,6,7,9,2,5,2,3,1,5,2,1,10,4,5,8,4,7,6,0,1,7,6,3,1,5,9,7,4]
-    reel_2 = [1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3]
-
     stops = self.get_stops(rnd, outsz=REEL_COUNT())
     i = 0
     while i < ROW_COUNT():
-        result_0[i] = reel_0[mod(stops[0] + i, REEL_POSITIONS())]
-        result_1[i] = reel_1[mod(stops[1] + i, REEL_POSITIONS())]
-        result_2[i] = reel_2[mod(stops[2] + i, REEL_POSITIONS())]
+        result_0[i] = REEL_0(mod(stops[0] + i, REEL_POSITIONS()))
+        result_1[i] = REEL_1(mod(stops[1] + i, REEL_POSITIONS()))
+        result_2[i] = REEL_2(mod(stops[2] + i, REEL_POSITIONS()))
         i += 1
 
     # line 1
