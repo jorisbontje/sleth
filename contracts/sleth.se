@@ -95,18 +95,7 @@ def get_stats():
     return([self.total_spins, self.total_coins_bet, self.total_coins_won], items=3)
 
 macro MATCH_PAYOUT($s):
-    # match_payout[0]  =  50 == 0x32  # AlienHead
-    # match_payout[1]  =  10 == 0x0a  # 1Up
-    # match_payout[2]  =  15 == 0x0f  # 2Up
-    # match_payout[3]  =  20 == 0x14  # 3Up
-    # match_payout[4]  =  25 == 0x19  # OrangeRed
-    # match_payout[5]  =   8 == 0x08  # 1Down
-    # match_payout[6]  =   6 == 0x06  # 2Down
-    # match_payout[7]  =   4 == 0x04  # 3Down
-    # match_payout[8]  = 250 == 0xfa  # CakeDay
-    # match_payout[9]  =  75 == 0x4b  # Bacon
-    # match_payout[10] = 100 == 0x64  # Narwhal
-    byte($s, 0x320a0f1419080604fa4b64000000000000000000000000000000000000000000)
+   byte($s + 21, match_payout)
 
 macro PAYOUT_UPS():
     6  # Any 3 Ups
@@ -123,6 +112,19 @@ macro IS_DOWN($s):
     ($s == 5 or $s == 6 or $s == 7)
 
 def calc_line(s1, s2, s3):
+    # match_payout[0]  =  50 == 0x32  # AlienHead
+    # match_payout[1]  =  10 == 0x0a  # 1Up
+    # match_payout[2]  =  15 == 0x0f  # 2Up
+    # match_payout[3]  =  20 == 0x14  # 3Up
+    # match_payout[4]  =  25 == 0x19  # OrangeRed
+    # match_payout[5]  =   8 == 0x08  # 1Down
+    # match_payout[6]  =   6 == 0x06  # 2Down
+    # match_payout[7]  =   4 == 0x04  # 3Down
+    # match_payout[8]  = 250 == 0xfa  # CakeDay
+    # match_payout[9]  =  75 == 0x4b  # Bacon
+    # match_payout[10] = 100 == 0x64  # Narwhal
+    match_payout = 0x320a0f1419080604fa4b64
+
     # perfect match
     if s1 == s2 and s2 == s3:
         return(MATCH_PAYOUT(s1))
@@ -204,6 +206,9 @@ macro REEL_2($pos):
     # 1,4,2,7,5,6,4,10,7,5,2,0,6,4,10,1,7,6,3,0,5,7,2,3,9,3,5,6,1,8,1,3
     byte($pos, 0x010402070506040a0705020006040a0107060300050702030903050601080103)
 
+macro LINES($line, $pos):
+    byte(3 * $line + $pos + 18, lines)
+
 def calc_reward(rnd, playing_lines):
     result_0 = array(ROW_COUNT())
     result_1 = array(ROW_COUNT())
@@ -217,20 +222,18 @@ def calc_reward(rnd, playing_lines):
         result_2[i] = REEL_2(mod(stops[2] + i, REEL_POSITIONS()))
         i += 1
 
-    # line 1
-    payout = self.calc_line(result_0[1], result_1[1], result_2[1])
+    payout = 0
+    line = 0
 
-    if playing_lines > 1:
-        # line 2
-        payout += self.calc_line(result_0[0], result_1[0], result_2[0])
-        # line 3
-        payout += self.calc_line(result_0[2], result_1[2], result_2[2])
-
-        if playing_lines > 3:
-            # line 4
-            payout += self.calc_line(result_0[0], result_1[1], result_2[2])
-            # line 5
-            payout += self.calc_line(result_0[2], result_1[1], result_2[0])
+    # lines[0] = 0x01 01 01
+    # lines[1] = 0x00 00 00
+    # lines[2] = 0x02 02 02
+    # lines[3] = 0x00 01 02
+    # lines[4] = 0x02 01 00
+    lines = 0x0101010000000202020001020201
+    while line < playing_lines:
+        payout += self.calc_line(result_0[LINES(line, 0)], result_1[LINES(line, 1)], result_2[LINES(line, 2)])
+        line += 1
 
     return(payout)
 
