@@ -15,7 +15,7 @@ def assert_max_gas_cost(block, max_gas):
 class TestSlethContract(object):
 
     CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 1184308
+    CONTRACT_GAS = 1124873
     SPIN_GAS = 188000
     CLAIM_GAS = 147000
 
@@ -34,7 +34,7 @@ class TestSlethContract(object):
         return self.s.profile(tester.k0, self.c.address, 0, funid=8, abi=[rnd, lines])
 
     def test_init(self):
-        assert self.c.get_stats() == [1, 0, 0, 0]
+        assert self.c.get_stats() == [0, 0, 0]
         assert self.s.block.get_code(self.c.address) != ''
 
     def test_suicide(self):
@@ -66,18 +66,15 @@ class TestSlethContract(object):
         current_round = self.c.get_current_round()
         assert current_round == 1
 
-        player, block, timestamp, bet, result, hash, entropy, rnd, status = self.c.get_round(current_round)
+        player, block, bet, result, entropy, status = self.c.get_round(current_round)
         assert player == int(tester.a0, 16)
         assert block == 0
-        assert timestamp == self.s.block.timestamp
         assert bet == 5
         assert result == 0
-        assert hash == 0
         assert entropy == 0
-        assert rnd == 0
         assert status == 1  # spinning
 
-        assert self.c.get_stats() == [2, 1, 5, 0]
+        assert self.c.get_stats() == [1, 5, 0]
 
     def test_calc_line_perfect_match(self):
         assert self.c.calc_line(0, 0, 0) == 50
@@ -140,7 +137,7 @@ class TestSlethContract(object):
         assert self.c.get_stops(2878) == [30, 25, 2]
         assert self.c.calc_reward(2878, 5) == 6
 
-    def _spin_mine_claim(self, amount, premine, expected_result, expected_rnd):
+    def _spin_mine_claim(self, amount, premine, expected_result):
         self.s.mine(premine)
 
         with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
@@ -152,14 +149,13 @@ class TestSlethContract(object):
         with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
             assert self.c.claim(1) == 1
 
-        player, block, timestamp, bet, result, hash, entropy, rnd, status = self.c.get_round(1)
+        player, block, bet, result, entropy, status = self.c.get_round(1)
         assert player == int(tester.a0, 16)
         assert block == premine
         assert bet == amount
-        assert hash != 0
         assert entropy != 0
         assert status == 2  # done
-        assert (result, rnd) == (expected_result, expected_rnd)
+        assert result == expected_result
 
         balance_after = self.s.block.get_balance(tester.a0)
         assert balance_after - balance_before == expected_result * self.ETHER
@@ -167,13 +163,13 @@ class TestSlethContract(object):
         current_round = self.c.get_current_round()
         assert current_round == 1
 
-        assert self.c.get_stats() == [2, 1, amount, expected_result]
+        assert self.c.get_stats() == [1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=2, expected_result=6, expected_rnd=20537)
+        self._spin_mine_claim(amount=5, premine=2, expected_result=2)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=0, expected_rnd=32214)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=0)
 
     def test_claim_invalid_status(self):
         with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
@@ -224,13 +220,11 @@ class TestSlethContract(object):
         with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
             assert self.c.claim(2, sender=tester.k1) == 1
 
-        player1, block1, timestamp1, bet1, result1, hash1, entropy1, rnd1, status1 = self.c.get_round(1)
-        player2, block2, timestamp2, bet2, result2, hash2, entropy2, rnd2, status2 = self.c.get_round(2)
+        player1, block1, bet1, result1, entropy1, status1 = self.c.get_round(1)
+        player2, block2, bet2, result2, entropy2, status2 = self.c.get_round(2)
         assert player1 == int(tester.a0, 16)
         assert player2 == int(tester.a1, 16)
-        assert hash1 == hash2
         assert entropy1 != entropy2
-        assert rnd1 != rnd2
 
     @slow
     def test_calc_reward_loop(self):
