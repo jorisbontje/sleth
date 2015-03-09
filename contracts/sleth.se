@@ -61,7 +61,7 @@ def claim(round):
     if block.number > target_block + 255:
         return(93)  # out of range
 
-    # calculate entropy
+    # calculate entropy. hex("sleth") == 0x736c657468
     entropy = sha3([blockhash(target_block), round, 0x736c657468], items=3)
 
     if entropy == 0:
