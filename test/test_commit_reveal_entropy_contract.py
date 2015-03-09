@@ -176,5 +176,5 @@ class TestCommitRevealEntropyContract(object):
         assert self.c.get_block(1) == [COW_SEED, 1, 1, 1]
 
         # signed vs unsigned as introduced by tester.send
-        assert self.c.get_entropy_ticket(0) == [int(tester.a1, 16), 1, 1, COW_HASH_1 - 2**256]
-        assert self.c.get_entropy(0, sender=tester.k1) == [1, COW_HASH_1 - 2**256]  # ready
+        assert self.c.get_entropy_ticket(0) == [int(tester.a1, 16), 1, 1, COW_HASH_1 - 2 ** 256]
+        assert self.c.get_entropy(0, sender=tester.k1) == [1, COW_HASH_1 - 2 ** 256]  # ready
