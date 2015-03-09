@@ -105,9 +105,9 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.contract.promise.then(function(contract) {
             var res = contract.call().get_stats();
             if (res.length) {
-                $scope.stats.total_spins = res[1].toNumber();
-                $scope.stats.total_coins_bet = res[2].toNumber();
-                $scope.stats.total_coins_won = res[3].toNumber();
+                $scope.stats.total_spins = res[0].toNumber();
+                $scope.stats.total_coins_bet = res[1].toNumber();
+                $scope.stats.total_coins_won = res[2].toNumber();
             } else {
                 $log.warn("get_stats: Empty response");
             }
@@ -117,17 +117,17 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.getRound = function(contract, roundNumber) {
         var res = contract.call().get_round(roundNumber);
         if (res.length) {
+            var player = res[0].isNeg() ? res[0].plus(two_256) : res[0];
+            var entropy = res[4].isNeg() ? res[4].plus(two_256) : res[4];
             var round = {
                 number: roundNumber,
-                player: '0x' + (res[0].isNeg() ? res[0].plus(two_256) : res[0]).toString(16),
+                player: '0x' + player.toString(16),
                 block: res[1].toNumber(),
-                time: res[2].toNumber(),
-                bet: res[3].toNumber(),
-                result: res[4].toNumber(),
-                hash: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
-                entropy: '0x' + (res[6].isNeg() ? res[6].plus(two_256) : res[6]).toString(16),
-                rnd: res[7].toNumber(),
-                status: res[8].toNumber()
+                bet: res[2].toNumber(),
+                result: res[3].toNumber(),
+                entropy: '0x' + entropy.toString(16),
+                rnd: res[4].modulo(32768).toNumber(),
+                status: entropy.toNumber()
             };
             return round;
         }
