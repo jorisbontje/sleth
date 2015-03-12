@@ -96,7 +96,6 @@ def cmd_inspect(instance, args):
 
 def cmd_status(instance, args):
     print "Coinbase: %s" % instance.coinbase()
-    print "Default block: %s" % instance.defaultBlock()
     print "Listening? %s" % instance.is_listening()
     print "Mining? %s" % instance.is_mining()
     print "Peer count: %d" % instance.peer_count()
