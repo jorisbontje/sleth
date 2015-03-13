@@ -1,0 +1,5 @@
+-
+  deploy:
+    simple:
+      contract: simple.se
+      gas: 100000

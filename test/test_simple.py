@@ -3,6 +3,7 @@ from pyethereum import tester
 class TestSimpleContract(object):
 
     CONTRACT = 'contracts/simple.se'
+    CONTRACT_GAS = 81815
 
     def setup_class(cls):
         cls.s = tester.state()
@@ -11,6 +12,10 @@ class TestSimpleContract(object):
 
     def setup_method(self, method):
         self.s.revert(self.snapshot)
+
+    def test_create_gas_used(self):
+        print "create gas used:", self.s.block.gas_used
+        assert self.s.block.gas_used <= self.CONTRACT_GAS
 
     def test_init(self):
         assert self.s.block.get_code(self.c.address) != ''
