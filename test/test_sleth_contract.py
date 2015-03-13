@@ -166,7 +166,7 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=0, expected_result=2)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=6)
 
     def test_claim_losing(self):
         self._spin_mine_claim(amount=5, premine=1, expected_result=0)
