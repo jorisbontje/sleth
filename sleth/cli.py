@@ -80,14 +80,18 @@ def cmd_create(instance, args):
     print "Is contract?", instance.is_contract_at(contract_address)
 
 def cmd_inspect(instance, args):
-    result = instance.is_contract_at(args.contract)
+    defaultBlock = 'latest'
+    if args.pending:
+        defaultBlock = 'pending'
+
+    result = instance.is_contract_at(args.contract, defaultBlock)
     print "Is contract?", result
 
-    result = instance.balance_at(args.contract)
+    result = instance.balance_at(args.contract, defaultBlock)
     print "Balance", result
 
     print "Storage:"
-    result = instance.storage_at(args.contract)
+    result = instance.storage_at(args.contract, defaultBlock)
     pprint(result)
 
     print "Logs:"
@@ -128,6 +132,7 @@ def main():
     parser_inspect = subparsers.add_parser('inspect', help='inspect the contract')
     parser_inspect.set_defaults(func=cmd_inspect)
     parser_inspect.add_argument('contract', help='sleth contract address')
+    parser_inspect.add_argument('--pending', action='store_true', help='look in pending transactions instead of mined')
 
     parser_status = subparsers.add_parser('status', help='display the eth node status')
     parser_status.set_defaults(func=cmd_status)
