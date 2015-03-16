@@ -52,6 +52,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.contract = $q.defer();
 
     $scope.bet = 0;
+    $scope.lastClaimed = 0;
     $scope.player = {};
     $scope.stats = {};
     $scope.round = {};
@@ -85,9 +86,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.stats.slethAddress = $scope.slethAddress;
 
         $scope.web3.blockNumber = web3.eth.blockNumber;
-        if ($scope.canClaim($scope.round)) {
-            $scope.claim($scope.round);
-        }
     };
 
     $scope.updateStats = function() {
@@ -167,10 +165,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                     $scope.logMessage(message);
                     $scope.rounds[roundNumber] = round;
                 }
-
-                if ($scope.canClaim($scope.round)) {
-                    $scope.claim($scope.round);
-                }
             }
         });
     };
@@ -195,8 +189,14 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.canClaim = function(round) {
-        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber >= round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
+        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber >= round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE) && (round.number > $scope.lastClaimed);
     };
+
+    $scope.$watchGroup(['round', 'web3'], function(newValues, oldValues, scope) {
+        if ($scope.canClaim($scope.round)) {
+            $scope.claim($scope.round);
+        }
+    });
 
     $scope.claim = function(round) {
         if (round.number) {
@@ -204,6 +204,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas}).claim(round.number);
 
                 $scope.logMessage("Claiming round #" + round.number + "...");
+                $scope.lastClaimed = round.number;
             });
         }
     };
