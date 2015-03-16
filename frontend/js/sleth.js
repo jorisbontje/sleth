@@ -29,7 +29,8 @@ app.factory('moment', function() {
 
 app.factory('web3', function() {
     var web3 = require('web3');
-    web3.setProvider(new web3.providers.HttpSyncProvider("http://localhost:8080/"));
+    console.log(web3);
+    web3.setProvider(new web3.providers.HttpProvider("http://localhost:8080/"));
     return web3;
 });
 
@@ -268,7 +269,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     // test if web3 is available
     try {
         $scope.web3.available = (web3.eth.coinbase !== "");
-        $scope.contractExists = (web3.eth.getData($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
+        $scope.contractExists = (web3.eth.getCode($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
     } catch(e) {
         $log.error(e);
         $scope.web3.error = e;
@@ -294,7 +295,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         });
 
         $scope.contract.promise.then(function(contract) {
-            web3.eth.filter({'address': $scope.slethAddress, 'max': 10}).watch(function(res) {
+            web3.eth.filter({'address': $scope.slethAddress, 'limit': 10}).watch(function(res) {
                 if (res.address !== $scope.slethAddress) {
                     $log.warn("watch: invalid address returned");
                     return;

@@ -6,35 +6,30 @@ from pprint import pprint
 from pyepm import api, config
 import serpent
 
-CONTRACT_FILE = "contracts/sleth.se"
-CONTRACT_GAS = 998657
+from constants import CONTRACT_FILE, CONTRACT_GAS, SPIN_GAS, CLAIM_GAS, ETHER
 
-ETHER = 10 ** 18
 
 def cmd_spin(instance, args):
     print "Spinning the slots with bet", args.bet
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, fun_name='spin', sig='i', data=[int(args.bet)], value=int(args.bet) * ETHER)
+    instance.transact(args.contract, fun_name='spin', sig='i', data=[int(args.bet)], value=int(args.bet) * ETHER, gas=SPIN_GAS)
 
 def cmd_claim(instance, args):
     print "Claiming round ", args.round
     assert instance.is_contract_at(args.contract), "Contract not found"
-    instance.transact(args.contract, fun_name='claim', sig='i', data=[int(args.round)])
+    instance.transact(args.contract, fun_name='claim', sig='i', data=[int(args.round)], gas=CLAIM_GAS)
 
 def cmd_get_round(instance, args):
     print "Getting information about round", args.round
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_round', sig='i', data=[int(args.round)])
     assert result, "No result returned to call"
-    array_len, player, block, timestamp, bet, result, hash, entropy, rnd, status = result
+    array_len, player, block, bet, result, entropy, status = result
     print "Player:", hex(player)
     print "Block:", block
-    print "Timestamp:", timestamp
     print "Bet:", bet
     print "Result:", result
-    print "BlockHash:", hex(hash)
     print "Entropy:", hex(entropy)
-    print "RND:", rnd
     print "Status:", status
 
 def cmd_get_current_round(instance, args):
@@ -49,8 +44,7 @@ def cmd_get_stats(instance, args):
     assert instance.is_contract_at(args.contract), "Contract not found"
     result = instance.call(args.contract, fun_name='get_stats', sig='', data=[])
     assert result, "No result returned to call"
-    array_len, current_round, total_spins, total_coins_bet, total_coins_won = result
-    print "Current round:", current_round
+    array_len, total_spins, total_coins_bet, total_coins_won = result
     print "Total spins:", total_spins
     print "Total coins bet:", total_coins_bet
     print "Total coins won:", total_coins_won
@@ -91,7 +85,7 @@ def cmd_inspect(instance, args):
     result = instance.balance_at(args.contract, defaultBlock)
     print "Balance", result
 
-    print "Storage:"
+    print "Owner:"
     result = instance.storage_at(args.contract, 0, defaultBlock)
     pprint(result)
 

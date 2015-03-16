@@ -3,7 +3,8 @@ from pyethereum import tester
 
 import random
 import pytest
-slow = pytest.mark.slow
+
+from sleth.constants import CONTRACT_FILE, CONTRACT_GAS, SPIN_GAS, CLAIM_GAS, ETHER
 
 @contextmanager
 def assert_max_gas_cost(block, max_gas):
@@ -14,16 +15,9 @@ def assert_max_gas_cost(block, max_gas):
 
 class TestSlethContract(object):
 
-    CONTRACT = 'contracts/sleth.se'
-    CONTRACT_GAS = 998657
-    SPIN_GAS = 163000
-    CLAIM_GAS = 108000
-
-    ETHER = 10 ** 18
-
     def setup_class(cls):
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT, endowment=2000 * cls.ETHER, gas=cls.CONTRACT_GAS)
+        cls.c = cls.s.abi_contract(CONTRACT_FILE, endowment=2000 * ETHER, gas=CONTRACT_GAS)
         cls.snapshot = cls.s.snapshot()
 
     def setup_method(self, method):
@@ -43,25 +37,25 @@ class TestSlethContract(object):
 
     def test_create_gas_used(self):
         print "create gas used:", self.s.block.gas_used
-        assert self.s.block.gas_used <= self.CONTRACT_GAS
+        assert self.s.block.gas_used <= CONTRACT_GAS
 
     def test_spin_bet_out_of_range(self):
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
             assert self.c.spin(0) == 0
 
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(6, value=6 * self.ETHER) == 0
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(6, value=6 * ETHER) == 0
 
     def test_spin_invalid_funds(self):
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
             assert self.c.spin(5) == 0
 
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, value=3 * self.ETHER) == 0
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, value=3 * ETHER) == 0
 
     def test_spin_valid_bet(self):
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, value=5 * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, value=5 * ETHER) == 1
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -140,13 +134,13 @@ class TestSlethContract(object):
     def _spin_mine_claim(self, amount, premine, expected_result):
         self.s.mine(premine)
 
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(amount, value=amount * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(amount, value=amount * ETHER) == 1
 
         self.s.mine(1)
         balance_before = self.s.block.get_balance(tester.a0)
 
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(1) == 1
 
         player, block, bet, result, entropy, status = self.c.get_round(1)
@@ -158,7 +152,7 @@ class TestSlethContract(object):
         assert result == expected_result
 
         balance_after = self.s.block.get_balance(tester.a0)
-        assert balance_after - balance_before == expected_result * self.ETHER
+        assert balance_after - balance_before == expected_result * ETHER
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -172,39 +166,39 @@ class TestSlethContract(object):
         self._spin_mine_claim(amount=5, premine=1, expected_result=0)
 
     def test_claim_invalid_status(self):
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(1) == 90
 
     def test_claim_invalid_round(self):
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, value=5 * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, value=5 * ETHER) == 1
 
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(1, sender=tester.k1) == 91
 
     def test_claim_not_yet_ready(self):
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, value=5 * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, value=5 * ETHER) == 1
 
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(1) == 92
 
     def test_claim_block_number_out_of_range(self):
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, value=5 * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, value=5 * ETHER) == 1
 
         self.s.mine(256)
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(1) == 93
 
     def test_claim_has_unique_entropy(self):
         self.s.mine(1)
 
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, value=5 * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, value=5 * ETHER) == 1
 
-        with assert_max_gas_cost(self.s.block, self.SPIN_GAS):
-            assert self.c.spin(5, sender=tester.k1, value=5 * self.ETHER) == 1
+        with assert_max_gas_cost(self.s.block, SPIN_GAS):
+            assert self.c.spin(5, sender=tester.k1, value=5 * ETHER) == 1
 
         current_round = self.c.get_current_round()
         assert current_round == 1
@@ -214,10 +208,10 @@ class TestSlethContract(object):
 
         self.s.mine(1)
 
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(1) == 1
 
-        with assert_max_gas_cost(self.s.block, self.CLAIM_GAS):
+        with assert_max_gas_cost(self.s.block, CLAIM_GAS):
             assert self.c.claim(2, sender=tester.k1) == 1
 
         player1, block1, bet1, result1, entropy1, status1 = self.c.get_round(1)
@@ -226,7 +220,7 @@ class TestSlethContract(object):
         assert player2 == int(tester.a1, 16)
         assert entropy1 != entropy2
 
-    @slow
+    @pytest.mark.slow
     def test_calc_reward_loop(self):
         random.seed(0)
         bet = 5
