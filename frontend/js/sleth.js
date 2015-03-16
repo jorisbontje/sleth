@@ -29,7 +29,6 @@ app.factory('moment', function() {
 
 app.factory('web3', function() {
     var web3 = require('web3');
-    console.log(web3);
     web3.setProvider(new web3.providers.HttpProvider("http://localhost:8080/"));
     return web3;
 });
@@ -49,7 +48,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.canvasSize = 160 * config.reel_scale;
 
     $scope.slethAddress = $routeParams.contractAddress;
-    $scope.defaultGas = web3.fromDecimal(100000);
+    $scope.defaultGas = web3.fromDecimal(200000);
     $scope.contract = $q.defer();
 
     $scope.bet = 0;
@@ -127,8 +126,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 bet: res[2].toNumber(),
                 result: res[3].toNumber(),
                 entropy: '0x' + entropy.toString(16),
-                rnd: res[4].modulo(32768).toNumber(),
-                status: entropy.toNumber()
+                rnd: entropy.modulo(32768).toNumber(),
+                status: res[5].toNumber()
             };
             return round;
         }
@@ -287,7 +286,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
         $scope.$watch('player.round', $scope.updateRound);
 
-        web3.eth.filter('chain').watch(function(res) {
+        web3.eth.filter('latest').watch(function(res) {
             $scope.updateChain();
             $scope.updatePlayer();
             $scope.updateRound();
