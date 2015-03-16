@@ -92,7 +92,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
     $scope.updatePlayer = function() {
         $scope.contract.promise.then(function(contract) {
-            var res = contract.call().get_current_round();
+            var res = contract.call({from: $scope.player.address}).get_current_round();
             if (res) {
                 $scope.player.round = res.toNumber();
             } else {
@@ -103,7 +103,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
     $scope.updateStats = function() {
         $scope.contract.promise.then(function(contract) {
-            var res = contract.call().get_stats();
+            var res = contract.call({from: $scope.player.address}).get_stats();
             if (res.length) {
                 $scope.stats.total_spins = res[0].toNumber();
                 $scope.stats.total_coins_bet = res[1].toNumber();
@@ -115,7 +115,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.getRound = function(contract, roundNumber) {
-        var res = contract.call().get_round(roundNumber);
+        var res = contract.call({from: $scope.player.address}).get_round(roundNumber);
         if (res.length) {
             var player = res[0].isNeg() ? res[0].plus(two_256) : res[0];
             var entropy = res[4].isNeg() ? res[4].plus(two_256) : res[4];
@@ -190,8 +190,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
                 game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
-                $scope.updatePlayer();
-                $scope.updateStats();
             });
         }
     };
@@ -206,9 +204,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas}).claim(round.number);
 
                 $scope.logMessage("Claiming round #" + round.number + "...");
-                $scope.updatePlayer();
-                $scope.updateStats();
-                $scope.updateRound();
             });
         }
     };
@@ -287,6 +282,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.$watch('player.round', $scope.updateRound);
 
         web3.eth.filter('latest').watch(function(res) {
+            $log.debug('filter:latest');
             $scope.updateChain();
             $scope.updatePlayer();
             $scope.updateRound();
@@ -311,10 +307,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 }
             });
         });
-
-        $scope.updateChain();
-        $scope.updatePlayer();
-        $scope.updateStats();
     }
 
     if ($scope.web3.available) {
