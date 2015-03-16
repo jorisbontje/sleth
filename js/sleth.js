@@ -29,7 +29,7 @@ app.factory('moment', function() {
 
 app.factory('web3', function() {
     var web3 = require('web3');
-    web3.setProvider(new web3.providers.HttpSyncProvider("http://localhost:8080/"));
+    web3.setProvider(new web3.providers.HttpProvider("http://localhost:8080/"));
     return web3;
 });
 
@@ -48,7 +48,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.canvasSize = 160 * config.reel_scale;
 
     $scope.slethAddress = $routeParams.contractAddress;
-    $scope.defaultGas = web3.fromDecimal(100000);
+    $scope.defaultGas = web3.fromDecimal(200000);
     $scope.contract = $q.defer();
 
     $scope.bet = 0;
@@ -105,9 +105,9 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.contract.promise.then(function(contract) {
             var res = contract.call().get_stats();
             if (res.length) {
-                $scope.stats.total_spins = res[1].toNumber();
-                $scope.stats.total_coins_bet = res[2].toNumber();
-                $scope.stats.total_coins_won = res[3].toNumber();
+                $scope.stats.total_spins = res[0].toNumber();
+                $scope.stats.total_coins_bet = res[1].toNumber();
+                $scope.stats.total_coins_won = res[2].toNumber();
             } else {
                 $log.warn("get_stats: Empty response");
             }
@@ -117,17 +117,17 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.getRound = function(contract, roundNumber) {
         var res = contract.call().get_round(roundNumber);
         if (res.length) {
+            var player = res[0].isNeg() ? res[0].plus(two_256) : res[0];
+            var entropy = res[4].isNeg() ? res[4].plus(two_256) : res[4];
             var round = {
                 number: roundNumber,
-                player: '0x' + (res[0].isNeg() ? res[0].plus(two_256) : res[0]).toString(16),
+                player: '0x' + player.toString(16),
                 block: res[1].toNumber(),
-                time: res[2].toNumber(),
-                bet: res[3].toNumber(),
-                result: res[4].toNumber(),
-                hash: '0x' + (res[5].isNeg() ? res[5].plus(two_256) : res[5]).toString(16),
-                entropy: '0x' + (res[6].isNeg() ? res[6].plus(two_256) : res[6]).toString(16),
-                rnd: res[7].toNumber(),
-                status: res[8].toNumber()
+                bet: res[2].toNumber(),
+                result: res[3].toNumber(),
+                entropy: '0x' + entropy.toString(16),
+                rnd: entropy.modulo(32768).toNumber(),
+                status: res[5].toNumber()
             };
             return round;
         }
@@ -184,7 +184,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
             var value = web3.fromDecimal(bet * Math.pow(10, 18));
             $scope.contract.promise.then(function(contract) {
-                contract.sendTransaction({gas: $scope.defaultGas, value: value}).spin(bet);
+                contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas, value: value}).spin(bet);
 
                 $scope.bet = bet;
 
@@ -203,7 +203,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.claim = function(round) {
         if (round.number) {
             $scope.contract.promise.then(function(contract) {
-                contract.sendTransaction({gas: $scope.defaultGas}).claim(round.number);
+                contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas}).claim(round.number);
 
                 $scope.logMessage("Claiming round #" + round.number + "...");
                 $scope.updatePlayer();
@@ -268,7 +268,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     // test if web3 is available
     try {
         $scope.web3.available = (web3.eth.coinbase !== "");
-        $scope.contractExists = (web3.eth.getData($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
+        $scope.contractExists = (web3.eth.getCode($scope.slethAddress) !== "0x0000000000000000000000000000000000000000000000000000000000000000");
     } catch(e) {
         $log.error(e);
         $scope.web3.error = e;
@@ -286,7 +286,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
         $scope.$watch('player.round', $scope.updateRound);
 
-        web3.eth.filter('chain').watch(function(res) {
+        web3.eth.filter('latest').watch(function(res) {
             $scope.updateChain();
             $scope.updatePlayer();
             $scope.updateRound();
@@ -294,7 +294,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         });
 
         $scope.contract.promise.then(function(contract) {
-            web3.eth.filter({'address': $scope.slethAddress, 'max': 10}).watch(function(res) {
+            web3.eth.filter({'address': $scope.slethAddress, 'limit': 10}).watch(function(res) {
                 if (res.address !== $scope.slethAddress) {
                     $log.warn("watch: invalid address returned");
                     return;

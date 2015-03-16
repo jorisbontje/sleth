@@ -6,14 +6,14 @@
         <tr>
             <th>Round</th>
             <th>Player</th>
-            <th>Time</th>
+            <th>Block</th>
             <th>Bet</th>
             <th>Prize</th>
         </tr>
         <tr ng-repeat="round in rounds | toArray | orderBy: 'time' :true" ng-hide="round.number == currentRound">
             <td>{{round.number}}</td>
             <td>{{round.player | limitTo : 10}}</td>
-            <td am-time-ago="round.time" am-preprocess="unix"></td>
+            <td>{{round.block}}</td>
             <td>{{round.bet}}</td>
             <td>{{round.result}}</td>
         </tr>
