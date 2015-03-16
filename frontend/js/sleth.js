@@ -184,7 +184,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
             var value = web3.fromDecimal(bet * Math.pow(10, 18));
             $scope.contract.promise.then(function(contract) {
-                contract.sendTransaction({gas: $scope.defaultGas, value: value}).spin(bet);
+                contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas, value: value}).spin(bet);
 
                 $scope.bet = bet;
 
@@ -203,7 +203,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.claim = function(round) {
         if (round.number) {
             $scope.contract.promise.then(function(contract) {
-                contract.sendTransaction({gas: $scope.defaultGas}).claim(round.number);
+                contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas}).claim(round.number);
 
                 $scope.logMessage("Claiming round #" + round.number + "...");
                 $scope.updatePlayer();
