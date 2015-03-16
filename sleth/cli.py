@@ -73,6 +73,7 @@ def cmd_create(instance, args):
         return
 
     contract = serpent.compile(open(CONTRACT_FILE).read()).encode('hex')
+
     contract_address = instance.create(contract, gas=CONTRACT_GAS, endowment=args.endowment * ETHER)
 
     print "Contract will be available at %s" % contract_address
@@ -91,7 +92,7 @@ def cmd_inspect(instance, args):
     print "Balance", result
 
     print "Storage:"
-    result = instance.storage_at(args.contract, defaultBlock)
+    result = instance.storage_at(args.contract, 0, defaultBlock)
     pprint(result)
 
     print "Logs:"
