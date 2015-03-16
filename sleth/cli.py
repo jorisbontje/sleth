@@ -30,6 +30,7 @@ def cmd_get_round(instance, args):
     print "Bet:", bet
     print "Result:", result
     print "Entropy:", hex(entropy)
+    print "RND:", entropy % 32768
     print "Status:", status
 
 def cmd_get_current_round(instance, args):
@@ -49,7 +50,7 @@ def cmd_get_stats(instance, args):
     print "Total coins bet:", total_coins_bet
     print "Total coins won:", total_coins_won
     if total_coins_bet > 0:
-        print "Payout percentage: %.2f" % (total_coins_won / total_coins_bet)
+        print "Payout percentage: %.2f" % (float(total_coins_won) / total_coins_bet * 100)
 
 def cmd_suicide(instance, args):
     print "Killing the contract"
