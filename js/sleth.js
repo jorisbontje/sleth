@@ -52,6 +52,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     $scope.contract = $q.defer();
 
     $scope.bet = 0;
+    $scope.lastClaimed = 0;
     $scope.player = {};
     $scope.stats = {};
     $scope.round = {};
@@ -85,25 +86,11 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.stats.slethAddress = $scope.slethAddress;
 
         $scope.web3.blockNumber = web3.eth.blockNumber;
-        if ($scope.canClaim($scope.round)) {
-            $scope.claim($scope.round);
-        }
-    };
-
-    $scope.updatePlayer = function() {
-        $scope.contract.promise.then(function(contract) {
-            var res = contract.call().get_current_round();
-            if (res) {
-                $scope.player.round = res.toNumber();
-            } else {
-                $log.warn("get_current_round: Empty response");
-            }
-        });
     };
 
     $scope.updateStats = function() {
         $scope.contract.promise.then(function(contract) {
-            var res = contract.call().get_stats();
+            var res = contract.call({from: $scope.player.address}).get_stats();
             if (res.length) {
                 $scope.stats.total_spins = res[0].toNumber();
                 $scope.stats.total_coins_bet = res[1].toNumber();
@@ -114,8 +101,15 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         });
     };
 
+    $scope.getCurrentRound = function(contract) {
+        var res = contract.call({from: $scope.player.address}).get_current_round();
+        if (res) {
+            return res.toNumber();
+        }
+    };
+
     $scope.getRound = function(contract, roundNumber) {
-        var res = contract.call().get_round(roundNumber);
+        var res = contract.call({from: $scope.player.address}).get_round(roundNumber);
         if (res.length) {
             var player = res[0].isNeg() ? res[0].plus(two_256) : res[0];
             var entropy = res[4].isNeg() ? res[4].plus(two_256) : res[4];
@@ -134,45 +128,45 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.updateRound = function() {
-        var roundNumber = $scope.player.round;
-        if(roundNumber) {
-            $scope.contract.promise.then(function(contract) {
-                var round = $scope.getRound(contract, roundNumber);
-                if (!round) {
-                    $log.warn("get_round: Empty response");
-                    return;
-                }
+        $scope.contract.promise.then(function(contract) {
+            var roundNumber = $scope.getCurrentRound(contract);
+            if (!roundNumber) {
+                $log.warn("get_current_round: Empty response");
+                return;
+            }
+            $scope.player.round = roundNumber;
 
-                if (round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block + MAX_BLOCK_AGE)) {
-                    round.status = ROUND_EXPIRED;
-                }
+            var round = $scope.getRound(contract, roundNumber);
+            if (!round) {
+                $log.warn("get_round: Empty response");
+                return;
+            }
 
-                var changed = !angular.equals(round, $scope.round);
-                $scope.round = round;
+            if (round.status === ROUND_SPINNING && ($scope.web3.blockNumber > round.block + MAX_BLOCK_AGE)) {
+                round.status = ROUND_EXPIRED;
+            }
 
-                if (changed) {
-                    if (round.status === ROUND_SPINNING && (game.state === game.STATE_NEW)) {
-                        $scope.bet = round.bet;
-                        game.spin(round.bet);
-                    } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
-                        $scope.bet = 0;
-                        game.set_stops(round.rnd);
-                        var message = "Results for round #" + roundNumber + ": you won ";
-                        if (round.result) {
-                            message += round.result + " coins :)";
-                        } else {
-                            message += "nothing :(";
-                        }
-                        $scope.logMessage(message);
-                        $scope.rounds[roundNumber] = round;
+            var changed = !angular.equals(round, $scope.round);
+            $scope.round = round;
+
+            if (changed) {
+                if (round.status === ROUND_SPINNING && (game.state === game.STATE_NEW)) {
+                    $scope.bet = round.bet;
+                    game.spin(round.bet);
+                } else if (round.status === ROUND_DONE && (game.state !== game.STATE_NEW)) {
+                    $scope.bet = 0;
+                    game.set_stops(round.rnd);
+                    var message = "Results for round #" + roundNumber + ": you won ";
+                    if (round.result) {
+                        message += round.result + " coins :)";
+                    } else {
+                        message += "nothing :(";
                     }
-
-                    if ($scope.canClaim($scope.round)) {
-                        $scope.claim($scope.round);
-                    }
+                    $scope.logMessage(message);
+                    $scope.rounds[roundNumber] = round;
                 }
-            });
-        }
+            }
+        });
     };
 
     $scope.spin = function(bet) {
@@ -190,15 +184,20 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
                 game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
-                $scope.updatePlayer();
-                $scope.updateStats();
+                $scope.round = {};
             });
         }
     };
 
     $scope.canClaim = function(round) {
-        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber >= round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE);
+        return round.status === ROUND_SPINNING && ($scope.web3.blockNumber >= round.block) && ($scope.web3.blockNumber <= round.block + MAX_BLOCK_AGE) && (round.number > $scope.lastClaimed);
     };
+
+    $scope.$watchGroup(['round', 'web3'], function(newValues, oldValues, scope) {
+        if ($scope.canClaim($scope.round)) {
+            $scope.claim($scope.round);
+        }
+    });
 
     $scope.claim = function(round) {
         if (round.number) {
@@ -206,9 +205,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 contract.sendTransaction({from: $scope.player.address, gas: $scope.defaultGas}).claim(round.number);
 
                 $scope.logMessage("Claiming round #" + round.number + "...");
-                $scope.updatePlayer();
-                $scope.updateStats();
-                $scope.updateRound();
+                $scope.lastClaimed = round.number;
             });
         }
     };
@@ -287,8 +284,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
         $scope.$watch('player.round', $scope.updateRound);
 
         web3.eth.filter('latest').watch(function(res) {
+            $log.debug('filter:latest');
             $scope.updateChain();
-            $scope.updatePlayer();
             $scope.updateRound();
             $scope.updateStats();
         });
@@ -311,10 +308,6 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
                 }
             });
         });
-
-        $scope.updateChain();
-        $scope.updatePlayer();
-        $scope.updateStats();
     }
 
     if ($scope.web3.available) {
