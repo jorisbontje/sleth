@@ -58,13 +58,12 @@ def cmd_suicide(instance, args):
     instance.transact(args.contract, fun_name='suicide', sig='', data=[])
 
 def cmd_create(instance, args):
-    creator_address = instance.accounts()[0]
-    creator_balance = instance.balance_at(creator_address)
+    creator_balance = instance.balance_at(args.from_address)
     balance_required = CONTRACT_GAS * 1e+13 + args.endowment * ETHER
     if creator_balance < balance_required:
         print "Insufficient balance to cover gas for contract creation."
         print "You need at least %d wei in account %s (current balance is %d wei)." % \
-            (balance_required, creator_address, creator_balance)
+            (balance_required, args.from_address, creator_balance)
         return
 
     contract = serpent.compile(open(CONTRACT_FILE).read()).encode('hex')
@@ -118,7 +117,12 @@ def cmd_transact(instance, args):
     instance.wait_for_transaction(tx_count, verbose=True)
 
 def main():
+    api_config = config.read_config()
+    instance = api.Api(api_config)
+
     parser = argparse.ArgumentParser()
+    from_address = instance.accounts()[0]
+    parser.add_argument('--from_address', default=from_address, help='address to send transactions from')
 
     subparsers = parser.add_subparsers(help='sub-command help')
     parser_create = subparsers.add_parser('create', help='create the contract')
@@ -167,9 +171,8 @@ def main():
 
     args = parser.parse_args()
 
-    api_config = config.read_config()
-    instance = api.Api(api_config)
-
+    print "Using from_address = %s" % (args.from_address)
+    instance.address = args.from_address
     args.func(instance, args)
 
 if __name__ == '__main__':
