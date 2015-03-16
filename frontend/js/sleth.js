@@ -184,6 +184,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
                 game.spin(bet);
                 $scope.logMessage("Spinning... " + bet);
+                $scope.round = {};
             });
         }
     };
