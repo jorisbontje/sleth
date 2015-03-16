@@ -10,7 +10,7 @@
             <th>Bet</th>
             <th>Prize</th>
         </tr>
-        <tr ng-repeat="round in rounds | toArray | orderBy: 'time' :true" ng-hide="round.number == currentRound">
+        <tr ng-repeat="round in rounds | toArray | orderBy: 'number' :true" ng-hide="round.number == currentRound">
             <td>{{round.number}}</td>
             <td>{{round.player | limitTo : 10}}</td>
             <td>{{round.block}}</td>
