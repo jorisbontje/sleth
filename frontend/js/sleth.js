@@ -290,6 +290,22 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
             $scope.updateStats();
         });
 
+        // needed for go-ethereum, as it doesn't support filter on latest yet.
+        if (web3.version.client.indexOf("Ethereum(G)") > -1) {
+            $log.info("GO client detected!");
+
+            $interval(function() {
+                $log.debug('forced update for GO client');
+                $scope.updateChain();
+                $scope.updateRound();
+                $scope.updateStats();
+            }, 6000);
+
+            $scope.updateChain();
+            $scope.updateRound();
+            $scope.updateStats();
+        }
+
         $scope.contract.promise.then(function(contract) {
             web3.eth.filter({'address': $scope.slethAddress, 'limit': 10}).watch(function(res) {
                 if (res.address !== $scope.slethAddress) {
