@@ -1,3 +1,4 @@
+https://github.com/heikoheiko/rlp/tarball/master
 https://github.com/ethereum/serpent/tarball/develop
 https://github.com/ethereum/pyethereum/tarball/develop
 pyepm
