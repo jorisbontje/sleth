@@ -90,7 +90,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
     $scope.updateStats = function() {
         $scope.contract.promise.then(function(contract) {
-            var res = contract.call({from: $scope.player.address}).get_stats();
+            // XXX go-ethereum workaround: provide gas for calls
+            var res = contract.call({from: $scope.player.address, gas: $scope.defaultGas}).get_stats();
             if (res.length) {
                 $scope.stats.total_spins = res[0].toNumber();
                 $scope.stats.total_coins_bet = res[1].toNumber();
@@ -102,14 +103,16 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.getCurrentRound = function(contract) {
-        var res = contract.call({from: $scope.player.address}).get_current_round();
+        // XXX go-ethereum workaround: provide gas for calls
+        var res = contract.call({from: $scope.player.address, gas: $scope.defaultGas}).get_current_round();
         if (res) {
             return res.toNumber();
         }
     };
 
     $scope.getRound = function(contract, roundNumber) {
-        var res = contract.call({from: $scope.player.address}).get_round(roundNumber);
+        // XXX go-ethereum workaround: provide gas for calls
+        var res = contract.call({from: $scope.player.address, gas: $scope.defaultGas}).get_round(roundNumber);
         if (res.length) {
             var player = res[0].isNeg() ? res[0].plus(two_256) : res[0];
             var entropy = res[4].isNeg() ? res[4].plus(two_256) : res[4];
