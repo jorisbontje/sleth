@@ -300,8 +300,8 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
         $scope.contract.promise.then(function(contract) {
             web3.eth.filter({'address': $scope.slethAddress, 'limit': 10}).watch(function(res) {
-                if (res.address !== $scope.slethAddress) {
-                    $log.warn("watch: invalid address returned");
+                if (!res || res.address !== $scope.slethAddress) {
+                    $log.warn("watch: invalid result", res);
                     return;
                 }
                 var roundNumber = web3.toDecimal(res.data);
