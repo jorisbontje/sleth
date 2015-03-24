@@ -90,7 +90,7 @@ def cmd_inspect(instance, args):
     pprint(result)
 
     print "Logs:"
-    logs = instance.logs({'address': args.contract})
+    logs = instance.logs({'address': args.contract, 'fromBlock': hex(0), 'toBlock': 'latest'})
     pprint(logs)
 
 def cmd_status(instance, args):
