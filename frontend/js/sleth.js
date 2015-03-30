@@ -23,7 +23,7 @@ var app = angular.module('slethController', ['slots.config', 'slots.game', 'slot
 
 app.factory('moment', function() {
     var moment = window.moment;
-    window.monent = undefined;
+    window.moment = undefined;
     return moment;
 });
 
