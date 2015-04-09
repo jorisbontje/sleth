@@ -1,5 +1,5 @@
 import bitcoin as b
-from pyethereum import tester, utils
+from ethereum import tester, utils
 
 
 class TestECRecover(object):
@@ -26,8 +26,8 @@ def test_ecrecover(h, v, r, s):
         V, R, S = b.ecdsa_raw_sign(msghash, priv)
         assert b.ecdsa_raw_verify(msghash, (V, R, S), pub)
 
-        addr = utils.big_endian_to_int(utils.sha3(b.encode_pubkey(pub, 'bin')[1:])[12:])
-        assert int(utils.privtoaddr(priv), 16) == addr
+        addr = utils.sha3(b.encode_pubkey(pub, 'bin')[1:])[12:]
+        assert utils.privtoaddr(priv) == addr
 
         result = self.c.test_ecrecover(utils.big_endian_to_int(msghash.decode('hex')), V, R, S)
-        assert result == addr
+        assert result == utils.big_endian_to_int(addr)

@@ -1,5 +1,5 @@
-from pyethereum import tester
-from pyethereum import utils
+from ethereum import tester
+from ethereum import utils
 
 def hash_value(value):
     return utils.big_endian_to_int(utils.sha3(utils.zpad(value, 32)))
@@ -25,7 +25,7 @@ class TestCommitRevealEntropyContract(object):
 
     def test_request_entropy(self):
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [0, 4]
-        assert self.c.get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(0) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
         assert self.c.get_entropy(0) == [0, 0]  # pending
         assert self.c.get_block(self.s.block.number + 1) == [0, 0, 0, 1]
 
@@ -41,9 +41,9 @@ class TestCommitRevealEntropyContract(object):
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [1, 4]
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [2, 4]
 
-        assert self.c.get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
-        assert self.c.get_entropy_ticket(1) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
-        assert self.c.get_entropy_ticket(2) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(0) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(1) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(2) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
 
         assert self.c.get_block(self.s.block.number + 1) == [0, 0, 0, 3]
 
@@ -51,19 +51,19 @@ class TestCommitRevealEntropyContract(object):
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [0, 4]
         assert self.c.request_entropy(sender=tester.k1, value=self.ENTROPY_COST) == [1, 4]
 
-        assert self.c.get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
-        assert self.c.get_entropy_ticket(1) == [int(tester.a1, 16), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(0) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(1) == [utils.big_endian_to_int(tester.a1), 0, self.s.block.number + 1, 0]
 
         assert self.c.get_block(self.s.block.number + 1) == [0, 0, 0, 2]
 
     def test_request_entropy_target_depends_on_block_number(self):
         self.s.mine()
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [0, 5]
-        assert self.c.get_entropy_ticket(0) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(0) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
 
         self.s.mine(10)
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [1, 15]
-        assert self.c.get_entropy_ticket(1) == [int(tester.a0, 16), 0, self.s.block.number + 1, 0]
+        assert self.c.get_entropy_ticket(1) == [utils.big_endian_to_int(tester.a0), 0, self.s.block.number + 1, 0]
 
     def test_request_entropy_get_expired(self):
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [0, 4]
@@ -176,5 +176,5 @@ class TestCommitRevealEntropyContract(object):
         assert self.c.get_block(1) == [COW_SEED, 1, 1, 1]
 
         # signed vs unsigned as introduced by tester.send
-        assert self.c.get_entropy_ticket(0) == [int(tester.a1, 16), 1, 1, COW_HASH_1 - 2 ** 256]
+        assert self.c.get_entropy_ticket(0) == [utils.big_endian_to_int(tester.a1), 1, 1, COW_HASH_1 - 2 ** 256]
         assert self.c.get_entropy(0, sender=tester.k1) == [1, COW_HASH_1 - 2 ** 256]  # ready

@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from pyethereum import tester
+from ethereum import tester
+from eth_tools import address
 
 import random
 import pytest
@@ -61,7 +62,7 @@ class TestSlethContract(object):
         assert current_round == 1
 
         player, block, bet, result, entropy, status = self.c.get_round(current_round)
-        assert player == int(tester.a0, 16)
+        assert address(player) == tester.a0.encode('hex')
         assert block == 0
         assert bet == 5
         assert result == 0
@@ -144,7 +145,7 @@ class TestSlethContract(object):
             assert self.c.claim(1) == 1
 
         player, block, bet, result, entropy, status = self.c.get_round(1)
-        assert player == int(tester.a0, 16)
+        assert address(player) == tester.a0.encode('hex')
         assert block == premine
         assert bet == amount
         assert entropy != 0
@@ -160,10 +161,10 @@ class TestSlethContract(object):
         assert self.c.get_stats() == [1, amount, expected_result]
 
     def test_claim_winning(self):
-        self._spin_mine_claim(amount=5, premine=8, expected_result=6)
+        self._spin_mine_claim(amount=5, premine=1, expected_result=12)
 
     def test_claim_losing(self):
-        self._spin_mine_claim(amount=5, premine=1, expected_result=0)
+        self._spin_mine_claim(amount=5, premine=0, expected_result=0)
 
     def test_claim_invalid_status(self):
         with assert_max_gas_cost(self.s.block, CLAIM_GAS):
@@ -216,8 +217,8 @@ class TestSlethContract(object):
 
         player1, block1, bet1, result1, entropy1, status1 = self.c.get_round(1)
         player2, block2, bet2, result2, entropy2, status2 = self.c.get_round(2)
-        assert player1 == int(tester.a0, 16)
-        assert player2 == int(tester.a1, 16)
+        assert address(player1) == tester.a0.encode('hex')
+        assert address(player2) == tester.a1.encode('hex')
         assert entropy1 != entropy2
 
     @pytest.mark.slow

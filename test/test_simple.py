@@ -1,4 +1,5 @@
-from pyethereum import tester
+from ethereum import tester
+from eth_tools import address
 
 class TestSimpleContract(object):
 
@@ -19,7 +20,7 @@ class TestSimpleContract(object):
 
     def test_init(self):
         assert self.s.block.get_code(self.c.address) != ''
-        assert self.s.block.get_storage_data(self.c.address, 0) == int(tester.a0, 16)
+        assert address(self.s.block.get_storage_data(self.c.address, 0)) == tester.a0.encode('hex')
         assert self.s.block.get_storage_data(self.c.address, 1) == 1
 
     def test_incr(self):

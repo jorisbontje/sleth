@@ -1,4 +1,4 @@
-from pyethereum import tester
+from ethereum import tester
 
 class TestLog(object):
 
@@ -40,22 +40,22 @@ def test_log_topics_and_data():
         logs = self._last_logs()
         assert len(logs) == 4
 
-        assert logs[0]['address'] == self.c.address
+        assert logs[0]['address'] == self.c.address.encode('hex')
         assert logs[0]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001']
         assert logs[0]['data'] == '0x'
 
-        assert logs[1]['address'] == self.c.address
+        assert logs[1]['address'] == self.c.address.encode('hex')
         assert logs[1]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001',
                                      '0000000000000000000000000000000000000000000000000000000000000002']
         assert logs[1]['data'] == '0x'
 
-        assert logs[2]['address'] == self.c.address
+        assert logs[2]['address'] == self.c.address.encode('hex')
         assert logs[2]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001',
                                      '0000000000000000000000000000000000000000000000000000000000000002',
                                      '0000000000000000000000000000000000000000000000000000000000000003']
         assert logs[2]['data'] == '0x'
 
-        assert logs[3]['address'] == self.c.address
+        assert logs[3]['address'] == self.c.address.encode('hex')
         assert logs[3]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001',
                                      '0000000000000000000000000000000000000000000000000000000000000002',
                                      '0000000000000000000000000000000000000000000000000000000000000003',
@@ -68,7 +68,7 @@ def test_log_topics_and_data():
         logs = self._last_logs()
         assert len(logs) == 1
 
-        assert logs[0]['address'] == self.c.address
+        assert logs[0]['address'] == self.c.address.encode('hex')
         assert logs[0]['topics'] == []
         assert logs[0]['data'] == self.EXPECTED_DATA
 
@@ -78,22 +78,22 @@ def test_log_topics_and_data():
         logs = self._last_logs()
         assert len(logs) == 4
 
-        assert logs[0]['address'] == self.c.address
+        assert logs[0]['address'] == self.c.address.encode('hex')
         assert logs[0]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001']
         assert logs[0]['data'] == self.EXPECTED_DATA
 
-        assert logs[1]['address'] == self.c.address
+        assert logs[1]['address'] == self.c.address.encode('hex')
         assert logs[1]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001',
                                      '0000000000000000000000000000000000000000000000000000000000000002']
         assert logs[1]['data'] == self.EXPECTED_DATA
 
-        assert logs[2]['address'] == self.c.address
+        assert logs[2]['address'] == self.c.address.encode('hex')
         assert logs[2]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001',
                                      '0000000000000000000000000000000000000000000000000000000000000002',
                                      '0000000000000000000000000000000000000000000000000000000000000003']
         assert logs[2]['data'] == self.EXPECTED_DATA
 
-        assert logs[3]['address'] == self.c.address
+        assert logs[3]['address'] == self.c.address.encode('hex')
         assert logs[3]['topics'] == ['0000000000000000000000000000000000000000000000000000000000000001',
                                      '0000000000000000000000000000000000000000000000000000000000000002',
                                      '0000000000000000000000000000000000000000000000000000000000000003',
