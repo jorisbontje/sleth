@@ -23,12 +23,12 @@ var app = angular.module('slethController', ['slots.config', 'slots.game', 'slot
 
 app.factory('moment', function() {
     var moment = window.moment;
-    window.monent = undefined;
+    window.moment = undefined;
     return moment;
 });
 
 app.factory('web3', function() {
-    var web3 = require('ethereum.js');
+    var web3 = require('web3');
     web3.setProvider(new web3.providers.HttpProvider("http://localhost:8080/"));
     return web3;
 });
@@ -90,8 +90,7 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
 
     $scope.updateStats = function() {
         $scope.contract.promise.then(function(contract) {
-            // XXX go-ethereum workaround: provide gas for calls
-            var res = contract.call({from: $scope.player.address, gas: $scope.defaultGas}).get_stats();
+            var res = contract.call({from: $scope.player.address}).get_stats();
             if (res.length) {
                 $scope.stats.total_spins = res[0].toNumber();
                 $scope.stats.total_coins_bet = res[1].toNumber();
@@ -103,16 +102,14 @@ app.controller("SlethController", ['$http', '$interval', '$log', '$q', '$routePa
     };
 
     $scope.getCurrentRound = function(contract) {
-        // XXX go-ethereum workaround: provide gas for calls
-        var res = contract.call({from: $scope.player.address, gas: $scope.defaultGas}).get_current_round();
+        var res = contract.call({from: $scope.player.address}).get_current_round();
         if (res) {
             return res.toNumber();
         }
     };
 
     $scope.getRound = function(contract, roundNumber) {
-        // XXX go-ethereum workaround: provide gas for calls
-        var res = contract.call({from: $scope.player.address, gas: $scope.defaultGas}).get_round(roundNumber);
+        var res = contract.call({from: $scope.player.address}).get_round(roundNumber);
         if (res.length) {
             var player = res[0].isNeg() ? res[0].plus(two_256) : res[0];
             var entropy = res[4].isNeg() ? res[4].plus(two_256) : res[4];
