@@ -28,7 +28,7 @@ app.factory('moment', function() {
 });
 
 app.factory('web3', function() {
-    var web3 = require('ethereum.js');
+    var web3 = require('web3');
     web3.setProvider(new web3.providers.HttpProvider("http://localhost:8080/"));
     return web3;
 });
