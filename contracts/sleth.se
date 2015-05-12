@@ -86,13 +86,13 @@ def claim(round):
     return(1)
 
 def get_round(round):
-    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].status], items=6)
+    return([self.rounds[round].player, self.rounds[round].block, self.rounds[round].bet, self.rounds[round].result, self.rounds[round].entropy, self.rounds[round].status]:arr)
 
 def get_current_round():
     return(self.players[msg.sender].last_round)
 
 def get_stats():
-    return([self.total_spins, self.total_coins_bet, self.total_coins_won], items=3)
+    return([self.total_spins, self.total_coins_bet, self.total_coins_won]:arr)
 
 macro MATCH_PAYOUT($s):
    byte($s + 21, match_payout)

@@ -8,6 +8,7 @@ def hash_value(value):
 class TestCommitRevealEntropyContract(object):
 
     CONTRACT = 'contracts/commit_reveal_entropy.se'
+    CONTRACT_GAS = 1014114
     COW_HASH = hash_value('cow')
     COW_INT = utils.big_endian_to_int('cow')
     MONKEY_INT = utils.big_endian_to_int('monkey')
@@ -17,11 +18,15 @@ class TestCommitRevealEntropyContract(object):
 
     def setup_class(cls):
         cls.s = tester.state()
-        cls.c = cls.s.abi_contract(cls.CONTRACT)
+        cls.c = cls.s.abi_contract(cls.CONTRACT, gas=cls.CONTRACT_GAS)
         cls.snapshot = cls.s.snapshot()
 
     def setup_method(self, method):
         self.s.revert(self.snapshot)
+
+    def test_create_gas_used(self):
+        print "create gas used:", self.s.block.gas_used
+        assert self.s.block.gas_used <= self.CONTRACT_GAS
 
     def test_request_entropy(self):
         assert self.c.request_entropy(value=self.ENTROPY_COST) == [0, 4]
