@@ -29,7 +29,7 @@ app.factory('moment', function() {
 
 app.factory('web3', function() {
     var web3 = require('web3');
-    web3.setProvider(new web3.providers.HttpProvider("http://localhost:8080/"));
+    web3.setProvider(new web3.providers.HttpProvider("http://localhost:8545/"));
     return web3;
 });
 
